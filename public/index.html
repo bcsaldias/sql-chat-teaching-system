@@ -3,100 +3,145 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>INFO 330 SQL Chat Viewer</title>
+  <title>INFO 330 • SQL Chat</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>INFO 330 SQL Chat Viewer</h1>
-      <!-- <p class="subtle">Students write SQL only. This page displays your schema’s chat view.</p> -->
+  <div class="appShell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brandDot"></div>
+        <div>
+          <div class="brandTitle">SQL Chat</div>
+          <div class="brandSub">INFO 330 • Database-driven messaging</div>
+        </div>
+      </div>
+      <div class="topbarRight">
+        <span id="connPill" class="pill pill-muted">Not connected</span>
+      </div>
     </header>
 
-    <section id="loginPanel" class="card">
-      <h2>Group Login</h2>
-      <div class="row">
-        <label>Group Username (grp01..grp20)</label>
-        <input id="username" placeholder="grp07" autocomplete="username" />
-      </div>
-      <div class="row">
-        <label>Password</label>
-        <input id="password" type="password" autocomplete="current-password" />
-      </div>
-      <button id="loginBtn">Log in</button>
-      <div id="loginMsg" class="msg"></div>
-      <div class="hint">
-        Contract required in your schema:
-        <code>chat_recent_messages</code> view and <code>chat_post_message(text,text)</code> function.
-      </div>
-    </section>
+    <div class="container">
 
-    <section id="chatPanel" class="card hidden">
-  <div class="chatHeader">
-    <h2>Chat</h2>
-    <button id="logoutBtn" class="secondary">Log out</button>
-  </div>
+      <!-- GROUP DB LOGIN (provided by instructor) -->
+      <section id="loginPanel" class="card">
+        <h2>Group Database Login</h2>
+        <p class="muted">
+          Use your group credentials (<code>grp01</code>…<code>grp20</code>) to connect to your schema.
+        </p>
 
-  <!-- Chat user auth (separate from DB/group login) -->
-  <div id="userAuthPanel" class="cardInner">
-    <h3>Chat User Login</h3>
+        <div class="grid2">
+          <div class="field">
+            <label>Group Username</label>
+            <input id="username" placeholder="grp10" autocomplete="username" />
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input id="password" type="password" autocomplete="current-password" />
+          </div>
+        </div>
 
-    <div class="row">
-      <label>Username</label>
-      <input id="chatUsername" placeholder="e.g., sam10" autocomplete="username" />
-    </div>
-
-    <div class="row">
-      <label>Password</label>
-      <input id="chatPassword" type="password" autocomplete="current-password" />
-    </div>
-
-    <div class="actions">
-      <button id="registerBtn" class="secondary">Register</button>
-      <button id="userLoginBtn">Login</button>
-    </div>
-
-    <div id="userAuthMsg" class="msg"></div>
-    <p class="hint">
-      Password is hashed in the browser using SHA-512 (128 hex chars) before sending.
-    </p>
-  </div>
-
-  <!-- Main app UI -->
-  <div id="mainChatUI" class="hidden">
-    <div class="layout">
-      <!-- Channels -->
-      <aside class="sidebar">
-        <h3>Channels</h3>
-        <div id="channels" class="channels"></div>
-        <div id="channelMsg" class="msg"></div>
-      </aside>
-
-      <!-- Messages -->
-      <main class="content">
         <div class="row">
-          <label>Active channel</label>
-          <div id="activeChannelLabel" class="activeChannel">None selected</div>
+          <button id="loginBtn" class="btn btn-primary">Connect</button>
+          <div id="loginMsg" class="msg"></div>
         </div>
 
-        <div class="composer">
-          <input id="body" placeholder="Type a message..." />
-          <button id="sendBtn">Send</button>
-        </div>
+        <!-- <div class="hint">
+          Contract in your schema: <code>users</code>, <code>channels</code>, <code>channel_members</code>,
+          <code>messages</code>, <code>chat_recent_messages</code>, <code>chat_post_message</code>.
+        </div> -->
+      </section>
 
-        <div id="postMsg" class="msg"></div>
+      <!-- CHAT APP -->
+      <section id="chatPanel" class="chatLayout hidden">
 
-        <h3>Recent messages</h3>
-        <div id="messages" class="messages"></div>
-      </main>
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+          <div class="sidebarHeader">
+            <div class="sidebarTitle">Channels</div>
+            <button id="sidebarClose" class="iconBtn" title="Close sidebar" aria-label="Close sidebar">✕</button>
+          </div>
+
+          <div class="searchWrap">
+            <input id="channelSearch" class="search" placeholder="Search channels…" />
+          </div>
+
+          <div id="channels" class="channelList"></div>
+
+          <div id="channelMsg" class="msg"></div>
+
+          <div class="sidebarFooter">
+            <div class="userLine">
+              <div class="avatar" id="userAvatar">?</div>
+              <div class="userMeta">
+                <div id="userLabel" class="userName">Not signed in</div>
+                <div class="mutedSmall">Chat identity</div>
+              </div>
+            </div>
+            <!-- <button id="logoutBtn" class="btn btn-ghost full">Disconnect</button> -->
+            <button id="logoutBtn" class="btn btn-ghost full">Sign out</button>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="chatMain">
+          <div class="chatHeader">
+            <button id="sidebarOpen" class="iconBtn mobileOnly" title="Open sidebar" aria-label="Open sidebar">☰</button>
+
+            <div class="chatHeaderTitle">
+              <div id="activeChannelLabel" class="channelTitle">Select a channel</div>
+              <div id="activeChannelSub" class="channelSub mutedSmall">Join a channel to read and post.</div>
+            </div>
+
+            <div class="chatHeaderRight">
+              <span id="userPill" class="pill pill-muted">Not logged in</span>
+            </div>
+          </div>
+
+          <!-- Chat user auth (separate from group login) -->
+          <section id="userAuthPanel" class="authCard">
+            <h3>Chat User</h3>
+            <p class="muted">
+              Register or log in. Your password is hashed in the browser using SHA-512 (128 hex chars).
+            </p>
+
+            <div class="grid2">
+              <div class="field">
+                <label>Username</label>
+                <input id="chatUsername" placeholder="e.g., sam10" autocomplete="username" />
+              </div>
+              <div class="field">
+                <label>Password</label>
+                <input id="chatPassword" type="password" autocomplete="current-password" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button id="registerBtn" class="btn btn-ghost">Register</button>
+              <button id="userLoginBtn" class="btn btn-primary">Log in</button>
+              <div id="userAuthMsg" class="msg"></div>
+            </div>
+          </section>
+
+          <!-- Messages UI -->
+          <section id="mainChatUI" class="chatBody hidden">
+            <div id="messages" class="messages"></div>
+
+            <div class="composer">
+              <div class="composerInner">
+                <textarea id="composerInput" rows="1" placeholder="Message… (Enter to send, Shift+Enter for newline)"></textarea>
+                <button id="sendBtn" class="btn btn-primary">Send</button>
+              </div>
+              <div id="postMsg" class="msg"></div>
+            </div>
+          </section>
+        </main>
+      </section>
     </div>
-  </div>
-</section>
 
-
+    <div id="toast" class="toast hidden"></div>
   </div>
 
   <script src="/app.js"></script>
 </body>
 </html>
-
