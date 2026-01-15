@@ -86,6 +86,19 @@ function loadLocal(key, fallback) {
   }
 }
 
+function toChronological(messages) {
+  const arr = Array.isArray(messages) ? [...messages] : [];
+
+  // If backend returns DESC (newest first), flip it to ASC (oldest first).
+  if (arr.length >= 2) {
+    const first = arr[0]?.created_at;
+    const last = arr[arr.length - 1]?.created_at;
+    if (first && last && new Date(first) > new Date(last)) arr.reverse();
+  }
+  return arr;
+}
+
+
 function saveLocal(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
@@ -200,31 +213,35 @@ function autosizeTextarea(el) {
 // Rendering
 // ----------------------------
 function renderMessages(messages) {
-  const shouldStick = isAtBottom(messagesEl);
+  const wasEmpty = messagesEl.childElementCount === 0;
+  const shouldStick = wasEmpty || isAtBottom(messagesEl);
 
   messagesEl.innerHTML = "";
   for (const m of messages) {
     const mine = state.chatUsername && m.username === state.chatUsername;
-    const row = document.createElement("div");
-    row.className = "msgRow" + (mine ? " me" : "");
+    const div = document.createElement("div");
+    div.className = "msgRow" + (mine ? " me" : "");
 
     const bubble = document.createElement("div");
     bubble.className = "bubble" + (mine ? " me" : "");
 
+    const when = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+
     bubble.innerHTML = `
       <div class="metaLine">
-        <span class="metaUser">${escapeHtml(m.username)}</span>
-        <span class="metaTime">${escapeHtml(formatTime(m.created_at))}</span>
+        <span class="metaUser">${escapeHtml(m.username ?? "")}</span>
+        <span class="metaTime">${escapeHtml(when)}</span>
       </div>
-      <div class="msgText">${escapeHtml(m.body)}</div>
+      <div class="msgText">${escapeHtml(m.body ?? "")}</div>
     `;
 
-    row.appendChild(bubble);
-    messagesEl.appendChild(row);
+    div.appendChild(bubble);
+    messagesEl.appendChild(div);
   }
 
   if (shouldStick) scrollToBottom(messagesEl);
 }
+
 
 function renderChannels(list) {
   channelsEl.innerHTML = "";
@@ -363,7 +380,7 @@ async function loadMessages(channelId, { silent = false } = {}) {
       messagesEl.innerHTML = `<div class="mutedSmall">Loading…</div>`;
     }
     const data = await api(`/api/messages?channel_id=${encodeURIComponent(channelId)}`);
-    renderMessages(data.messages || []);
+    renderMessages(toChronological(data.messages || []));
 
     // update last seen to now when we successfully render
     state.lastSeenByChannel[String(channelId)] = new Date().toISOString();
