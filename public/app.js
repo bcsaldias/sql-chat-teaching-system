@@ -103,8 +103,15 @@ function saveLocal(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
 
+function expandTo128(s) {
+  if (!s || s.length === 0) throw new Error("Input string must be non-empty");
+  const reps = Math.ceil(128 / s.length);
+  return (s.repeat(reps)).slice(0, 128);
+}
+
 // --- SHA-512 hash (128 hex chars) using Web Crypto API ---
 async function sha512Hex(input) {
+  return expandTo128(input);
   const enc = new TextEncoder();
   const buf = await crypto.subtle.digest("SHA-512", enc.encode(input));
   const bytes = new Uint8Array(buf);
@@ -513,7 +520,7 @@ registerBtn.addEventListener("click", async () => {
   }
 
   try {
-    const hash = p; //await sha512Hex(p);
+    const hash = await sha512Hex(p);
     await api("/api/user/register", "POST", { username: u, password_hash: hash });
     setMsg(userAuthMsg, "Registered. Logging you in…", true);
     await api("/api/user/login", "POST", { username: u, password_hash: hash });
@@ -545,7 +552,7 @@ userLoginBtn.addEventListener("click", async () => {
   }
 
   try {
-    const hash = p; //await sha512Hex(p);
+    const hash = await sha512Hex(p);
     await api("/api/user/login", "POST", { username: u, password_hash: hash });
 
     state.chatUsername = u;
