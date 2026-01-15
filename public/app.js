@@ -128,15 +128,39 @@ async function api(path, method = "GET", body = null) {
   const r = await fetch(path, opts);
   const data = await r.json().catch(() => ({}));
 
-  // If DB session is gone/invalid, force the gate closed
+  // If unauthorized, decide *why* before hiding the chat UI
   if (r.status === 401 || r.status === 403) {
-    state.isDbConnected = false;
-    renderGate();
+    const msg = String(data.error || data.detail || "").toLowerCase();
+
+    // Only treat as "DB not connected" if it's the GROUP DB session
+    const groupDbMissing =
+      msg.includes("group database") ||
+      msg.includes("not logged in to group") ||
+      msg.includes("not logged in to group database") ||
+      msg.includes("not logged in to group db");
+
+    // Chat-user issues should keep the chat panel visible, just show the chat-user login panel
+    const chatUserMissing =
+      msg.includes("chat user") ||
+      msg.includes("not logged in as a chat user");
+
+    if (groupDbMissing) {
+      // DB session truly missing: show only group login
+      showLogin();
+      setConnectedPill(false);
+    } else if (chatUserMissing) {
+      // DB still connected: keep chat visible, show chat-user auth
+      showChat();
+      showUserAuth();
+      setConnectedPill(true);
+    }
+    // If it's "invalid username/password" for chat user, do nothing special—just show the error.
   }
 
   if (!r.ok) throw new Error(data.detail || data.error || `Request failed (${r.status})`);
   return data;
 }
+
 
 
 function showChat() {
@@ -560,7 +584,12 @@ userLoginBtn.addEventListener("click", async () => {
     await loadChannels();
     toast(`Hello @${u}`);
   } catch (e) {
-    setMsg(userAuthMsg, e.message, false);
+    const m = String(e.message || "");
+    if (m.toLowerCase().includes("invalid username") || m.toLowerCase().includes("does not exist")) {
+      setMsg(userAuthMsg, "User not found. Click Register first.", false);
+    } else {
+      setMsg(userAuthMsg, m, false);
+    }
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
