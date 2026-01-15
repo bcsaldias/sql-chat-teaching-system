@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>INFO 330 SQL Chat Viewer</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>INFO 330 SQL Chat Viewer</h1>
+      <p class="subtle">Students write SQL only. This page displays your schema’s chat view.</p>
+    </header>
+
+    <section id="loginPanel" class="card">
+      <h2>Group Login</h2>
+      <div class="row">
+        <label>Group Username (grp01..grp20)</label>
+        <input id="username" placeholder="grp07" autocomplete="username" />
+      </div>
+      <div class="row">
+        <label>Password</label>
+        <input id="password" type="password" autocomplete="current-password" />
+      </div>
+      <button id="loginBtn">Log in</button>
+      <div id="loginMsg" class="msg"></div>
+      <div class="hint">
+        Contract required in your schema:
+        <code>chat_recent_messages</code> view and <code>chat_post_message(text,text)</code> function.
+      </div>
+    </section>
+
+    <section id="chatPanel" class="card hidden">
+      <div class="chatHeader">
+        <h2>Chat</h2>
+        <button id="logoutBtn" class="secondary">Log out</button>
+      </div>
+
+      <div class="row">
+        <label>Your display name</label>
+        <input id="displayName" placeholder="e.g., Sam" />
+      </div>
+
+      <div class="composer">
+        <input id="body" placeholder="Type a message..." />
+        <button id="sendBtn">Send</button>
+      </div>
+
+      <div id="postMsg" class="msg"></div>
+
+      <h3>Recent messages</h3>
+      <div id="messages" class="messages"></div>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
+
