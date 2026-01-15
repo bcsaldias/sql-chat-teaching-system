@@ -32,26 +32,68 @@
     </section>
 
     <section id="chatPanel" class="card hidden">
-      <div class="chatHeader">
-        <h2>Chat</h2>
-        <button id="logoutBtn" class="secondary">Log out</button>
-      </div>
+  <div class="chatHeader">
+    <h2>Chat</h2>
+    <button id="logoutBtn" class="secondary">Log out</button>
+  </div>
 
-      <div class="row">
-        <label>Your display name</label>
-        <input id="displayName" placeholder="e.g., Sam" />
-      </div>
+  <!-- Chat user auth (separate from DB/group login) -->
+  <div id="userAuthPanel" class="cardInner">
+    <h3>Chat User Login</h3>
 
-      <div class="composer">
-        <input id="body" placeholder="Type a message..." />
-        <button id="sendBtn">Send</button>
-      </div>
+    <div class="row">
+      <label>Username</label>
+      <input id="chatUsername" placeholder="e.g., sam10" autocomplete="username" />
+    </div>
 
-      <div id="postMsg" class="msg"></div>
+    <div class="row">
+      <label>Password</label>
+      <input id="chatPassword" type="password" autocomplete="current-password" />
+    </div>
 
-      <h3>Recent messages</h3>
-      <div id="messages" class="messages"></div>
-    </section>
+    <div class="actions">
+      <button id="registerBtn" class="secondary">Register</button>
+      <button id="userLoginBtn">Login</button>
+    </div>
+
+    <div id="userAuthMsg" class="msg"></div>
+    <p class="hint">
+      Password is hashed in the browser using SHA-512 (128 hex chars) before sending.
+    </p>
+  </div>
+
+  <!-- Main app UI -->
+  <div id="mainChatUI" class="hidden">
+    <div class="layout">
+      <!-- Channels -->
+      <aside class="sidebar">
+        <h3>Channels</h3>
+        <div id="channels" class="channels"></div>
+        <div id="channelMsg" class="msg"></div>
+      </aside>
+
+      <!-- Messages -->
+      <main class="content">
+        <div class="row">
+          <label>Active channel</label>
+          <div id="activeChannelLabel" class="activeChannel">None selected</div>
+        </div>
+
+        <div class="composer">
+          <input id="body" placeholder="Type a message..." />
+          <button id="sendBtn">Send</button>
+        </div>
+
+        <div id="postMsg" class="msg"></div>
+
+        <h3>Recent messages</h3>
+        <div id="messages" class="messages"></div>
+      </main>
+    </div>
+  </div>
+</section>
+
+
   </div>
 
   <script src="/app.js"></script>
