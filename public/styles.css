@@ -370,9 +370,10 @@ input:focus, textarea:focus{
   align-items:flex-end;
 }
 #composerInput{
-  border-radius: 18px;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  min-height: 44px;        /* taller box */
+  padding: 12px 14px;      /* more breathing room */
+  font-size: 14px;
+  line-height: 1.35;
 }
 #composerInput:focus{
   border-color: rgba(64,93,230,0.35);
@@ -420,3 +421,5 @@ input:focus, textarea:focus{
 @media (max-width: 900px){
   .chatLayout{ height: calc(100vh - 120px); }
 }
+
+#chatPanel.hidden { display: none !important; }

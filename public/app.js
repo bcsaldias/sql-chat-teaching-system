@@ -117,11 +117,20 @@ async function api(path, method = "GET", body = null) {
     opts.headers["Content-Type"] = "application/json";
     opts.body = JSON.stringify(body);
   }
+
   const r = await fetch(path, opts);
   const data = await r.json().catch(() => ({}));
+
+  // If DB session is gone/invalid, force the gate closed
+  if (r.status === 401 || r.status === 403) {
+    state.isDbConnected = false;
+    renderGate();
+  }
+
   if (!r.ok) throw new Error(data.detail || data.error || `Request failed (${r.status})`);
   return data;
 }
+
 
 function showChat() {
   loginPanel.classList.add("hidden");
@@ -208,6 +217,31 @@ function autosizeTextarea(el) {
   el.style.height = "auto";
   el.style.height = Math.min(el.scrollHeight, 160) + "px";
 }
+
+state.isDbConnected = false;
+
+function renderGate() {
+  if (state.isDbConnected) {
+    // show chat app (then you can decide whether to show userAuth or mainChat)
+    loginPanel.classList.add("hidden");
+    chatPanel.classList.remove("hidden");
+    setConnectedPill(true);
+  } else {
+    // show ONLY group db login
+    chatPanel.classList.add("hidden");
+    loginPanel.classList.remove("hidden");
+    setConnectedPill(false);
+
+    // (optional) clear chat UI so nothing “leaks”
+    stopPolling();
+    state.activeChannelId = null;
+    state.channels = [];
+    state.chatUsername = null;
+    messagesEl.innerHTML = "";
+    channelsEl.innerHTML = "";
+  }
+}
+
 
 // ----------------------------
 // Rendering
@@ -412,13 +446,14 @@ loginBtn.addEventListener("click", async () => {
       password: passwordEl.value
     });
     setMsg(loginMsg, "Connected to your group schema.", true);
-    setConnectedPill(true);
-    showChat();
-    showUserAuth();
+    state.isDbConnected = true;
+    renderGate();      // <-- this is the only thing that should show chatPanel
+    showUserAuth();    // show chat user login/register after DB connected
     toast("Connected");
   } catch (e) {
     setMsg(loginMsg, e.message, false);
-    setConnectedPill(false);
+    state.isDbConnected = false;
+    renderGate();
   } finally {
     loginBtn.disabled = false;
   }
@@ -601,5 +636,6 @@ sendBtn.addEventListener("click", async () => {
 // ----------------------------
 // Init
 // ----------------------------
-setConnectedPill(false);
+state.isDbConnected = false;
+renderGate();
 autosizeTextarea(composerInput);
