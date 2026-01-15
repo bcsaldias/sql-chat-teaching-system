@@ -513,7 +513,7 @@ registerBtn.addEventListener("click", async () => {
   }
 
   try {
-    const hash = await sha512Hex(p);
+    const hash = p; //await sha512Hex(p);
     await api("/api/user/register", "POST", { username: u, password_hash: hash });
     setMsg(userAuthMsg, "Registered. Logging you in…", true);
     await api("/api/user/login", "POST", { username: u, password_hash: hash });
