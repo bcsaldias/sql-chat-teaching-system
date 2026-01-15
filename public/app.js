@@ -545,7 +545,7 @@ userLoginBtn.addEventListener("click", async () => {
   }
 
   try {
-    const hash = await sha512Hex(p);
+    const hash = p; //await sha512Hex(p);
     await api("/api/user/login", "POST", { username: u, password_hash: hash });
 
     state.chatUsername = u;
