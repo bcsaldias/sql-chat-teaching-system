@@ -80,13 +80,14 @@ const SQL_LAB_ITEMS = [
   {
     key: "channels_list",
     title: "3) List channels + membership",
-    description: "Return the list of channels with membership info so the UI can show Join/Leave. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean).",
+    description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean), user_count (integer).",
     required:
 `SELECT
   c.id,
   c.name,
   c.description,
-  (cm.username IS NOT NULL) AS is_member
+  (cm.username IS NOT NULL) AS is_member,
+  (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
 FROM channels c
 LEFT JOIN channel_members cm
   ON cm.channel_id = c.id
@@ -566,7 +567,13 @@ function setActiveChannel(channel) {
   }
   state.activeChannelId = channel.id;
   activeChannelLabel.textContent = `# ${channel.name}`;
-  activeChannelSub.textContent = channel.description || " ";
+  // Show description and, if provided by the backend, the member count
+  const desc = channel.description || "";
+  const count = (typeof channel.user_count !== 'undefined' && channel.user_count !== null)
+    ? Number(channel.user_count)
+    : null;
+  const countText = count === null ? "" : ` • ${count} ${count === 1 ? 'member' : 'members'}`;
+  activeChannelSub.textContent = (desc + countText).trim() || " ";
 }
 
 function formatTime(iso) {
@@ -712,10 +719,10 @@ function renderChannels(list) {
     badge.className = "channelBadge " + (hasUnread ? "on" : "off");
     badge.title = hasUnread ? "New messages" : "";
 
-    const btn = document.createElement("button");
-    btn.className = "btn " + (ch.is_member ? "btn-ghost" : "btn-primary");
-    btn.classList.add("channelActionBtn");
-    btn.textContent = ch.is_member ? "Leave" : "Join";
+  const btn = document.createElement("button");
+  btn.className = "btn " + (ch.is_member ? "btn-ghost" : "btn-primary");
+  btn.classList.add("channelActionBtn");
+  btn.textContent = ch.is_member ? "Leave" : "Join";
 
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -756,8 +763,8 @@ function renderChannels(list) {
       sidebar.classList.remove("open");
     });
 
-    right.appendChild(badge);
-    right.appendChild(btn);
+  right.appendChild(badge);
+  right.appendChild(btn);
 
     item.appendChild(left);
     item.appendChild(right);

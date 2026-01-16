@@ -260,6 +260,16 @@ input:focus, textarea:focus{
 }
 .channelBadge.off{ background:#e5e7eb; }
 
+/* Number of users in a channel (small pill) */
+.memberCount{
+  font-size: 12px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--muted2);
+  border: 1px solid var(--border);
+}
+
 .sidebarFooter{
   border-top: 1px solid var(--border);
   padding: 12px 14px 14px;
