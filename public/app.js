@@ -52,6 +52,9 @@ let sqlLabList = null;
 let sqlSaveBtn = null;
 let sqlResetBtn = null;
 let sqlLabMsg = null;
+// keep the last templates we loaded from the server so we can avoid
+// saving / reloading when nothing changed (prevents unnecessary re-runs)
+let _lastSqlTemplates = null;
 
 const SQL_LAB_ITEMS = [
   // {
@@ -195,15 +198,33 @@ function ensureSqlLabUI() {
       if (sqlPanel && !sqlPanel.classList.contains('hidden')) {
         setMsg(sqlLabMsg, "");
         const templates = collectSqlLabInputs();
-        await api("/api/sql_templates", "POST", { templates });
-        await loadSqlTemplates();
-        setMsg(sqlLabMsg, "Saved. The server will now use your SQL templates.", true);
+        // Only save if templates actually changed since we last loaded them.
+        // This avoids re-running the same SQL on the server when the user
+        // simply switches back to Chat without editing anything.
+        const prev = _lastSqlTemplates || {};
+        const changed = JSON.stringify(templates) !== JSON.stringify(prev);
+        if (changed) {
+          await api("/api/sql_templates", "POST", { templates });
+          await loadSqlTemplates();
+          setMsg(sqlLabMsg, "Saved. The server will now use your SQL templates.", true);
+        }
       }
     } catch (e) {
       // show the error but continue to chat
       setMsg(sqlLabMsg, e.message, false);
     } finally {
-      await setTab("chat");
+      // Always switch to the Chat tab, then force a channels refresh so the
+      // `#channels` div reflects any server-side changes even if the user
+      // clicks the Chat tab while already on Chat.
+      try {
+        await setTab("chat");
+        if (state.chatUsername) {
+          await loadChannels();
+          if (state.activeChannelId) await loadMessages(state.activeChannelId, { silent: true });
+        }
+      } catch (err) {
+        console.error('Error refreshing channels after switching to chat:', err);
+      }
     }
   });
   tabSqlBtn.addEventListener("click", () => setTab("sql"));
@@ -274,7 +295,15 @@ async function setTab(which) {
       // Refresh channels/messages so the chat reflects any SQL/template changes
       try {
         await loadChannels();
-        if (state.activeChannelId) await loadMessages(state.activeChannelId, { silent: true });
+        if (state.activeChannelId) {
+          await loadMessages(state.activeChannelId, { silent: true });
+          // Update the last-seen timestamp for the active channel to reflect
+          // that the user returned to the Chat tab now. This updates the
+          // channels list UI with the new "returned at" time.
+          state.lastSeenByChannel[String(state.activeChannelId)] = new Date().toISOString();
+          saveLocal("lastSeenByChannel", state.lastSeenByChannel);
+          renderChannels(state.channels);
+        }
       } catch (e) {
         // non-fatal: show a small toast and continue
         console.error('Failed to refresh chat data on tab switch:', e);
@@ -350,7 +379,9 @@ async function loadSqlTemplates() {
   ensureSqlLabUI();
   setMsg(sqlLabMsg, "");
   const data = await api("/api/sql_templates");
-  renderSqlLab(data.templates || {});
+  // remember what we loaded so we can detect real edits later
+  _lastSqlTemplates = data.templates || {};
+  renderSqlLab(_lastSqlTemplates);
 }
 
 // ----------------------------
@@ -363,6 +394,10 @@ const state = {
   chatUsername: null,
   lastSeenByChannel: loadLocal("lastSeenByChannel", {})
 };
+
+// cache recent messages per-channel so we can detect changes and only
+// re-render the messages list when the server response actually differs.
+state.messagesByChannel = {};
 
 // ----------------------------
 // Helpers
@@ -530,7 +565,9 @@ function setActiveChannel(channel) {
     state.activeChannelId = null;
     activeChannelLabel.textContent = "Select a channel";
     activeChannelSub.textContent = "Join a channel to read and post.";
+    // Clear messages and hide the chat body so stale messages don't remain
     messagesEl.innerHTML = "";
+    mainChatUI.classList.add("hidden");
     stopPolling();
     return;
   }
@@ -595,6 +632,8 @@ function renderGate() {
 // Rendering
 // ----------------------------
 function renderMessages(messages) {
+  // Make sure the chat body is visible when rendering messages
+  mainChatUI.classList.remove("hidden");
   const wasEmpty = messagesEl.childElementCount === 0;
   const shouldStick = wasEmpty || isAtBottom(messagesEl);
 
@@ -641,6 +680,10 @@ function renderChannels(list) {
   // was changed to return none), show a friendly empty state rather than an
   // empty sidebar.
   if (!filtered || filtered.length === 0) {
+    // No channels are visible in the sidebar (could be server returned
+    // none, or the current search filtered them out). Ensure the main
+    // chat area is cleared so stale messages aren't shown.
+    setActiveChannel(null); // clears messages and stops polling
     const empty = document.createElement('div');
     empty.className = 'mutedSmall';
     empty.style.padding = '12px';
@@ -742,12 +785,29 @@ function renderChannels(list) {
 // Data Loading
 // ----------------------------
 async function loadChannels() {
-  const data = await api("/api/channels");
-  state.channels = (data.channels || []).map(c => ({
-    ...c,
-    latest_created_at: c.latest_created_at || null
-  }));
-  renderChannels(state.channels);
+  try {
+    const data = await api("/api/channels");
+    // Debug: log the raw response so we can confirm the server returned the
+    // updated channels after you changed the query.
+    console.debug("loadChannels: server response:", data);
+    state.channels = (data.channels || []).map(c => ({
+      ...c,
+      latest_created_at: c.latest_created_at || null
+    }));
+    renderChannels(state.channels);
+  } catch (e) {
+    // On error, clear any previously rendered channels so the sidebar
+    // doesn't show stale data from a prior successful load.
+    state.channels = [];
+    channelsEl.innerHTML = "";
+    // Hide the chat body when channels cannot be loaded so previous
+    // messages don't remain visible.
+    mainChatUI.classList.add("hidden");
+    setMsg(channelMsg, e.message || String(e), false);
+    // Stop polling since we don't have a valid channel context
+    stopPolling();
+    throw e; // rethrow so callers can handle additional UI changes if needed
+  }
 
   if (!state.activeChannelId) {
     const firstJoined = state.channels.find(c => c.is_member);
@@ -765,14 +825,31 @@ async function loadMessages(channelId, { silent = false } = {}) {
       messagesEl.innerHTML = `<div class="mutedSmall">Loading…</div>`;
     }
     const data = await api(`/api/messages?channel_id=${encodeURIComponent(channelId)}`);
-    renderMessages(toChronological(data.messages || []));
+    const messages = toChronological(data.messages || []);
 
-    state.lastSeenByChannel[String(channelId)] = new Date().toISOString();
-    saveLocal("lastSeenByChannel", state.lastSeenByChannel);
+    // Serialize to a compact string to detect changes. Avoids re-rendering
+    // identical message lists and ensures the UI updates when the server
+    // returns a different set.
+    const key = String(channelId);
+    const serialized = JSON.stringify(messages);
+    const prev = state.messagesByChannel[key];
+    if (serialized !== prev) {
+      // only re-render when messages changed
+      renderMessages(messages);
+      state.messagesByChannel[key] = serialized;
 
-    renderChannels(state.channels);
+      state.lastSeenByChannel[key] = new Date().toISOString();
+      saveLocal("lastSeenByChannel", state.lastSeenByChannel);
+
+      renderChannels(state.channels);
+    }
   } catch (e) {
-    setMsg(postMsg, e.message, false);
+    // Clear messages UI on error so stale messages from a previous
+    // successful load aren't shown when the request fails.
+    messagesEl.innerHTML = "";
+    // Also hide the chat body so no stale UI remains visible
+    mainChatUI.classList.add("hidden");
+    setMsg(postMsg, e.message || String(e), false);
     stopPolling();
   }
 }

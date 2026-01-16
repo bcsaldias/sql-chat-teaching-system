@@ -154,7 +154,7 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
     const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
     // Log a compact summary for debugging (server-side)
     try {
-      console.log('[sql_templates] saved keys ->', Object.keys(req.session.sqlTemplates || {}));
+      // console.log('[sql_templates] saved keys ->', Object.keys(req.session.sqlTemplates || {}));
     } catch (e) {}
     res.json({ ok: true, templates: merged });
   } catch (e) {
