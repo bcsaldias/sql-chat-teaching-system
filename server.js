@@ -32,11 +32,11 @@ app.use(express.static(path.join(__dirname, "public")));
 // Default SQL templates (match your current server.js exactly)
 const DEFAULT_SQL = {
   conn_test: "SELECT '';",
-  user_register: "SELECT '';",
+  user_register: "INSERT '';",
   user_login: "SELECT '';",
   channels_list: "SELECT '';",
-  channel_join: "SELECT '';",
-  channel_leave: "SELECT '';",
+  channel_join: "INSERT '';",
+  channel_leave: "DELETE '';",
   member_check: "SELECT '';",
   messages_list: "SELECT '';",
   message_post: "SELECT '';",

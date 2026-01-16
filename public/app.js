@@ -800,13 +800,23 @@ async function loadChannels() {
     throw e; // rethrow so callers can handle additional UI changes if needed
   }
 
-  if (!state.activeChannelId) {
-    const firstJoined = state.channels.find(c => c.is_member);
-    if (firstJoined) {
+  // Ensure we have an active channel when possible. If the server now
+  // reports that the user is a member of one or more channels, pick the
+  // first joined channel and load its messages. This covers the case where
+  // the channels SQL was changed and previously the UI had no joined
+  // channels (so no activeChannelId); when the student fixes the SQL and
+  // returns to Chat we must show messages.
+  const firstJoined = state.channels.find(c => c.is_member);
+  if (firstJoined) {
+    if (state.activeChannelId !== firstJoined.id) {
       setActiveChannel(firstJoined);
       await loadMessages(firstJoined.id);
-      startPolling();
     }
+    startPolling();
+  } else {
+    // If there are no joined channels, clear any previously active channel
+    // so the main chat UI doesn't show stale content.
+    if (state.activeChannelId) setActiveChannel(null);
   }
 }
 
@@ -833,6 +843,19 @@ async function loadMessages(channelId, { silent = false } = {}) {
       saveLocal("lastSeenByChannel", state.lastSeenByChannel);
 
       renderChannels(state.channels);
+    } else {
+      // If the server returned the same set as before but this load was
+      // explicit (non-silent), re-render the cached messages so the UI is
+      // visible (for example when the user clicks a channel). This avoids
+      // leaving the "Loading…" placeholder visible when nothing changed.
+      if (!silent && prev) {
+        try {
+          const cached = JSON.parse(prev);
+          renderMessages(cached);
+        } catch (err) {
+          // fallback: no-op
+        }
+      }
     }
   } catch (e) {
     // Clear messages UI on error so stale messages from a previous
