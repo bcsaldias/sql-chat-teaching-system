@@ -31,36 +31,15 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Default SQL templates (match your current server.js exactly)
 const DEFAULT_SQL = {
-  conn_test: "SELECT 1;",
-  user_register: "INSERT INTO users(username, password) VALUES ($1, $2);",
-  user_login: "SELECT password FROM users WHERE username = $1;",
-  channels_list: `
-    SELECT
-      c.id,
-      c.name,
-      c.description,
-      (cm.username IS NOT NULL) AS is_member
-    FROM channels c
-    LEFT JOIN channel_members cm
-      ON cm.channel_id = c.id
-     AND cm.username = $1
-    ORDER BY c.name;
-  `,
-  channel_join:
-    "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;",
-  channel_leave:
-    "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;",
-  member_check:
-    "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;",
-  messages_list: `
-    SELECT username, body, created_at
-    FROM chat_recent_messages
-    WHERE channel_id = $1
-    ORDER BY created_at DESC
-    LIMIT 50;
-  `,
-  message_post:
-    "SELECT chat_post_message($1, $2, $3) AS message_id;"
+  conn_test: "SELECT '';",
+  user_register: "SELECT '';",
+  user_login: "SELECT '';",
+  channels_list: "SELECT '';",
+  channel_join: "SELECT '';",
+  channel_leave: "SELECT '';",
+  member_check: "SELECT '';",
+  messages_list: "SELECT '';",
+  message_post: "SELECT '';",
 };
 
 
