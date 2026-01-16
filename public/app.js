@@ -363,7 +363,8 @@ function renderSqlLab(templates) {
     const ta = document.createElement("textarea");
     ta.className = "sqlInput";
     ta.dataset.sqlkey = item.key;
-    ta.value = String(templates[item.key]) + ";"
+    const s = String(templates[item.key] || "");
+    ta.value =  s.endsWith(";") ? s : s + ";";
 
     outer.appendChild(title);
     outer.appendChild(label);
