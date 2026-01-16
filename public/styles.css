@@ -423,3 +423,186 @@ input:focus, textarea:focus{
 }
 
 #chatPanel.hidden { display: none !important; }
+
+.tabs{
+  display:flex;
+  gap:10px;
+  margin: 10px 0 12px;
+}
+
+.tab{
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.tab.active{
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+}
+
+.sqlCard{
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0;
+  background: #fff;
+}
+
+.sqlHint{
+  font-family: var(--mono);
+  font-size: 12px;
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  overflow:auto;
+}
+
+.sqlInput{
+  width: 100%;
+  min-height: 80px;
+  margin-top: 10px;
+  font-family: var(--mono);
+}
+
+.hidden { display: none !important; }
+
+/* ----------------------------
+   SQL Lab Panel
+---------------------------- */
+
+#sqlLabPanel {
+  margin-top: 12px;
+}
+
+#sqlLabPanel .card {
+  background: #fff;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.06);
+}
+
+#sqlLabPanel .mutedSmall {
+  color: var(--muted, #6b7280);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+#sqlLabList {
+  margin-top: 12px;
+}
+
+#sqlLabList .sqlItem {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0;
+  background: #fff;
+}
+
+#sqlLabList .sqlTitle {
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+#sqlLabList .sqlReqLabel {
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  margin-bottom: 6px;
+}
+
+#sqlLabList .sqlRequired {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  background: #f3f4f6;
+  border: 1px solid var(--border, #e5e7eb);
+  padding: 10px;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 180px;
+}
+
+#sqlLabList textarea.sqlInput {
+  width: 100%;
+  min-height: 92px;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.35;
+  resize: vertical;
+  outline: none;
+}
+
+#sqlLabList textarea.sqlInput:focus {
+  border-color: var(--accent, #7c3aed);
+  box-shadow: 0 0 0 4px rgba(124,58,237,.15);
+}
+
+#sqlLabPanel .sqlActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+#sqlLabPanel #sqlLabMsg.msg {
+  margin-left: 6px;
+}
+
+/* ============================
+   SQL MODE: full-width panel
+   ============================ */
+
+html.sql-mode #sidebar,
+body.sql-mode #sidebar {
+  display: none !important;
+}
+
+/* If your layout uses a wrapper with grid columns, collapse it */
+html.sql-mode #chatPanel,
+body.sql-mode #chatPanel,
+html.sql-mode #chatPanel .chatLayout,
+body.sql-mode #chatPanel .chatLayout,
+html.sql-mode #chatPanel .layout,
+body.sql-mode #chatPanel .layout,
+html.sql-mode #chatPanel .appLayout,
+body.sql-mode #chatPanel .appLayout,
+html.sql-mode #chatPanel .shell,
+body.sql-mode #chatPanel .shell,
+html.sql-mode #chatPanel .container,
+body.sql-mode #chatPanel .container {
+  grid-template-columns: 1fr !important;
+  max-width: none !important;
+}
+
+/* If your main column has a max-width, remove it */
+html.sql-mode #sqlLabPanel,
+body.sql-mode #sqlLabPanel,
+html.sql-mode #sqlLabPanel .card,
+body.sql-mode #sqlLabPanel .card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* If the main content is flex and had a fixed basis, let it grow */
+html.sql-mode #mainChatUI,
+body.sql-mode #mainChatUI,
+html.sql-mode #userAuthPanel,
+body.sql-mode #userAuthPanel {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  max-width: none !important;
+}

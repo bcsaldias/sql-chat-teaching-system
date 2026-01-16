@@ -25,6 +25,63 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "public")));
 
+// =====================================================
+// SQL LAB SUPPORT (ADDED)
+// =====================================================
+
+// Default SQL templates (match your current server.js exactly)
+const DEFAULT_SQL = {
+  conn_test: "SELECT 1;",
+  user_register: "INSERT INTO users(username, password) VALUES ($1, $2);",
+  user_login: "SELECT password FROM users WHERE username = $1;",
+  channels_list: `
+    SELECT
+      c.id,
+      c.name,
+      c.description,
+      (cm.username IS NOT NULL) AS is_member
+    FROM channels c
+    LEFT JOIN channel_members cm
+      ON cm.channel_id = c.id
+     AND cm.username = $1
+    ORDER BY c.name;
+  `,
+  channel_join:
+    "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;",
+  channel_leave:
+    "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;",
+  member_check:
+    "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;",
+  messages_list: `
+    SELECT username, body, created_at
+    FROM chat_recent_messages
+    WHERE channel_id = $1
+    ORDER BY created_at DESC
+    LIMIT 50;
+  `,
+  message_post:
+    "SELECT chat_post_message($1, $2, $3) AS message_id;"
+};
+
+// Force a single statement (no multi-statement injection via ;)
+function normalizeSingleStatement(sql) {
+  const s = String(sql || "").trim();
+  const t = s.endsWith(";") ? s.slice(0, -1).trim() : s;
+  if (!t) throw new Error("SQL cannot be empty.");
+  if (t.includes(";")) throw new Error("Only one SQL statement is allowed.");
+  return t;
+}
+
+// Get template from session (if present) else default
+function getSql(req, key) {
+  const custom = req.session?.sqlTemplates?.[key];
+  const base = custom ?? DEFAULT_SQL[key];
+  if (!base) throw new Error(`Unknown SQL template key: ${key}`);
+  return normalizeSingleStatement(base);
+}
+
+// =====================================================
+
 function parseGroupToSchema(username) {
   const m = /^grp(\d{2})$/.exec(username);
   if (!m) return null;
@@ -66,6 +123,45 @@ function requireChatUser(req, res, next) {
   next();
 }
 
+// =====================================================
+// SQL LAB ENDPOINTS (ADDED) - only visible once group login works
+// =====================================================
+app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
+  const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
+  res.json({ ok: true, templates: merged });
+});
+
+app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
+  const templates = req.body?.templates || {};
+  req.session.sqlTemplates = req.session.sqlTemplates || {};
+
+  try {
+    for (const [key, sql] of Object.entries(templates)) {
+      if (!(key in DEFAULT_SQL)) continue; // ignore unknown keys
+      const normalized = normalizeSingleStatement(sql);
+
+      // (Optional lightweight guard) ensure the template begins with the expected verb
+      // This prevents students from saving totally unrelated statements.
+      const firstWord = normalized.trim().split(/\s+/)[0].toLowerCase();
+      const allowed = ["select", "insert", "delete", "update", "with"];
+      if (!allowed.includes(firstWord)) {
+        throw new Error(`Template "${key}" must start with SELECT/INSERT/DELETE/UPDATE/WITH.`);
+      }
+
+      req.session.sqlTemplates[key] = normalized;
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: "Invalid SQL template.", detail: String(e.message || e) });
+  }
+});
+
+app.post("/api/sql_templates/reset", requireGroupLogin, (req, res) => {
+  req.session.sqlTemplates = {};
+  res.json({ ok: true });
+});
+// =====================================================
+
 // --------------------
 // Group DB login
 // --------------------
@@ -75,10 +171,9 @@ app.post("/api/login", async (req, res) => {
   if (!schema) return res.status(400).json({ error: "Invalid group username (grp01..grp20)." });
 
   try {
-    // Test connection + (optional) check contract objects exist.
+    // Test connection (students can overwrite later, but default is SELECT 1)
     await withDb(username, password, schema, async (client) => {
-      // Don’t hard-fail if students haven’t built everything yet; just sanity-check connection.
-      await client.query("SELECT 1;");
+      await client.query(getSql(req, "conn_test"));
     });
 
     req.session.dbUser = username;
@@ -87,6 +182,9 @@ app.post("/api/login", async (req, res) => {
 
     // Reset chat user session on new group login
     req.session.chatUsername = null;
+
+    // Ensure sqlTemplates exists
+    if (!req.session.sqlTemplates) req.session.sqlTemplates = {};
 
     res.json({ ok: true, schema });
   } catch (e) {
@@ -116,15 +214,10 @@ app.post("/api/user/register", requireGroupLogin, async (req, res) => {
 
   try {
     await withDb(dbUser, dbPass, schema, async (client) => {
-      // Expect students created: users(username PK, password varchar(128))
-      await client.query(
-        "INSERT INTO users(username, password) VALUES ($1, $2);",
-        [u, h]
-      );
+      await client.query(getSql(req, "user_register"), [u, h]);
     });
     res.json({ ok: true });
   } catch (e) {
-    // unique violation -> user exists
     const msg = String(e.message || e);
     if (msg.includes("duplicate key") || msg.includes("already exists")) {
       return res.status(409).json({ error: "Username already exists." });
@@ -145,7 +238,7 @@ app.post("/api/user/login", requireGroupLogin, async (req, res) => {
 
   try {
     const ok = await withDb(dbUser, dbPass, schema, async (client) => {
-      const r = await client.query("SELECT password FROM users WHERE username = $1;", [u]);
+      const r = await client.query(getSql(req, "user_login"), [u]);
       if (r.rowCount === 0) return false;
       return r.rows[0].password === h;
     });
@@ -172,20 +265,7 @@ app.get("/api/channels", requireGroupLogin, requireChatUser, async (req, res) =>
 
   try {
     const channels = await withDb(dbUser, dbPass, schema, async (client) => {
-      // Expect students created: channels(id,name,description) + channel_members(username,channel_id)
-      const q = `
-        SELECT
-          c.id,
-          c.name,
-          c.description,
-          (cm.username IS NOT NULL) AS is_member
-        FROM channels c
-        LEFT JOIN channel_members cm
-          ON cm.channel_id = c.id
-         AND cm.username = $1
-        ORDER BY c.name;
-      `;
-      const r = await client.query(q, [chatUsername]);
+      const r = await client.query(getSql(req, "channels_list"), [chatUsername]);
       return r.rows;
     });
 
@@ -204,10 +284,7 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, async (req, r
 
   try {
     await withDb(dbUser, dbPass, schema, async (client) => {
-      await client.query(
-        "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;",
-        [chatUsername, cid]
-      );
+      await client.query(getSql(req, "channel_join"), [chatUsername, cid]);
     });
     res.json({ ok: true });
   } catch (e) {
@@ -224,10 +301,7 @@ app.post("/api/channels/leave", requireGroupLogin, requireChatUser, async (req, 
 
   try {
     await withDb(dbUser, dbPass, schema, async (client) => {
-      await client.query(
-        "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;",
-        [chatUsername, cid]
-      );
+      await client.query(getSql(req, "channel_leave"), [chatUsername, cid]);
     });
     res.json({ ok: true });
   } catch (e) {
@@ -246,24 +320,12 @@ app.get("/api/messages", requireGroupLogin, requireChatUser, async (req, res) =>
 
   try {
     const messages = await withDb(dbUser, dbPass, schema, async (client) => {
-      // Only allow viewing if member
-      const mem = await client.query(
-        "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;",
-        [chatUsername, cid]
-      );
+      const mem = await client.query(getSql(req, "member_check"), [chatUsername, cid]);
       if (mem.rowCount === 0) {
         throw new Error("You must join this channel to view messages.");
       }
 
-      // Expect view: chat_recent_messages(message_id, channel_id, channel_name, username, body, created_at)
-      const q = `
-        SELECT username, body, created_at
-        FROM chat_recent_messages
-        WHERE channel_id = $1
-        ORDER BY created_at DESC
-        LIMIT 50;
-      `;
-      const r = await client.query(q, [cid]);
+      const r = await client.query(getSql(req, "messages_list"), [cid]);
       return r.rows;
     });
 
@@ -285,12 +347,7 @@ app.post("/api/message", requireGroupLogin, requireChatUser, async (req, res) =>
 
   try {
     const result = await withDb(dbUser, dbPass, schema, async (client) => {
-      // Call the required function:
-      // chat_post_message(p_username text, p_channel_id int, p_body text) returns bigint
-      const r = await client.query(
-        "SELECT chat_post_message($1, $2, $3) AS message_id;",
-        [chatUsername, cid, b]
-      );
+      const r = await client.query(getSql(req, "message_post"), [chatUsername, cid, b]);
       return r.rows[0];
     });
 

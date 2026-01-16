@@ -17,6 +17,8 @@
         </div>
       </div>
       <div class="topbarRight">
+        <button id="tabChat" class="tab active">Chat</button>
+        <button id="tabSql" class="tab">SQL Backend Lab</button>
         <span id="connPill" class="pill pill-muted">Not connected</span>
       </div>
     </header>
@@ -53,6 +55,7 @@
       </section>
 
       <!-- CHAT APP -->
+
       <section id="chatPanel" class="chatLayout hidden">
 
         <!-- Sidebar -->
@@ -84,7 +87,7 @@
         </aside>
 
         <!-- Main -->
-        <main class="chatMain">
+        <main id="chatMain" class="chatMain">
           <div class="chatHeader">
             <button id="sidebarOpen" class="iconBtn mobileOnly" title="Open sidebar" aria-label="Open sidebar">☰</button>
 
@@ -138,11 +141,29 @@
           </section>
         </main>
       </section>
+
+      <div id="panelSql" class="hidden">
+        <div class="card">
+          <h2>SQL Lab (Fill the Server Queries)</h2>
+          <p class="mutedSmall">
+            Type the SQL exactly as shown in <b>Required</b>. Then click <b>Save</b>.
+          </p>
+
+          <div id="sqlLabList"></div>
+
+          <div class="row">
+            <button id="sqlSaveBtn" class="btn btn-primary">Save SQL</button>
+            <button id="sqlResetBtn" class="btn btn-ghost">Reset to defaults</button>
+            <span id="sqlLabMsg" class="msg"></span>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <div id="toast" class="toast hidden"></div>
   </div>
 
-  <script src="/app.js"></script>
+  <script src="/app.js" defer></script>
 </body>
 </html>

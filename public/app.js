@@ -36,10 +36,293 @@ const userLabel = document.getElementById("userLabel");
 const userAvatar = document.getElementById("userAvatar");
 
 const sidebar = document.getElementById("sidebar");
+const chatMain = document.getElementById("chatMain");
 const sidebarOpen = document.getElementById("sidebarOpen");
 const sidebarClose = document.getElementById("sidebarClose");
 
 const toastEl = document.getElementById("toast");
+
+// ----------------------------
+// SQL Lab (UI created dynamically)
+// ----------------------------
+let tabChatBtn = null;
+let tabSqlBtn = null;
+let sqlPanel = null;
+let sqlLabList = null;
+let sqlSaveBtn = null;
+let sqlResetBtn = null;
+let sqlLabMsg = null;
+
+const SQL_LAB_ITEMS = [
+  {
+    key: "set_search_path",
+    title: "1) Set schema search_path",
+    required: "SET LOCAL search_path TO {{schema}}, public;"
+  },
+  {
+    key: "conn_test",
+    title: "2) Connection test",
+    required: "SELECT 1;"
+  },
+  {
+    key: "user_register",
+    title: "3) Register user",
+    required: "INSERT INTO users(username, password) VALUES ($1, $2);"
+  },
+  {
+    key: "user_login",
+    title: "4) Login user",
+    required: "SELECT password FROM users WHERE username = $1;"
+  },
+  {
+    key: "channels_list",
+    title: "5) List channels + membership",
+    required:
+`SELECT
+  c.id,
+  c.name,
+  c.description,
+  (cm.username IS NOT NULL) AS is_member
+FROM channels c
+LEFT JOIN channel_members cm
+  ON cm.channel_id = c.id
+ AND cm.username = $1
+ORDER BY c.name;`
+  },
+  {
+    key: "channel_join",
+    title: "6) Join channel",
+    required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
+  },
+  {
+    key: "channel_leave",
+    title: "7) Leave channel",
+    required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
+  },
+  {
+    key: "member_check",
+    title: "8) Membership check (view messages)",
+    required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
+  },
+  {
+    key: "messages_list",
+    title: "9) Load messages from view",
+    required:
+`SELECT username, body, created_at
+FROM chat_recent_messages
+WHERE channel_id = $1
+ORDER BY created_at DESC
+LIMIT 50;`
+  },
+  {
+    key: "message_post",
+    title: "10) Post message via function",
+    required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
+  }
+];
+
+function setSidebarVisible(v) {
+  sidebar.classList.toggle("hidden", !v); // hidden when v=false
+  if (!v) sidebar.classList.remove("open"); // close drawer
+  chatMain.classList.toggle("hidden", !v);
+  if (!v) chatMain.classList.remove("open"); // close drawer
+}
+
+
+function ensureSqlLabUI() {
+  if (sqlPanel && sqlLabList) return;
+
+  tabChatBtn = document.getElementById("tabChat");
+  tabSqlBtn = document.getElementById("tabSql");
+
+  // SQL panel
+  sqlPanel = document.createElement("div");
+  sqlPanel.id = "sqlLabPanel";
+  sqlPanel.className = "hidden";
+
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const h2 = document.createElement("div");
+  h2.style.fontWeight = "900";
+  h2.textContent = "SQL Lab (Fill the Server Queries)";
+
+  const p = document.createElement("div");
+  p.className = "mutedSmall";
+  p.innerHTML = `Type the SQL exactly as shown in <b>Required</b>. Then click <b>Save</b>.`;
+
+  sqlLabList = document.createElement("div");
+  sqlLabList.id = "sqlLabList";
+
+  const row = document.createElement("div");
+
+  sqlSaveBtn = document.createElement("button");
+  sqlSaveBtn.id = "sqlSaveBtn";
+  sqlSaveBtn.className = "btn btn-primary";
+  sqlSaveBtn.type = "button";
+  sqlSaveBtn.textContent = "Save SQL";
+
+  sqlResetBtn = document.createElement("button");
+  sqlResetBtn.id = "sqlResetBtn";
+  sqlResetBtn.className = "btn btn-ghost";
+  sqlResetBtn.type = "button";
+  sqlResetBtn.textContent = "Reset to defaults";
+  sqlResetBtn.style.marginLeft = "10px";
+
+  sqlLabMsg = document.createElement("span");
+  sqlLabMsg.id = "sqlLabMsg";
+  sqlLabMsg.className = "msg";
+
+  row.appendChild(sqlSaveBtn);
+  row.appendChild(sqlResetBtn);
+  row.appendChild(sqlLabMsg);
+
+  card.appendChild(h2);
+  card.appendChild(p);
+  card.appendChild(sqlLabList);
+  card.appendChild(row);
+
+  sqlPanel.appendChild(card);
+
+  // Insert into chatPanel at the top
+  chatPanel.prepend(sqlPanel);
+
+  // Events
+  tabChatBtn.addEventListener("click", () => setTab("chat"));
+  tabSqlBtn.addEventListener("click", () => setTab("sql"));
+
+  sqlSaveBtn.addEventListener("click", async () => {
+    setMsg(sqlLabMsg, "");
+    try {
+      const templates = collectSqlLabInputs();
+      await api("/api/sql_templates", "POST", { templates });
+      setMsg(sqlLabMsg, "Saved. The server will now use your SQL templates.", true);
+    } catch (e) {
+      setMsg(sqlLabMsg, e.message, false);
+    }
+  });
+
+  sqlResetBtn.addEventListener("click", async () => {
+    setMsg(sqlLabMsg, "");
+    try {
+      await api("/api/sql_templates/reset", "POST");
+      await loadSqlTemplates();
+      setMsg(sqlLabMsg, "Reset to defaults.", true);
+    } catch (e) {
+      setMsg(sqlLabMsg, e.message, false);
+    }
+  });
+}
+
+function setTabsVisible(visible) {
+  ensureSqlLabUI();
+  if (!visible) {
+    sqlPanel.classList.add("hidden");
+    // restore chat panels to default state
+    if (state.chatUsername) showMainUI(state.chatUsername);
+    else showUserAuth();
+  }
+}
+
+let _pollResume = false;
+
+async function setTab(which) {
+  ensureSqlLabUI();
+
+  const isSql = which === "sql";
+  document.documentElement.classList.toggle("sql-mode", isSql);
+  document.body.classList.toggle("sql-mode", isSql);
+
+  tabChatBtn.classList.toggle("active", !isSql);
+  tabSqlBtn.classList.toggle("active", isSql);
+
+  if (isSql) {
+    // pause polling while in SQL lab
+    _pollResume = !!state.pollTimer;
+    stopPolling();
+    setSidebarVisible(false);
+    sqlPanel.classList.remove("hidden");
+    userAuthPanel.classList.add("hidden");
+    mainChatUI.classList.add("hidden");
+
+    await loadSqlTemplates();
+  } else {
+    sqlPanel.classList.add("hidden");
+    setSidebarVisible(true);
+    // restore whichever chat sub-panel is appropriate
+    if (state.chatUsername) showMainUI(state.chatUsername);
+    else showUserAuth();
+
+    if (_pollResume && state.activeChannelId) startPolling();
+  }
+}
+
+function renderSqlLab(templates) {
+  ensureSqlLabUI();
+  sqlLabList.innerHTML = "";
+
+  for (const item of SQL_LAB_ITEMS) {
+    const outer = document.createElement("div");
+    outer.style.border = "1px solid var(--border,#ddd)";
+    outer.style.borderRadius = "14px";
+    outer.style.padding = "12px";
+    outer.style.margin = "10px 0";
+    outer.style.background = "#fff";
+
+    const title = document.createElement("div");
+    title.style.fontWeight = "900";
+    title.style.marginBottom = "6px";
+    title.textContent = item.title;
+
+    const label = document.createElement("div");
+    label.className = "mutedSmall";
+    label.style.color = "var(--muted,#666)";
+    label.style.marginBottom = "6px";
+    label.textContent = "Required:";
+
+    const req = document.createElement("pre");
+    req.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+    req.style.fontSize = "12px";
+    req.style.background = "#f3f4f6";
+    req.style.border = "1px solid var(--border,#ddd)";
+    req.style.padding = "10px";
+    req.style.borderRadius = "12px";
+    req.style.whiteSpace = "pre-wrap";
+    req.style.overflow = "auto";
+    req.textContent = item.required;
+
+    const ta = document.createElement("textarea");
+    ta.className = "sqlInput";
+    ta.dataset.sqlkey = item.key;
+    ta.value = (templates && templates[item.key]) ? String(templates[item.key]) : item.required;
+    ta.style.width = "100%";
+    ta.style.minHeight = "80px";
+    ta.style.marginTop = "10px";
+    ta.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+
+    outer.appendChild(title);
+    outer.appendChild(label);
+    outer.appendChild(req);
+    outer.appendChild(ta);
+
+    sqlLabList.appendChild(outer);
+  }
+}
+
+function collectSqlLabInputs() {
+  ensureSqlLabUI();
+  const out = {};
+  const areas = sqlLabList.querySelectorAll("textarea[data-sqlkey]");
+  for (const ta of areas) out[ta.dataset.sqlkey] = ta.value;
+  return out;
+}
+
+async function loadSqlTemplates() {
+  ensureSqlLabUI();
+  setMsg(sqlLabMsg, "");
+  const data = await api("/api/sql_templates");
+  renderSqlLab(data.templates || {});
+}
 
 // ----------------------------
 // State
@@ -98,7 +381,6 @@ function toChronological(messages) {
   return arr;
 }
 
-
 function saveLocal(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
@@ -111,11 +393,14 @@ function expandTo128(s) {
 
 // --- SHA-512 hash (128 hex chars) using Web Crypto API ---
 async function sha512Hex(input) {
+  // NOTE: currently using a simple placeholder expansion (your original code).
+  // Replace with real SHA-512 if you want:
   return expandTo128(input);
-  const enc = new TextEncoder();
-  const buf = await crypto.subtle.digest("SHA-512", enc.encode(input));
-  const bytes = new Uint8Array(buf);
-  return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+
+  // const enc = new TextEncoder();
+  // const buf = await crypto.subtle.digest("SHA-512", enc.encode(input));
+  // const bytes = new Uint8Array(buf);
+  // return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function api(path, method = "GET", body = null) {
@@ -132,36 +417,33 @@ async function api(path, method = "GET", body = null) {
   if (r.status === 401 || r.status === 403) {
     const msg = String(data.error || data.detail || "").toLowerCase();
 
-    // Only treat as "DB not connected" if it's the GROUP DB session
     const groupDbMissing =
       msg.includes("group database") ||
       msg.includes("not logged in to group") ||
       msg.includes("not logged in to group database") ||
       msg.includes("not logged in to group db");
 
-    // Chat-user issues should keep the chat panel visible, just show the chat-user login panel
     const chatUserMissing =
       msg.includes("chat user") ||
       msg.includes("not logged in as a chat user");
 
     if (groupDbMissing) {
-      // DB session truly missing: show only group login
-      showLogin();
-      setConnectedPill(false);
+      // DB session truly missing: hide chat + tabs
+      state.isDbConnected = false;
+      renderGate();
     } else if (chatUserMissing) {
-      // DB still connected: keep chat visible, show chat-user auth
-      showChat();
+      // DB still connected: keep chat visible + tabs
+      state.isDbConnected = true;
+      renderGate();
+      // go back to chat tab and show chat-user auth
+      setTab("chat");
       showUserAuth();
-      setConnectedPill(true);
     }
-    // If it's "invalid username/password" for chat user, do nothing special—just show the error.
   }
 
   if (!r.ok) throw new Error(data.detail || data.error || `Request failed (${r.status})`);
   return data;
 }
-
-
 
 function showChat() {
   loginPanel.classList.add("hidden");
@@ -230,7 +512,6 @@ function setActiveChannel(channel) {
 function formatTime(iso) {
   if (!iso) return "";
   const d = new Date(iso);
-  // short-ish time; you can change to toLocaleString() if you want full
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
@@ -249,21 +530,28 @@ function autosizeTextarea(el) {
   el.style.height = Math.min(el.scrollHeight, 160) + "px";
 }
 
+// ----------------------------
+// DB-connected gate
+// ----------------------------
 state.isDbConnected = false;
 
 function renderGate() {
   if (state.isDbConnected) {
-    // show chat app (then you can decide whether to show userAuth or mainChat)
     loginPanel.classList.add("hidden");
     chatPanel.classList.remove("hidden");
     setConnectedPill(true);
+
+    // show tabs (chat + sql lab) only when connected to schema
+    setTabsVisible(true);
   } else {
     // show ONLY group db login
     chatPanel.classList.add("hidden");
     loginPanel.classList.remove("hidden");
     setConnectedPill(false);
 
-    // (optional) clear chat UI so nothing “leaks”
+    setTabsVisible(false);
+
+    // clear chat UI so nothing “leaks”
     stopPolling();
     state.activeChannelId = null;
     state.channels = [];
@@ -272,7 +560,6 @@ function renderGate() {
     channelsEl.innerHTML = "";
   }
 }
-
 
 // ----------------------------
 // Rendering
@@ -290,7 +577,9 @@ function renderMessages(messages) {
     const bubble = document.createElement("div");
     bubble.className = "bubble" + (mine ? " me" : "");
 
-    const when = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+    const when = m.created_at
+      ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "";
 
     bubble.innerHTML = `
       <div class="metaLine">
@@ -306,7 +595,6 @@ function renderMessages(messages) {
 
   if (shouldStick) scrollToBottom(messagesEl);
 }
-
 
 function renderChannels(list) {
   channelsEl.innerHTML = "";
@@ -343,7 +631,6 @@ function renderChannels(list) {
     right.style.alignItems = "center";
     right.style.gap = "10px";
 
-    // unread dot (client-only)
     const lastSeen = state.lastSeenByChannel[String(ch.id)];
     const hasUnread = lastSeen && ch.latest_created_at && new Date(ch.latest_created_at) > new Date(lastSeen);
     const badge = document.createElement("div");
@@ -375,7 +662,6 @@ function renderChannels(list) {
       }
     });
 
-    // click channel name to open (only if member)
     item.addEventListener("click", async () => {
       if (!ch.is_member) {
         setMsg(channelMsg, "Join the channel to view messages.", false);
@@ -387,14 +673,11 @@ function renderChannels(list) {
 
       setActiveChannel(ch);
 
-      // mark last seen right away (so badge goes away after open)
       state.lastSeenByChannel[String(ch.id)] = new Date().toISOString();
       saveLocal("lastSeenByChannel", state.lastSeenByChannel);
 
       await loadMessages(ch.id);
       startPolling();
-
-      // close sidebar on mobile
       sidebar.classList.remove("open");
     });
 
@@ -404,7 +687,6 @@ function renderChannels(list) {
     item.appendChild(left);
     item.appendChild(right);
 
-    // subtle active highlight
     if (state.activeChannelId === ch.id) {
       item.style.background = "var(--panel2)";
       item.style.borderColor = "var(--border)";
@@ -419,15 +701,12 @@ function renderChannels(list) {
 // ----------------------------
 async function loadChannels() {
   const data = await api("/api/channels");
-  // optional: if your backend can include latest message time per channel, use it:
-  // (if not present, we just won't show unread dots)
   state.channels = (data.channels || []).map(c => ({
     ...c,
     latest_created_at: c.latest_created_at || null
   }));
   renderChannels(state.channels);
 
-  // auto-pick first joined channel if none selected
   if (!state.activeChannelId) {
     const firstJoined = state.channels.find(c => c.is_member);
     if (firstJoined) {
@@ -441,17 +720,14 @@ async function loadChannels() {
 async function loadMessages(channelId, { silent = false } = {}) {
   try {
     if (!silent) {
-      // small loading placeholder
       messagesEl.innerHTML = `<div class="mutedSmall">Loading…</div>`;
     }
     const data = await api(`/api/messages?channel_id=${encodeURIComponent(channelId)}`);
     renderMessages(toChronological(data.messages || []));
 
-    // update last seen to now when we successfully render
     state.lastSeenByChannel[String(channelId)] = new Date().toISOString();
     saveLocal("lastSeenByChannel", state.lastSeenByChannel);
 
-    // re-render channels to update unread dots
     renderChannels(state.channels);
   } catch (e) {
     setMsg(postMsg, e.message, false);
@@ -477,9 +753,14 @@ loginBtn.addEventListener("click", async () => {
       password: passwordEl.value
     });
     setMsg(loginMsg, "Connected to your group schema.", true);
+
     state.isDbConnected = true;
-    renderGate();      // <-- this is the only thing that should show chatPanel
-    showUserAuth();    // show chat user login/register after DB connected
+    renderGate();
+
+    // Default to Chat tab after schema connect
+    await setTab("chat");
+
+    showUserAuth();
     toast("Connected");
   } catch (e) {
     setMsg(loginMsg, e.message, false);
@@ -490,41 +771,30 @@ loginBtn.addEventListener("click", async () => {
   }
 });
 
-// logoutBtn.addEventListener("click", async () => {
-//   try { await api("/api/logout", "POST"); } catch {}
-//   stopPolling();
-//   state.activeChannelId = null;
-//   state.channels = [];
-//   state.chatUsername = null;
-//   setConnectedPill(false);
-//   showLogin();
-//   toast("Disconnected");
-// });
-
 logoutBtn.addEventListener("click", async () => {
   // Sign out chat user only (keep DB session)
   try { await api("/api/user/logout", "POST"); } catch {}
 
   stopPolling();
 
-  // Clear chat-user state
   state.chatUsername = null;
   state.activeChannelId = null;
   state.channels = [];
 
-  // Reset UI identity + hide main chat area
   setActiveChannel(null);
-  showUserAuth();            // shows the chat user login/register panel
-  channelsEl.innerHTML = ""; // remove channel list until user logs in again
+  showUserAuth();
+  channelsEl.innerHTML = "";
   setMsg(channelMsg, "Signed out. Log in to load channels.", true);
   setMsg(postMsg, "", true);
 
-  // Keep DB connection indicator ON (do NOT call /api/logout)
+  // Keep DB connection indicator ON
   setConnectedPill(true);
+
+  // ensure we're not stuck in SQL tab after user logout
+  setTab("chat");
 
   toast("Signed out");
 });
-
 
 // ----------------------------
 // Events: Chat user auth
@@ -622,19 +892,16 @@ sendBtn.addEventListener("click", async () => {
 
   sendBtn.disabled = true;
 
-  // optimistic UI: append bubble immediately
   const optimistic = {
     username: state.chatUsername,
     body,
     created_at: new Date().toISOString()
   };
 
-  // only auto-scroll if already at bottom
   const stick = isAtBottom(messagesEl);
   const currentMessages = Array.from(messagesEl.querySelectorAll(".msgRow")).length;
 
   try {
-    // show optimistic without clearing all messages
     if (currentMessages === 0) {
       renderMessages([optimistic]);
     } else {
@@ -659,7 +926,6 @@ sendBtn.addEventListener("click", async () => {
     autosizeTextarea(composerInput);
     setMsg(postMsg, "Sent", true);
 
-    // refresh from server (authoritative)
     await loadMessages(state.activeChannelId, { silent: true });
   } catch (e) {
     setMsg(postMsg, e.message, false);
