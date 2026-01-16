@@ -37,6 +37,7 @@ const DEFAULT_SQL = {
   channels_list: "SELECT '';",
   channel_join: "INSERT '';",
   channel_leave: "DELETE '';",
+  channel_members_list: "SELECT '';",
   member_check: "SELECT '';",
   messages_list: "SELECT '';",
   message_post: "SELECT '';",
@@ -261,6 +262,31 @@ app.get("/api/channels", requireGroupLogin, requireChatUser, async (req, res) =>
     res.json({ ok: true, channels });
   } catch (e) {
     res.status(400).json({ error: "Failed to load channels.", detail: String(e.message || e) });
+  }
+});
+
+// Members list for a channel
+app.get("/api/channels/members", requireGroupLogin, requireChatUser, async (req, res) => {
+  const cid = Number(req.query.channel_id);
+  if (!Number.isFinite(cid)) return res.status(400).json({ error: "channel_id query param required." });
+
+  const { dbUser, dbPass, schema } = req.session;
+  try {
+    const members = await withDb(dbUser, dbPass, schema, async (client) => {
+      // Use the editable SQL template so students can change how members are
+      // selected/filtered. The template should accept $1 = channel_id and
+      // return one column per row containing the username (or the first
+      // column will be used).
+      const r = await client.query(getSql(req, "channel_members_list"), [cid]);
+      // Map each row to the first column value (flexible to column name)
+      return r.rows.map(row => {
+        const vals = Object.values(row || {});
+        return vals.length > 0 ? String(vals[0]) : null;
+      }).filter(v => v !== null && v !== undefined);
+    });
+    res.json({ ok: true, members });
+  } catch (e) {
+    res.status(400).json({ error: "Failed to load channel members.", detail: String(e.message || e) });
   }
 });
 

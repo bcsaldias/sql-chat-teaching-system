@@ -141,7 +141,7 @@
 
       <div id="panelSql" class="hidden">
         <div class="card">
-          <h2>SQL Lab (Fill the Server Queries)</h2>
+          <h2>SQL Lab</h2>
           <p class="mutedSmall">
             Type the SQL exactly as shown in <b>Required</b>. Then click <b>Save</b>.
           </p>
@@ -159,6 +159,18 @@
     </div>
 
     <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- Member list modal -->
+  <div id="memberModal" class="modal hidden">
+    <div class="modalOverlay" id="memberModalOverlay"></div>
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div id="memberModalTitle" class="modalTitle">Members</div>
+        <button id="memberModalClose" class="iconBtn" aria-label="Close members">✕</button>
+      </div>
+      <div id="memberModalList" class="modalList"></div>
+    </div>
   </div>
 
   <script src="/app.js" defer></script>

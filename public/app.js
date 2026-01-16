@@ -38,6 +38,13 @@ const userAvatar = document.getElementById("userAvatar");
 const sidebar = document.getElementById("sidebar");
 const chatMain = document.getElementById("chatMain");
 
+// Member modal elements (present in index.html)
+const memberModal = document.getElementById("memberModal");
+const memberModalOverlay = document.getElementById("memberModalOverlay");
+const memberModalList = document.getElementById("memberModalList");
+const memberModalTitle = document.getElementById("memberModalTitle");
+const memberModalClose = document.getElementById("memberModalClose");
+
 const toastEl = document.getElementById("toast");
 
 // ----------------------------
@@ -66,68 +73,75 @@ const SQL_LAB_ITEMS = [
   //   required: "SELECT 1;"
   // },
   {
-    key: "user_register",
-    title: "1) Register user",
-    description: "When a user clicks 'register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
-    required: "INSERT INTO users(username, password) VALUES ($1, $2);"
+    key: "user_login",
+    title: "1) Login user",
+    description: "When a user clicks 'Log in' you receive two parameters, $1 = username and $2 = password. Write a query that returns the stored password for that username so the app can verify credentials. Example: $1 = 'sam10'.",
+    required: "SELECT password FROM users WHERE username = $1; -- copy this query into the textarea as an example"
   },
   {
-    key: "user_login",
-    title: "2) Login user",
-    description: "When a user clicks 'Log in' you receive two parameters, $1 = username and $2 = password. Write a query that returns the stored password (or hash) for that username so the app can verify credentials. Example: $1 = 'sam10'.",
-    required: "SELECT password FROM users WHERE username = $1;"
+    key: "user_register",
+    title: "2) Register user",
+    description: "When a user clicks 'register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
+    // required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "channels_list",
     title: "3) List channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean), user_count (integer).",
-    required:
-`SELECT
-  c.id,
-  c.name,
-  c.description,
-  (cm.username IS NOT NULL) AS is_member,
-  (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
-FROM channels c
-LEFT JOIN channel_members cm
-  ON cm.channel_id = c.id
- AND cm.username = $1
-ORDER BY c.name;`
+//     required:
+// `SELECT
+//   c.id,
+//   c.name,
+//   c.description,
+//   (cm.username IS NOT NULL) AS is_member,
+//   (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
+// FROM channels c
+// LEFT JOIN channel_members cm
+//   ON cm.channel_id = c.id
+//  AND cm.username = $1
+// ORDER BY c.name;`
   },
   {
     key: "channel_join",
     title: "4) Join channel",
     description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3. Use ON CONFLICT DO NOTHING to avoid duplicates.",
-    required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
+    // required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
     title: "5) Leave channel",
     description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
-    required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
+    // required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
     title: "6) Membership check (view messages)",
     description: "Return a row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
-    required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
+    // required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
     title: "7) Load messages from view",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Example: $1 = 3. Return username, body, created_at (newest first). Limit to ~50 rows.",
-    required:
-`SELECT username, body, created_at
-FROM chat_recent_messages
-WHERE channel_id = $1
-ORDER BY created_at DESC
-LIMIT 50;`
+//     required:
+// `SELECT username, body, created_at
+// FROM chat_recent_messages
+// WHERE channel_id = $1
+// ORDER BY created_at DESC
+// LIMIT 50;`
   },
   {
     key: "message_post",
     title: "8) Post message via function",
     description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Example: $1 = 3, $2 = 'sam10', $3 = 'hello'. Return the inserted message id.",
-    required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
+    // required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
+  }
+  ,
+  {
+    key: "channel_members_list",
+    title: "9) Channel members list",
+    description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Example: $1 = 3. Return a single column containing the username (ordered).",
+    // required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
   }
 ];
 
@@ -155,11 +169,11 @@ function ensureSqlLabUI() {
 
   const h2 = document.createElement("div");
   h2.className = "sqlPanelTitle";
-  h2.textContent = "SQL Lab (Fill the Server Queries)";
+  h2.textContent = "SQL Lab";
 
   const p = document.createElement("div");
   p.className = "mutedSmall";
-  p.innerHTML = `Read the <b>Description</b> for plain-language instructions (what each $1/$2/$3 parameter means). When you are ready to test, click <b>Save</b>.`;
+  p.innerHTML = `Read the <b>Description</b> for plain-language instructions (what each $1/$2 parameter means). When you are ready to test, click <b>Save</b>.`;
 
   sqlLabList = document.createElement("div");
   sqlLabList.id = "sqlLabList";
@@ -327,35 +341,35 @@ function renderSqlLab(templates) {
   sqlLabList.innerHTML = "";
 
   for (const item of SQL_LAB_ITEMS) {
-  const outer = document.createElement("div");
-  outer.className = "sqlItem";
+    const outer = document.createElement("div");
+    outer.className = "sqlItem";
 
-  const title = document.createElement("div");
-  title.className = "sqlTitle";
-  title.textContent = item.title;
+    const title = document.createElement("div");
+    title.className = "sqlTitle";
+    title.textContent = item.title;
 
-  const label = document.createElement("div");
-  // label.className = "sqlReqLabel";
-  // label.textContent = "Required:";
+    const label = document.createElement("div");
+    // label.className = "sqlReqLabel";
+    // label.textContent = "Required:";
 
-  const desc = document.createElement("div");
-  desc.className = "sqlDesc";
-  desc.textContent = item.description || "";
+    const desc = document.createElement("div");
+    desc.className = "sqlDesc";
+    desc.textContent = item.description || "";
 
-  const req = document.createElement("pre");
-  req.className = "sqlRequired";
-  req.textContent = item.required;
+    const req = document.createElement("pre");
+    req.className = "sqlRequired";
+    req.textContent = item.required;
 
-  const ta = document.createElement("textarea");
-  ta.className = "sqlInput";
-  ta.dataset.sqlkey = item.key;
-  ta.value = (templates && templates[item.key]) ? String(templates[item.key]) : item.required;
+    const ta = document.createElement("textarea");
+    ta.className = "sqlInput";
+    ta.dataset.sqlkey = item.key;
+    ta.value = String(templates[item.key]) + ";"
 
-  outer.appendChild(title);
-  outer.appendChild(label);
-  outer.appendChild(desc);
-  outer.appendChild(req);
-  outer.appendChild(ta);
+    outer.appendChild(title);
+    outer.appendChild(label);
+    outer.appendChild(desc);
+    if (item.required) outer.appendChild(req);
+    outer.appendChild(ta);
 
     sqlLabList.appendChild(outer);
   }
@@ -567,13 +581,30 @@ function setActiveChannel(channel) {
   }
   state.activeChannelId = channel.id;
   activeChannelLabel.textContent = `# ${channel.name}`;
-  // Show description and, if provided by the backend, the member count
+  // Show description and, if provided by the backend, a clickable member count
+  activeChannelSub.textContent = "";
   const desc = channel.description || "";
+  const descSpan = document.createElement("span");
+  descSpan.textContent = desc;
+  activeChannelSub.appendChild(descSpan);
+
   const count = (typeof channel.user_count !== 'undefined' && channel.user_count !== null)
     ? Number(channel.user_count)
     : null;
-  const countText = count === null ? "" : ` • ${count} ${count === 1 ? 'member' : 'members'}`;
-  activeChannelSub.textContent = (desc + countText).trim() || " ";
+  if (count !== null) {
+    const btn = document.createElement("button");
+    btn.className = "memberCount";
+    btn.type = "button";
+    btn.title = `Show members (${count})`;
+    btn.textContent = `${count} ${count === 1 ? 'member' : 'members'}`;
+    btn.style.marginLeft = "10px";
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      // open modal and load members
+      await loadChannelMembers(channel.id, channel.name);
+    });
+    activeChannelSub.appendChild(btn);
+  }
 }
 
 function formatTime(iso) {
@@ -872,6 +903,42 @@ async function loadMessages(channelId, { silent = false } = {}) {
     stopPolling();
   }
 }
+
+// Modal helpers: load and display channel members
+async function loadChannelMembers(channelId, channelName) {
+  if (!memberModal || !memberModalList) return;
+  memberModalList.innerHTML = `<div class="mutedSmall">Loading…</div>`;
+  memberModalTitle.textContent = `Members • # ${channelName}`;
+  memberModal.classList.remove("hidden");
+
+  try {
+    const data = await api(`/api/channels/members?channel_id=${encodeURIComponent(channelId)}`);
+    const members = data.members || [];
+    if (!members || members.length === 0) {
+      memberModalList.innerHTML = `<div class="mutedSmall">No members found.</div>`;
+      return;
+    }
+    memberModalList.innerHTML = "";
+    for (const m of members) {
+      const item = document.createElement("div");
+      item.className = "memberItem";
+      item.textContent = m;
+      memberModalList.appendChild(item);
+    }
+  } catch (err) {
+    memberModalList.innerHTML = "";
+    setMsg(channelMsg, err.message || String(err), false);
+  }
+}
+
+function hideMemberModal() {
+  if (!memberModal) return;
+  memberModal.classList.add("hidden");
+}
+
+// hook up modal close events
+memberModalClose?.addEventListener("click", hideMemberModal);
+memberModalOverlay?.addEventListener("click", hideMemberModal);
 
 
 

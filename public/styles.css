@@ -645,3 +645,14 @@ body.sql-mode #userAuthPanel {
 .channelEmpty { padding: 12px; }
 
 .channelRight { display:flex; align-items:center; gap:10px; }
+
+/* Modal: simple centered dialog */
+.modal{ position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 40; }
+.modal.hidden{ display: none; }
+.modalOverlay{ position:absolute; inset:0; background: rgba(0,0,0,0.35); }
+.modalCard{ position: relative; background: #fff; border-radius: 14px; padding: 12px; width: 320px; max-width: 92vw; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 41; }
+.modalHeader{ display:flex; align-items:center; justify-content:space-between; gap: 10px; margin-bottom: 8px; }
+.modalTitle{ font-weight: 900; }
+.modalList{ max-height: 320px; overflow:auto; padding: 6px; border-top: 1px solid var(--border); }
+.modalList .memberItem{ padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; margin: 6px 0; }
+.modalList .memberItem:hover{ background:#f8fafc; border-color:#eef2f7; }
