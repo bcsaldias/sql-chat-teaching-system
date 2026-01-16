@@ -228,6 +228,14 @@ input:focus, textarea:focus{
   background: #f8fafc;
   border-color: #eef2f7;
 }
+.channelItem.active{
+  background: var(--panel2);
+  border-color: var(--border);
+}
+
+.channelRight { display:flex; align-items:center; gap:10px; }
+
+.channelActionBtn{ padding: 8px 10px; }
 .channelLeft{ display:flex; flex-direction:column; gap: 3px; min-width: 0; }
 .channelName{
   font-weight: 800;
@@ -518,6 +526,14 @@ input:focus, textarea:focus{
   margin-bottom: 6px;
 }
 
+#sqlLabList .sqlDesc {
+  color: black;
+  font-size: 13px;
+  margin-bottom: 10x;
+  margin-top: 13px;
+  white-space: normal;
+}
+
 #sqlLabList .sqlRequired {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
@@ -606,3 +622,16 @@ body.sql-mode #userAuthPanel {
   width: 100% !important;
   max-width: none !important;
 }
+
+/* Small helpers moved from inline JS styles */
+.sqlPanelTitle {
+  font-weight: 900;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+#sqlResetBtn { margin-left: 10px; }
+
+.channelEmpty { padding: 12px; }
+
+.channelRight { display:flex; align-items:center; gap:10px; }

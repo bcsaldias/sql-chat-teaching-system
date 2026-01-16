@@ -70,16 +70,19 @@ const SQL_LAB_ITEMS = [
   {
     key: "user_register",
     title: "1) Register user",
+    description: "When a user clicks 'register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
     required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "user_login",
     title: "2) Login user",
+    description: "When a user clicks 'Log in' you receive two parameters, $1 = username and $2 = password. Write a query that returns the stored password (or hash) for that username so the app can verify credentials. Example: $1 = 'sam10'.",
     required: "SELECT password FROM users WHERE username = $1;"
   },
   {
     key: "channels_list",
     title: "3) List channels + membership",
+    description: "Return the list of channels with membership info so the UI can show Join/Leave. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean).",
     required:
 `SELECT
   c.id,
@@ -95,21 +98,25 @@ ORDER BY c.name;`
   {
     key: "channel_join",
     title: "4) Join channel",
+    description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3. Use ON CONFLICT DO NOTHING to avoid duplicates.",
     required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
     title: "5) Leave channel",
+    description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
     required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
     title: "6) Membership check (view messages)",
+    description: "Return a row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
     required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
     title: "7) Load messages from view",
+    description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Example: $1 = 3. Return username, body, created_at (newest first). Limit to ~50 rows.",
     required:
 `SELECT username, body, created_at
 FROM chat_recent_messages
@@ -120,6 +127,7 @@ LIMIT 50;`
   {
     key: "message_post",
     title: "8) Post message via function",
+    description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Example: $1 = 3, $2 = 'sam10', $3 = 'hello'. Return the inserted message id.",
     required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
   }
 ];
@@ -147,12 +155,12 @@ function ensureSqlLabUI() {
   card.className = "card";
 
   const h2 = document.createElement("div");
-  h2.style.fontWeight = "900";
+  h2.className = "sqlPanelTitle";
   h2.textContent = "SQL Lab (Fill the Server Queries)";
 
   const p = document.createElement("div");
   p.className = "mutedSmall";
-  p.innerHTML = `Type the SQL exactly as shown in <b>Required</b>. Then click <b>Save</b>.`;
+  p.innerHTML = `Read the <b>Description</b> for plain-language instructions (what each $1/$2/$3 parameter means). When you are ready to test, click <b>Save</b>.`;
 
   sqlLabList = document.createElement("div");
   sqlLabList.id = "sqlLabList";
@@ -170,7 +178,7 @@ function ensureSqlLabUI() {
   sqlResetBtn.className = "btn btn-ghost";
   sqlResetBtn.type = "button";
   sqlResetBtn.textContent = "Reset to defaults";
-  sqlResetBtn.style.marginLeft = "10px";
+  // spacing for the reset button is handled in CSS
 
   sqlLabMsg = document.createElement("span");
   sqlLabMsg.id = "sqlLabMsg";
@@ -320,49 +328,35 @@ function renderSqlLab(templates) {
   sqlLabList.innerHTML = "";
 
   for (const item of SQL_LAB_ITEMS) {
-    const outer = document.createElement("div");
-    outer.style.border = "1px solid var(--border,#ddd)";
-    outer.style.borderRadius = "14px";
-    outer.style.padding = "12px";
-    outer.style.margin = "10px 0";
-    outer.style.background = "#fff";
+  const outer = document.createElement("div");
+  outer.className = "sqlItem";
 
-    const title = document.createElement("div");
-    title.style.fontWeight = "900";
-    title.style.marginBottom = "6px";
-    title.textContent = item.title;
+  const title = document.createElement("div");
+  title.className = "sqlTitle";
+  title.textContent = item.title;
 
-    const label = document.createElement("div");
-    label.className = "mutedSmall";
-    label.style.color = "var(--muted,#666)";
-    label.style.marginBottom = "6px";
-    label.textContent = "Required:";
+  const label = document.createElement("div");
+  // label.className = "sqlReqLabel";
+  // label.textContent = "Required:";
 
-    const req = document.createElement("pre");
-    req.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
-    req.style.fontSize = "12px";
-    req.style.background = "#f3f4f6";
-    req.style.border = "1px solid var(--border,#ddd)";
-    req.style.padding = "10px";
-    req.style.borderRadius = "12px";
-    req.style.whiteSpace = "pre-wrap";
-    req.style.overflow = "auto";
-    req.textContent = item.required;
+  const desc = document.createElement("div");
+  desc.className = "sqlDesc";
+  desc.textContent = item.description || "";
 
-    const ta = document.createElement("textarea");
-    ta.className = "sqlInput";
-    ta.dataset.sqlkey = item.key;
-    ta.value = (templates && templates[item.key]) ? String(templates[item.key]) : item.required;
-    // ta.value = "select ''"
-    ta.style.width = "100%";
-    ta.style.minHeight = "80px";
-    ta.style.marginTop = "10px";
-    ta.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+  const req = document.createElement("pre");
+  req.className = "sqlRequired";
+  req.textContent = item.required;
 
-    outer.appendChild(title);
-    outer.appendChild(label);
-    outer.appendChild(req);
-    outer.appendChild(ta);
+  const ta = document.createElement("textarea");
+  ta.className = "sqlInput";
+  ta.dataset.sqlkey = item.key;
+  ta.value = (templates && templates[item.key]) ? String(templates[item.key]) : item.required;
+
+  outer.appendChild(title);
+  outer.appendChild(label);
+  outer.appendChild(desc);
+  outer.appendChild(req);
+  outer.appendChild(ta);
 
     sqlLabList.appendChild(outer);
   }
@@ -686,8 +680,7 @@ function renderChannels(list) {
     // chat area is cleared so stale messages aren't shown.
     setActiveChannel(null); // clears messages and stops polling
     const empty = document.createElement('div');
-    empty.className = 'mutedSmall';
-    empty.style.padding = '12px';
+    empty.className = 'mutedSmall channelEmpty';
     empty.textContent = 'No channels available.';
     channelsEl.appendChild(empty);
     return;
@@ -713,9 +706,7 @@ function renderChannels(list) {
     left.appendChild(desc);
 
     const right = document.createElement("div");
-    right.style.display = "flex";
-    right.style.alignItems = "center";
-    right.style.gap = "10px";
+    right.className = "channelRight";
 
     const lastSeen = state.lastSeenByChannel[String(ch.id)];
     const hasUnread = lastSeen && ch.latest_created_at && new Date(ch.latest_created_at) > new Date(lastSeen);
@@ -725,7 +716,7 @@ function renderChannels(list) {
 
     const btn = document.createElement("button");
     btn.className = "btn " + (ch.is_member ? "btn-ghost" : "btn-primary");
-    btn.style.padding = "8px 10px";
+    btn.classList.add("channelActionBtn");
     btn.textContent = ch.is_member ? "Leave" : "Join";
 
     btn.addEventListener("click", async (e) => {
@@ -774,8 +765,7 @@ function renderChannels(list) {
     item.appendChild(right);
 
     if (state.activeChannelId === ch.id) {
-      item.style.background = "var(--panel2)";
-      item.style.borderColor = "var(--border)";
+      item.classList.add("active");
     }
 
     channelsEl.appendChild(item);
