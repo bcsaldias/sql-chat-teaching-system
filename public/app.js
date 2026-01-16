@@ -352,7 +352,8 @@ function renderSqlLab(templates) {
     const ta = document.createElement("textarea");
     ta.className = "sqlInput";
     ta.dataset.sqlkey = item.key;
-    ta.value = (templates && templates[item.key]) ? String(templates[item.key]) : item.required;
+    // ta.value = (templates && templates[item.key]) ? String(templates[item.key]) : item.required;
+    ta.value = "select ''"
     ta.style.width = "100%";
     ta.style.minHeight = "80px";
     ta.style.marginTop = "10px";
