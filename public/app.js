@@ -586,7 +586,7 @@ userLoginBtn.addEventListener("click", async () => {
   } catch (e) {
     const m = String(e.message || "");
     if (m.toLowerCase().includes("invalid username") || m.toLowerCase().includes("does not exist")) {
-      setMsg(userAuthMsg, "User not found. Click Register first.", false);
+      setMsg(userAuthMsg, "Invalid username or password.", false);
     } else {
       setMsg(userAuthMsg, m, false);
     }
