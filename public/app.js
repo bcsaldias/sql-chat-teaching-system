@@ -81,7 +81,7 @@ const SQL_LAB_ITEMS = [
   {
     key: "user_register",
     title: "2) Register user",
-    description: "When a user clicks 'register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
+    description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
     // required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
