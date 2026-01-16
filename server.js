@@ -63,6 +63,7 @@ const DEFAULT_SQL = {
     "SELECT chat_post_message($1, $2, $3) AS message_id;"
 };
 
+
 // Force a single statement (no multi-statement injection via ;)
 function normalizeSingleStatement(sql) {
   const s = String(sql || "").trim();
@@ -150,7 +151,12 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
 
       req.session.sqlTemplates[key] = normalized;
     }
-    res.json({ ok: true });
+    const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
+    // Log a compact summary for debugging (server-side)
+    try {
+      console.log('[sql_templates] saved keys ->', Object.keys(req.session.sqlTemplates || {}));
+    } catch (e) {}
+    res.json({ ok: true, templates: merged });
   } catch (e) {
     res.status(400).json({ error: "Invalid SQL template.", detail: String(e.message || e) });
   }
@@ -158,7 +164,11 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
 
 app.post("/api/sql_templates/reset", requireGroupLogin, (req, res) => {
   req.session.sqlTemplates = {};
-  res.json({ ok: true });
+  const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
+  try {
+    console.log('[sql_templates] reset to defaults');
+  } catch (e) {}
+  res.json({ ok: true, templates: merged });
 });
 // =====================================================
 

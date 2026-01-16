@@ -54,29 +54,29 @@ let sqlResetBtn = null;
 let sqlLabMsg = null;
 
 const SQL_LAB_ITEMS = [
-  {
-    key: "set_search_path",
-    title: "1) Set schema search_path",
-    required: "SET LOCAL search_path TO {{schema}}, public;"
-  },
-  {
-    key: "conn_test",
-    title: "2) Connection test",
-    required: "SELECT 1;"
-  },
+  // {
+  //   key: "set_search_path",
+  //   title: "1) Set schema search_path",
+  //   required: "SET LOCAL search_path TO {{schema}}, public;"
+  // // },
+  // {
+  //   key: "conn_test",
+  //   title: "2) Connection test",
+  //   required: "SELECT 1;"
+  // },
   {
     key: "user_register",
-    title: "3) Register user",
+    title: "1) Register user",
     required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "user_login",
-    title: "4) Login user",
+    title: "2) Login user",
     required: "SELECT password FROM users WHERE username = $1;"
   },
   {
     key: "channels_list",
-    title: "5) List channels + membership",
+    title: "3) List channels + membership",
     required:
 `SELECT
   c.id,
@@ -91,22 +91,22 @@ ORDER BY c.name;`
   },
   {
     key: "channel_join",
-    title: "6) Join channel",
+    title: "4) Join channel",
     required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
-    title: "7) Leave channel",
+    title: "5) Leave channel",
     required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
-    title: "8) Membership check (view messages)",
+    title: "6) Membership check (view messages)",
     required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
-    title: "9) Load messages from view",
+    title: "7) Load messages from view",
     required:
 `SELECT username, body, created_at
 FROM chat_recent_messages
@@ -116,7 +116,7 @@ LIMIT 50;`
   },
   {
     key: "message_post",
-    title: "10) Post message via function",
+    title: "8) Post message via function",
     required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
   }
 ];
@@ -188,7 +188,24 @@ function ensureSqlLabUI() {
   chatPanel.prepend(sqlPanel);
 
   // Events
-  tabChatBtn.addEventListener("click", () => setTab("chat"));
+  tabChatBtn.addEventListener("click", async () => {
+    // When switching back to Chat, save any SQL edits the user made so the server
+    // will immediately use them. Failures shouldn't block switching to chat.
+    try {
+      if (sqlPanel && !sqlPanel.classList.contains('hidden')) {
+        setMsg(sqlLabMsg, "");
+        const templates = collectSqlLabInputs();
+        await api("/api/sql_templates", "POST", { templates });
+        await loadSqlTemplates();
+        setMsg(sqlLabMsg, "Saved. The server will now use your SQL templates.", true);
+      }
+    } catch (e) {
+      // show the error but continue to chat
+      setMsg(sqlLabMsg, e.message, false);
+    } finally {
+      await setTab("chat");
+    }
+  });
   tabSqlBtn.addEventListener("click", () => setTab("sql"));
 
   sqlSaveBtn.addEventListener("click", async () => {
@@ -196,6 +213,8 @@ function ensureSqlLabUI() {
     try {
       const templates = collectSqlLabInputs();
       await api("/api/sql_templates", "POST", { templates });
+      // Reload templates from server to confirm what the server stored is now active
+      await loadSqlTemplates();
       setMsg(sqlLabMsg, "Saved. The server will now use your SQL templates.", true);
     } catch (e) {
       setMsg(sqlLabMsg, e.message, false);
@@ -250,8 +269,18 @@ async function setTab(which) {
     sqlPanel.classList.add("hidden");
     setSidebarVisible(true);
     // restore whichever chat sub-panel is appropriate
-    if (state.chatUsername) showMainUI(state.chatUsername);
-    else showUserAuth();
+    if (state.chatUsername) {
+      showMainUI(state.chatUsername);
+      // Refresh channels/messages so the chat reflects any SQL/template changes
+      try {
+        await loadChannels();
+        if (state.activeChannelId) await loadMessages(state.activeChannelId, { silent: true });
+      } catch (e) {
+        // non-fatal: show a small toast and continue
+        console.error('Failed to refresh chat data on tab switch:', e);
+        setMsg(postMsg, 'Failed to refresh chat data.', false);
+      }
+    } else showUserAuth();
 
     if (_pollResume && state.activeChannelId) startPolling();
   }
@@ -404,7 +433,8 @@ async function sha512Hex(input) {
 }
 
 async function api(path, method = "GET", body = null) {
-  const opts = { method, headers: {} };
+  // Ensure cookies/session are sent so server sees our session (group DB login, templates)
+  const opts = { method, headers: {}, credentials: "same-origin" };
   if (body) {
     opts.headers["Content-Type"] = "application/json";
     opts.body = JSON.stringify(body);
@@ -606,6 +636,18 @@ function renderChannels(list) {
         (c.description || "").toLowerCase().includes(q)
       )
     : list;
+
+  // If the server returned no channels (for example because the SQL template
+  // was changed to return none), show a friendly empty state rather than an
+  // empty sidebar.
+  if (!filtered || filtered.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'mutedSmall';
+    empty.style.padding = '12px';
+    empty.textContent = 'No channels available.';
+    channelsEl.appendChild(empty);
+    return;
+  }
 
   for (const ch of filtered) {
     const item = document.createElement("div");
