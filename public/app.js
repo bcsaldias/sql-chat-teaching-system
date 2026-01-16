@@ -37,8 +37,6 @@ const userAvatar = document.getElementById("userAvatar");
 
 const sidebar = document.getElementById("sidebar");
 const chatMain = document.getElementById("chatMain");
-const sidebarOpen = document.getElementById("sidebarOpen");
-const sidebarClose = document.getElementById("sidebarClose");
 
 const toastEl = document.getElementById("toast");
 
@@ -868,11 +866,7 @@ async function loadMessages(channelId, { silent = false } = {}) {
   }
 }
 
-// ----------------------------
-// Events: Sidebar (mobile)
-// ----------------------------
-sidebarOpen?.addEventListener("click", () => sidebar.classList.add("open"));
-sidebarClose?.addEventListener("click", () => sidebar.classList.remove("open"));
+
 
 // ----------------------------
 // Events: DB / Group login
