@@ -31,16 +31,15 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Default SQL templates (match your current server.js exactly)
 const DEFAULT_SQL = {
-  conn_test: "SELECT '';",
-  user_register: "INSERT '';",
   user_login: "SELECT '';",
+  user_register: "INSERT '';",
   channels_list: "SELECT '';",
   channel_join: "INSERT '';",
   channel_leave: "DELETE '';",
-  channel_members_list: "SELECT '';",
   member_check: "SELECT '';",
   messages_list: "SELECT '';",
   message_post: "SELECT '';",
+  channel_members_list: "SELECT '';",
 };
 
 
@@ -163,7 +162,7 @@ app.post("/api/login", async (req, res) => {
   try {
     // Test connection (students can overwrite later, but default is SELECT 1)
     await withDb(username, password, schema, async (client) => {
-      await client.query(getSql(req, "conn_test"));
+      await client.query("select 1;");
     });
 
     req.session.dbUser = username;

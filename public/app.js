@@ -173,7 +173,7 @@ function ensureSqlLabUI() {
 
   const p = document.createElement("div");
   p.className = "mutedSmall";
-  p.innerHTML = `Read the <b>Description</b> for plain-language instructions (what each $1/$2 parameter means). When you are ready to test, click <b>Save</b>.`;
+  p.innerHTML = `Read the <b>Description</b> for plain-language instructions (what each $1/$2 parameter means). When you are ready, go to <b>Chat</b> to test the interaction.`;
 
   sqlLabList = document.createElement("div");
   sqlLabList.id = "sqlLabList";
@@ -197,7 +197,7 @@ function ensureSqlLabUI() {
   sqlLabMsg.id = "sqlLabMsg";
   sqlLabMsg.className = "msg";
 
-  row.appendChild(sqlSaveBtn);
+  // row.appendChild(sqlSaveBtn);
   row.appendChild(sqlResetBtn);
   row.appendChild(sqlLabMsg);
 
