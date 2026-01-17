@@ -151,7 +151,7 @@ ORDER BY c.name;`
     textAreaHeight: "120px",
     required:
 `SELECT username, body, created_at
-FROM chat_inbox,
+FROM chat_inbox
 WHERE channel_id = $1
 ORDER BY created_at DESC
 LIMIT 50;`
