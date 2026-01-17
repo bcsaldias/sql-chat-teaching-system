@@ -96,73 +96,74 @@ const SQL_LAB_ITEMS = [
     key: "user_register",
     title: "2) Register user",
     description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
-    // required: "INSERT INTO users(username, password) VALUES ($1, $2);"
+    required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "channels_list",
     title: "3) List channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean), user_count (integer).",
-//     required:
-// `SELECT
-//   c.id,
-//   c.name,
-//   c.description,
-//   (cm.username IS NOT NULL) AS is_member,
-//   (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
-// FROM channels c
-// LEFT JOIN channel_members cm
-//   ON cm.channel_id = c.id
-//  AND cm.username = $1
-// ORDER BY c.name;`
+    required:
+`SELECT
+  c.id,
+  c.name,
+  c.description,
+  (cm.username IS NOT NULL) AS is_member,
+  (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
+FROM channels c
+LEFT JOIN channel_members cm
+  ON cm.channel_id = c.id
+ AND cm.username = $1
+ORDER BY c.name;`
   },
   {
     key: "channel_join",
     title: "4) Join channel",
     description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3. Use ON CONFLICT DO NOTHING to avoid duplicates.",
-    // required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
+    required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
     title: "5) Leave channel",
     description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
-    // required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
+    required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
     title: "6) Membership check (view messages)",
     description: "Return a row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
-    // required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
+    required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
     title: "7) Load messages from view",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Example: $1 = 3. Return username, body, created_at (newest first). Limit to ~50 rows.",
-//     required:
-// `SELECT username, body, created_at
-// FROM chat_recent_messages
-// WHERE channel_id = $1
-// ORDER BY created_at DESC
-// LIMIT 50;`
+    required:
+`SELECT username, body, created_at
+FROM chat_recent_messages
+WHERE channel_id = $1
+ORDER BY created_at DESC
+LIMIT 50;`
   },
   {
     key: "message_post",
     title: "8) Post message via function",
     description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Example: $1 = 3, $2 = 'sam10', $3 = 'hello'. Return the inserted message id.",
     // required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
+    required: "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);"
   }
   ,
   {
     key: "channel_members_list",
     title: "9) Channel members list",
     description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Example: $1 = 3. Return a single column containing the username (ordered).",
-    // required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
+    required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
   }
   ,
   {
     key: "channel_create",
     title: "10) Create channel",
     description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel id.",
-    // required: "INSERT INTO channels(name, description) VALUES ($1, $2) RETURNING id;"
+    required: "INSERT INTO channels(name, description) VALUES ($1, $2) RETURNING id;"
   }
 ];
 
