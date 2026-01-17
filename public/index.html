@@ -62,6 +62,7 @@
         <aside id="sidebar" class="sidebar">
           <div class="sidebarHeader">
             <div class="sidebarTitle">Channels</div>
+            <button id="createChannelBtn" class="btn btn-ghost">+</button>
           </div>
 
           <div class="searchWrap">
@@ -170,6 +171,34 @@
         <button id="memberModalClose" class="iconBtn" aria-label="Close members">✕</button>
       </div>
       <div id="memberModalList" class="modalList"></div>
+    </div>
+  </div>
+
+  <!-- New Channel modal -->
+  <div id="newChannelModal" class="modal hidden">
+    <div class="modalOverlay" id="newChannelModalOverlay"></div>
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div id="newChannelModalTitle" class="modalTitle">New Channel</div>
+        <button id="newChannelModalClose" class="iconBtn" aria-label="Close new channel">✕</button>
+      </div>
+      <div id="newChannelModalList" class="modalList"></div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Channel Name</label>
+          <input id="newChannelName" placeholder="e.g., Sports" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <input id="newChannelDescription" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="postNewChannelBtn" class="btn btn-primary">Create</button>
+      </div>
+
     </div>
   </div>
 

@@ -40,6 +40,7 @@ const DEFAULT_SQL = {
   messages_list: "SELECT '';",
   message_post: "SELECT '';",
   channel_members_list: "SELECT '';",
+  channel_create: "INSERT '';",
 };
 
 
@@ -286,6 +287,24 @@ app.get("/api/channels/members", requireGroupLogin, requireChatUser, async (req,
     res.json({ ok: true, members });
   } catch (e) {
     res.status(400).json({ error: "Failed to load channel members.", detail: String(e.message || e) });
+  }
+});
+
+app.post("/api/channels/create", requireGroupLogin, requireChatUser, async (req, res) => {
+  const { name, description } = req.body || {};
+  const channel_name = String(name || "").trim();
+  const channel_description = String(description || "").trim();
+
+  if (!channel_name) return res.status(400).json({ error: "channel_name is required." });
+  if (!channel_description) return res.status(400).json({ error: "channel_description is required." });
+  const { dbUser, dbPass, schema } = req.session;
+  try {
+      await withDb(dbUser, dbPass, schema, async (client) => {
+      await client.query(getSql(req, "channel_create"), [channel_name, channel_description]);
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: "Failed to create channel.", detail: String(e.message || e) });
   }
 });
 

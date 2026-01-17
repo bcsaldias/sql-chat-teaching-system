@@ -47,6 +47,20 @@ const memberModalClose = document.getElementById("memberModalClose");
 
 const toastEl = document.getElementById("toast");
 
+const createChannelBtn = document.getElementById("createChannelBtn");
+const newChannelName = document.getElementById("newChannelName");
+const newChannelDescription = document.getElementById("newChannelDescription");
+const createChannelPostBtn = document.getElementById("postNewChannelBtn");
+
+
+// New channel modal elements (present in index.html)
+const newChannelModal = document.getElementById("newChannelModal");
+const newChannelModalOverlay = document.getElementById("newChannelModalOverlay");
+const newChannelModalList = document.getElementById("newChannelModalList");
+const newChannelModalTitle = document.getElementById("newChannelModalTitle");
+const newChannelModalClose = document.getElementById("newChannelModalClose");
+
+
 // ----------------------------
 // SQL Lab (UI created dynamically)
 // ----------------------------
@@ -142,6 +156,13 @@ const SQL_LAB_ITEMS = [
     title: "9) Channel members list",
     description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Example: $1 = 3. Return a single column containing the username (ordered).",
     // required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
+  }
+  ,
+  {
+    key: "channel_create",
+    title: "10) Create channel",
+    description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel id.",
+    // required: "INSERT INTO channels(name, description) VALUES ($1, $2) RETURNING id;"
   }
 ];
 
@@ -751,10 +772,10 @@ function renderChannels(list) {
     badge.className = "channelBadge " + (hasUnread ? "on" : "off");
     badge.title = hasUnread ? "New messages" : "";
 
-  const btn = document.createElement("button");
-  btn.className = "btn " + (ch.is_member ? "btn-ghost" : "btn-primary");
-  btn.classList.add("channelActionBtn");
-  btn.textContent = ch.is_member ? "Leave" : "Join";
+    const btn = document.createElement("button");
+    btn.className = "btn " + (ch.is_member ? "btn-ghost" : "btn-primary");
+    btn.classList.add("channelActionBtn");
+    btn.textContent = ch.is_member ? "Leave" : "Join";
 
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -941,6 +962,28 @@ function hideMemberModal() {
 memberModalClose?.addEventListener("click", hideMemberModal);
 memberModalOverlay?.addEventListener("click", hideMemberModal);
 
+// Modal helpers: allow to create new channels
+async function createNewChannelModal() {
+  if (!newChannelModal) return;
+  newChannelModalTitle.textContent = `Creating New Channel`;
+  newChannelModal.classList.remove("hidden");
+
+  try {
+
+  } catch (err) {
+    newChannelModalList.innerHTML = "";
+    setMsg(channelMsg, err.message || String(err), false);
+  }
+}
+
+function hidechannelModal() {
+  if (!newChannelModal) return;
+  newChannelModal.classList.add("hidden");
+}
+
+// hook up modal close events
+newChannelModalClose?.addEventListener("click", hidechannelModal);
+newChannelModalOverlay?.addEventListener("click", hidechannelModal);
 
 
 // ----------------------------
@@ -1067,6 +1110,43 @@ userLoginBtn.addEventListener("click", async () => {
     userLoginBtn.disabled = false;
   }
 });
+
+// ----------------------------
+// Events: Create Channel
+// ----------------------------
+createChannelBtn.addEventListener("click", async () => {
+  setMsg(userAuthMsg, "");
+  await createNewChannelModal();
+});
+
+
+postNewChannelBtn.addEventListener("click", async () => {
+  setMsg(userAuthMsg, "");
+  registerBtn.disabled = true;
+
+  const n = newChannelName.value.trim();
+  const d = newChannelDescription.value.trim();
+
+  if (!n || !d) {
+    setMsg(userAuthMsg, "Channel name and description are required.", false);
+    return;
+  }
+
+  try {
+    console.log("Creating channel:", n, d);
+    await api("/api/channels/create", "POST", { name: n, description: d });
+    setMsg(userAuthMsg, `Channel #${n} created.`, true);
+    hidechannelModal();
+    await loadChannels();
+    toast(`Channel #${n} created.`);
+  } catch (e) {
+    setMsg(userAuthMsg, e.message, false);
+  } finally {
+    registerBtn.disabled = false;
+    userLoginBtn.disabled = false;
+  }
+});
+
 
 // ----------------------------
 // Events: Channel search
