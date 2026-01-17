@@ -90,8 +90,8 @@ const SQL_LAB_ITEMS = [
   {
     key: "user_login",
     title: "1) Log in button",
-    description: "When a user clicks 'Log in' you receive two parameters, $1 = username and $2 = password. Write a query that returns the stored password for that username so the app can verify credentials. Example: $1 = 'sam10'.",
-    required: "SELECT password FROM users WHERE username = $1; -- copy this query into the textarea as an example"
+    description: "When a user clicks 'Log in' you need to retrieve that user's stored password from your database for the app to verify credentials. Use $1 = username.",
+    required: "SELECT password FROM users WHERE username = $1;"
   },
   {
     key: "user_register",

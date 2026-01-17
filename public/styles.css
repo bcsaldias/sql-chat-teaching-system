@@ -548,6 +548,7 @@ input:focus, textarea:focus{
   margin-bottom: 10x;
   margin-top: 13px;
   white-space: normal;
+  line-height: 20px;
 }
 
 #sqlLabList .sqlRequired {
@@ -560,6 +561,7 @@ input:focus, textarea:focus{
   white-space: pre-wrap;
   overflow: auto;
   max-height: 180px;
+  margin-top: 20px;
 }
 
 #sqlLabList textarea.sqlInput {
