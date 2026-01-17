@@ -394,3 +394,35 @@ const port = Number(process.env.PORT || 3000);
 app.listen(port, () => {
   console.log(`SQL Chat app running on http://localhost:${port}`);
 });
+
+
+
+// =====================================================
+// Check that the tables are correct!
+// =====================================================
+
+app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
+
+  console.log("TESTING /api/test_schema")
+  const { dbUser, dbPass, schema } = req.session;
+
+  const sanityChecks = [
+    "select username, channel_id from channel_members limit 0;",
+    "select id, name, description from channels limit 0;",
+    "select message_id, username, channel_id, body, created_at from chat_inbox limit 0;",
+    "select username, password from users limit 0;"
+  ];
+
+  for (const checkQuery of sanityChecks){
+    try {
+        const ok = await withDb(dbUser, dbPass, schema, async (client) => {
+          const r = await client.query(checkQuery);
+          if (r.rowCount != 0) return false;
+          return true;
+        });
+        console.log("Testing", ok, checkQuery);
+      } catch (e) {
+        res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
+    }
+  }
+});

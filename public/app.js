@@ -71,7 +71,9 @@ let sqlPanel = null;
 let sqlLabList = null;
 let sqlSaveBtn = null;
 let sqlResetBtn = null;
+let testSchemaBtn = null;
 let sqlLabMsg = null;
+let schemabMsg = null;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
@@ -231,9 +233,20 @@ function ensureSqlLabUI() {
   sqlResetBtn.textContent = "Reset to defaults";
   // spacing for the reset button is handled in CSS
 
+  testSchemaBtn = document.createElement("button");
+  testSchemaBtn.id = "testSchemaBtn";
+  testSchemaBtn.className = "btn btn-ghost";
+  testSchemaBtn.type = "button";
+  testSchemaBtn.textContent = "Test Schema";
+
   sqlLabMsg = document.createElement("span");
   sqlLabMsg.id = "sqlLabMsg";
   sqlLabMsg.className = "msg";
+
+  schemabMsg = document.createElement("span");
+  schemabMsg.id = "schemabMsg";
+  schemabMsg.className = "msg";
+
 
   // row.appendChild(sqlSaveBtn);
   row.appendChild(sqlResetBtn);
@@ -241,6 +254,12 @@ function ensureSqlLabUI() {
 
   card.appendChild(h2);
   card.appendChild(p);
+
+  const topRow = document.createElement("div");
+  topRow.appendChild(testSchemaBtn);
+  topRow.appendChild(schemabMsg);
+  card.appendChild(topRow);
+
   card.appendChild(sqlLabList);
   card.appendChild(row);
 
@@ -311,6 +330,17 @@ function ensureSqlLabUI() {
       setMsg(sqlLabMsg, e.message, false);
     }
   });
+
+  testSchemaBtn.addEventListener("click", async () => {
+    setMsg(schemabMsg, "");
+    try {
+      setMsg(schemabMsg, "Schema OK", true);
+      await api("/api/test_schema", "GET");
+    } catch (e) {
+      setMsg(schemabMsg, e.message, false);
+    }
+  });
+
 }
 
 function setTabsVisible(visible) {
