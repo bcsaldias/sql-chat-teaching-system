@@ -513,6 +513,12 @@ input:focus, textarea:focus{
   line-height: 1.35;
 }
 
+#sqlLabPanel .description {
+  color: black;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 #sqlLabList {
   margin-top: 12px;
 }
@@ -656,3 +662,7 @@ body.sql-mode #userAuthPanel {
 .modalList{ max-height: 320px; overflow:auto; padding: 6px; border-top: 1px solid var(--border); }
 .modalList .memberItem{ padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; margin: 6px 0; }
 .modalList .memberItem:hover{ background:#f8fafc; border-color:#eef2f7; }
+
+li {
+  margin-bottom: 6px;
+}

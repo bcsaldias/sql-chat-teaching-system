@@ -13,6 +13,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const connPill = document.getElementById("connPill");
 
 const userAuthPanel = document.getElementById("userAuthPanel");
+const chatUI = document.getElementById("chatUI");
 const mainChatUI = document.getElementById("mainChatUI");
 const chatUsernameEl = document.getElementById("chatUsername");
 const chatPasswordEl = document.getElementById("chatPassword");
@@ -88,19 +89,19 @@ const SQL_LAB_ITEMS = [
   // },
   {
     key: "user_login",
-    title: "1) Login user",
+    title: "1) Log in button",
     description: "When a user clicks 'Log in' you receive two parameters, $1 = username and $2 = password. Write a query that returns the stored password for that username so the app can verify credentials. Example: $1 = 'sam10'.",
     required: "SELECT password FROM users WHERE username = $1; -- copy this query into the textarea as an example"
   },
   {
     key: "user_register",
-    title: "2) Register user",
+    title: "2) Sign up button",
     description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
     required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "channels_list",
-    title: "3) List channels + membership",
+    title: "3) Display channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean), user_count (integer).",
     required:
 `SELECT
@@ -129,13 +130,13 @@ ORDER BY c.name;`
   },
   {
     key: "member_check",
-    title: "6) Membership check (view messages)",
+    title: "6) Check membership before loading messages",
     description: "Return a row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
     required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
-    title: "7) Load messages from view",
+    title: "7) Display messages for a channel",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Example: $1 = 3. Return username, body, created_at (newest first). Limit to ~50 rows.",
     required:
 `SELECT username, body, created_at
@@ -146,7 +147,7 @@ LIMIT 50;`
   },
   {
     key: "message_post",
-    title: "8) Post message via function",
+    title: "8) Send button: Post message",
     description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Example: $1 = 3, $2 = 'sam10', $3 = 'hello'. Return the inserted message id.",
     // required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
     required: "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);"
@@ -163,7 +164,7 @@ LIMIT 50;`
     key: "channel_create",
     title: "10) Create channel",
     description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel id.",
-    required: "INSERT INTO channels(name, description) VALUES ($1, $2) RETURNING id;"
+    required: "INSERT INTO channels(name, description) VALUES ($1, $2);"
   }
 ];
 
@@ -194,8 +195,20 @@ function ensureSqlLabUI() {
   h2.textContent = "SQL Lab";
 
   const p = document.createElement("div");
-  p.className = "mutedSmall";
-  p.innerHTML = `Read the <b>Description</b> for plain-language instructions (what each $1/$2 parameter means). When you are ready, go to <b>Chat</b> to test the interaction.`;
+  p.className = "description";
+  p.innerHTML = `
+  <h3>Welcome to SQL Lab!</h3>
+  If you are here, it means your group database connection is active!
+  <ul>
+    <li>This app is only missing a few SQL queries to be fully functional.</li>
+    <li><b>You will implement those missing SQL queries</b>, which the app will use to perform key actions like user login, channel listing, message retrieval, etc.</li>
+    <li>Be sure to follow the exact requirements for each query, including returning the correct columns and data types as specified.</li>
+    <li>Before you try your SQL queries here, make sure to test them in your group database (with test values) using pgAdmin with sample values.</li>
+    <li>Once you are confident your SQL queries are correct, paste them into the corresponding textareas below and try out your app! You'll receive the user input or parameters for your SQL queries as $1, $2, etc. (e.g., $1 = 3, $2 = 'username_value').</li>
+    <li>Queries are automatically saved when you switch back to the Chat tab.</li>
+    <li>If any of the funcitonalities do not work as expected, check your database model in pgAdmin or adjust your SQL queries.</li>
+  </ul>
+  Good luck, and SQL querying! <br><br>`;
 
   sqlLabList = document.createElement("div");
   sqlLabList.id = "sqlLabList";
@@ -327,6 +340,7 @@ async function setTab(which) {
     sqlPanel.classList.remove("hidden");
     userAuthPanel.classList.add("hidden");
     mainChatUI.classList.add("hidden");
+    chatUI.classList.add("hidden");
 
     await loadSqlTemplates();
   } else {
@@ -553,6 +567,7 @@ function showLogin() {
 
 function showUserAuth() {
   userAuthPanel.classList.remove("hidden");
+  chatUI.classList.add("hidden");
   mainChatUI.classList.add("hidden");
   userPill.classList.add("pill-muted");
   userPill.textContent = "Not logged in";
@@ -562,6 +577,7 @@ function showUserAuth() {
 
 function showMainUI(username) {
   userAuthPanel.classList.add("hidden");
+  chatUI.classList.remove("hidden");
   mainChatUI.classList.remove("hidden");
   userPill.classList.remove("pill-muted");
   userPill.textContent = `@${username}`;
