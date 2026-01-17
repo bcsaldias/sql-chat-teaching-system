@@ -88,22 +88,12 @@
 
         <!-- Main -->
         <main id="chatMain" class="chatMain">
-          <div class="chatHeader">
-            <div class="chatHeaderTitle">
-              <div id="activeChannelLabel" class="channelTitle">Select a channel</div>
-              <div id="activeChannelSub" class="channelSub mutedSmall">Join a channel to read and post.</div>
-            </div>
-
-            <div class="chatHeaderRight">
-              <span id="userPill" class="pill pill-muted">Not logged in</span>
-            </div>
-          </div>
 
           <!-- Chat user auth (separate from group login) -->
           <section id="userAuthPanel" class="authCard">
-            <h3>Chat User</h3>
+            <h3>Welcome – please register or log in to join the chat channels!</h3>
             <p class="muted">
-              Register or log in. Use a dummy password for now, not a real one.
+              <!-- Register or log in. Use a dummy password for now, not a real one. -->
                <!-- Your password is hashed in the browser using SHA-512 (128 hex chars). -->
             </p>
 
@@ -119,9 +109,22 @@
             </div>
 
             <div class="row">
-              <button id="registerBtn" class="btn btn-ghost">Register</button>
+              <button id="registerBtn" class="btn btn-ghost">Sign up</button>
               <button id="userLoginBtn" class="btn btn-primary">Log in</button>
               <div id="userAuthMsg" class="msg"></div>
+            </div>
+          </section>
+
+          <section id="chatUI" class="hidden">
+            <div class="chatHeader">
+              <div class="chatHeaderTitle">
+                <div id="activeChannelLabel" class="channelTitle">Select a channel</div>
+                <div id="activeChannelSub" class="channelSub mutedSmall">Join a channel to read and post.</div>
+              </div>
+
+              <div class="chatHeaderRight">
+                <span id="userPill" class="pill pill-muted">Not logged in</span>
+              </div>
             </div>
           </section>
 

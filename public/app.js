@@ -965,7 +965,7 @@ memberModalOverlay?.addEventListener("click", hideMemberModal);
 // Modal helpers: allow to create new channels
 async function createNewChannelModal() {
   if (!newChannelModal) return;
-  newChannelModalTitle.textContent = `Creating New Channel`;
+  newChannelModalTitle.textContent = `Creating new channel`;
   newChannelModal.classList.remove("hidden");
 
   try {
@@ -1116,7 +1116,7 @@ userLoginBtn.addEventListener("click", async () => {
 // ----------------------------
 createChannelBtn.addEventListener("click", async () => {
   setMsg(userAuthMsg, "");
-  await createNewChannelModal();
+  if (state.chatUsername) await createNewChannelModal();
 });
 
 
