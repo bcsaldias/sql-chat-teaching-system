@@ -96,7 +96,7 @@ const SQL_LAB_ITEMS = [
   {
     key: "user_register",
     title: "2) Sign up button",
-    description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into. Example: $1 = 'sam10', $2 = 'hunter2'. You can test the query in pgAdmin or psql.",
+    description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into.",
     required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
@@ -120,20 +120,20 @@ ORDER BY c.name;`
   {
     key: "channel_join",
     title: "4) Join channel",
-    description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3. Use ON CONFLICT DO NOTHING to avoid duplicates.",
+    description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Use ON CONFLICT DO NOTHING to avoid duplicates.",
     required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
     title: "5) Leave channel",
-    description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
+    description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id.",
     required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
     title: "6) Check membership before loading messages",
-    description: "Return a row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id. Example: $1 = 'sam10', $2 = 3.",
-    required: "SELECT 1 FROM channel_members WHERE username = $1 AND channel_id = $2;"
+    description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id.",
+    required: "SELECT true FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
