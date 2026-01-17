@@ -43,7 +43,6 @@ const DEFAULT_SQL = {
   channel_create: "INSERT '';",
 };
 
-
 // Force a single statement (no multi-statement injection via ;)
 function normalizeSingleStatement(sql) {
   const s = String(sql || "").trim();

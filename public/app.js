@@ -78,7 +78,7 @@ let schemabMsg = null;
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
 
-const SQL_LAB_ITEMS = [
+var SQL_LAB_ITEMS = [
   // {
   //   key: "set_search_path",
   //   title: "1) Set schema search_path",
@@ -91,18 +91,21 @@ const SQL_LAB_ITEMS = [
   // },
   {
     key: "user_login",
+    status: false,
     title: "1) Log in button",
     description: "When a user clicks 'Log in' you need to retrieve that user's stored password from your database for the app to verify credentials. Use $1 = username.",
     required: "SELECT password FROM users WHERE username = $1;"
   },
   {
     key: "user_register",
+    status: false,
     title: "2) Sign up button",
     description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into.",
     required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "channels_list",
+    status: false,
     title: "3) Display channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Returns id, name, description, is_member (boolean), user_count (integer).",
     textAreaHeight: "280px",
@@ -121,24 +124,28 @@ ORDER BY c.name;`
   },
   {
     key: "channel_join",
+    status: false,
     title: "4) Join channel",
     description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Use ON CONFLICT DO NOTHING to avoid duplicates.",
     required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
+    status: false,
     title: "5) Leave channel",
     description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id.",
     required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
+    status: false,
     title: "6) Check membership before loading messages",
     description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id.",
     required: "SELECT true FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
+    status: false,
     title: "7) Display messages for a channel",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Return username, body, created_at (newest first). Limit to ~50 rows.",
     textAreaHeight: "120px",
@@ -151,6 +158,7 @@ LIMIT 50;`
   },
   {
     key: "message_post",
+    status: false,
     title: "8) Send button: Post message",
     description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Return the inserted message id.",
     // required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
@@ -159,6 +167,7 @@ LIMIT 50;`
   ,
   {
     key: "channel_members_list",
+    status: false,
     title: "9) Channel members list",
     description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Return a single column containing the username (ordered).",
     required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
@@ -166,6 +175,7 @@ LIMIT 50;`
   ,
   {
     key: "channel_create",
+    status: false,
     title: "10) Create channel",
     description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel id.",
     required: "INSERT INTO channels(name, description) VALUES ($1, $2);"
@@ -417,9 +427,14 @@ function renderSqlLab(templates) {
     title.className = "sqlTitle";
     title.textContent = item.title;
 
-    const label = document.createElement("div");
+    // const label = document.createElement("div");
     // label.className = "sqlReqLabel";
     // label.textContent = "Required:";
+
+    const queryStatus = document.createElement("div");
+    queryStatus.className = "queryStatus";
+    queryStatus.textContent = "Status: " + String(item.status);
+    // TODO when a query is successful keep it and mark it as green!
 
     const desc = document.createElement("div");
     desc.className = "sqlDesc";
@@ -434,13 +449,16 @@ function renderSqlLab(templates) {
     ta.dataset.sqlkey = item.key;
     const s = String(templates[item.key] || "");
     ta.value =  s.endsWith(";") ? s : s + ";";
+    // for a given text area color keywords, SELECT, INSERT, ...
 
     outer.appendChild(title);
-    outer.appendChild(label);
+    outer.appendChild(queryStatus);
     outer.appendChild(desc);
     if (item.required) outer.appendChild(req);
     if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
     outer.appendChild(ta);
+
+    // TODO ADD green if correct query
 
     sqlLabList.appendChild(outer);
   }
@@ -769,6 +787,15 @@ function renderMessages(messages) {
   if (shouldStick) scrollToBottom(messagesEl);
 }
 
+function flagQueryStatus(query, status){
+  for (var item of SQL_LAB_ITEMS) { 
+    if (item.key == query){
+      item.status = status
+    }
+  }
+  console.log(query, status);
+}
+
 function renderChannels(list) {
   channelsEl.innerHTML = "";
 
@@ -833,16 +860,23 @@ function renderChannels(list) {
       try {
         btn.disabled = true;
         if (ch.is_member) {
-          await api("/api/channels/leave", "POST", { channel_id: ch.id });
+          await api("/api/channels/leave", "POST", { channel_id: ch.id }); // KEY: "channel_leave"
           toast(`Left #${ch.name}`);
+          flagQueryStatus("channel_leave", true);
           if (state.activeChannelId === ch.id) setActiveChannel(null);
         } else {
-          await api("/api/channels/join", "POST", { channel_id: ch.id });
+          await api("/api/channels/join", "POST", { channel_id: ch.id }); // KEY: "channel_join"
+          flagQueryStatus("channel_join", true);
           toast(`Joined #${ch.name}`);
         }
         await loadChannels();
       } catch (err) {
         setMsg(channelMsg, err.message, false);
+        if (ch.is_member){
+          flagQueryStatus("channel_leave", false);
+        } else {
+          flagQueryStatus("channel_join", false);
+        }
       } finally {
         btn.disabled = false;
       }
@@ -887,7 +921,7 @@ function renderChannels(list) {
 // ----------------------------
 async function loadChannels() {
   try {
-    const data = await api("/api/channels");
+    const data = await api("/api/channels"); // KEY: channels_list
     // Debug: log the raw response so we can confirm the server returned the
     // updated channels after you changed the query.
     console.debug("loadChannels: server response:", data);
@@ -896,6 +930,7 @@ async function loadChannels() {
       latest_created_at: c.latest_created_at || null
     }));
     renderChannels(state.channels);
+    flagQueryStatus("channels_list", true);
   } catch (e) {
     // On error, clear any previously rendered channels so the sidebar
     // doesn't show stale data from a prior successful load.
@@ -907,6 +942,7 @@ async function loadChannels() {
     setMsg(channelMsg, e.message || String(e), false);
     // Stop polling since we don't have a valid channel context
     stopPolling();
+    flagQueryStatus("channels_list", false);
     throw e; // rethrow so callers can handle additional UI changes if needed
   }
 
@@ -935,7 +971,7 @@ async function loadMessages(channelId, { silent = false } = {}) {
     if (!silent) {
       messagesEl.innerHTML = `<div class="mutedSmall">Loading…</div>`;
     }
-    const data = await api(`/api/messages?channel_id=${encodeURIComponent(channelId)}`);
+    const data = await api(`/api/messages?channel_id=${encodeURIComponent(channelId)}`); // KEY: member_check, messages_list
     const messages = toChronological(data.messages || []);
 
     // Serialize to a compact string to detect changes. Avoids re-rendering
@@ -967,6 +1003,10 @@ async function loadMessages(channelId, { silent = false } = {}) {
         }
       }
     }
+
+    flagQueryStatus("member_check", true);
+    flagQueryStatus("messages_list", true);
+
   } catch (e) {
     // Clear messages UI on error so stale messages from a previous
     // successful load aren't shown when the request fails.
@@ -974,6 +1014,8 @@ async function loadMessages(channelId, { silent = false } = {}) {
     // Also hide the chat body so no stale UI remains visible
     mainChatUI.classList.add("hidden");
     setMsg(postMsg, e.message || String(e), false);
+    flagQueryStatus("member_check", false);
+    flagQueryStatus("messages_list", false);
     stopPolling();
   }
 }
@@ -986,7 +1028,7 @@ async function loadChannelMembers(channelId, channelName) {
   memberModal.classList.remove("hidden");
 
   try {
-    const data = await api(`/api/channels/members?channel_id=${encodeURIComponent(channelId)}`);
+    const data = await api(`/api/channels/members?channel_id=${encodeURIComponent(channelId)}`); // KEY: channel_members_list
     const members = data.members || [];
     if (!members || members.length === 0) {
       memberModalList.innerHTML = `<div class="mutedSmall">No members found.</div>`;
@@ -999,9 +1041,11 @@ async function loadChannelMembers(channelId, channelName) {
       item.textContent = m;
       memberModalList.appendChild(item);
     }
+    flagQueryStatus("channel_members_list", true);
   } catch (err) {
     memberModalList.innerHTML = "";
     setMsg(channelMsg, err.message || String(err), false);
+    flagQueryStatus("channel_members_list", false);
   }
 }
 
@@ -1112,9 +1156,11 @@ registerBtn.addEventListener("click", async () => {
 
   try {
     const hash = await sha512Hex(p);
-    await api("/api/user/register", "POST", { username: u, password_hash: hash });
+    await api("/api/user/register", "POST", { username: u, password_hash: hash }); // KEY: user_register
+    flagQueryStatus("user_register", true);
     setMsg(userAuthMsg, "Registered. Logging you in…", true);
-    await api("/api/user/login", "POST", { username: u, password_hash: hash });
+    await api("/api/user/login", "POST", { username: u, password_hash: hash }); // KEY: user_login
+    flagQueryStatus("user_login", true);
 
     state.chatUsername = u;
     showMainUI(u);
@@ -1144,7 +1190,8 @@ userLoginBtn.addEventListener("click", async () => {
 
   try {
     const hash = await sha512Hex(p);
-    await api("/api/user/login", "POST", { username: u, password_hash: hash });
+    await api("/api/user/login", "POST", { username: u, password_hash: hash }); // KEY: user_login
+    flagQueryStatus("user_login", true);
 
     state.chatUsername = u;
     showMainUI(u);
@@ -1157,6 +1204,7 @@ userLoginBtn.addEventListener("click", async () => {
     } else {
       setMsg(userAuthMsg, m, false);
     }
+    flagQueryStatus("user_login", false);
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
@@ -1186,13 +1234,15 @@ postNewChannelBtn.addEventListener("click", async () => {
 
   try {
     console.log("Creating channel:", n, d);
-    await api("/api/channels/create", "POST", { name: n, description: d });
+    await api("/api/channels/create", "POST", { name: n, description: d }); // KEY: channel_create
     setMsg(userAuthMsg, `Channel #${n} created.`, true);
     hidechannelModal();
     await loadChannels();
     toast(`Channel #${n} created.`);
+    flagQueryStatus("channel_create", true);
   } catch (e) {
     setMsg(userAuthMsg, e.message, false);
+    flagQueryStatus("channel_create", false);
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
@@ -1255,15 +1305,17 @@ sendBtn.addEventListener("click", async () => {
       if (stick) scrollToBottom(messagesEl);
     }
 
-    await api("/api/message", "POST", { channel_id: state.activeChannelId, body });
+    await api("/api/message", "POST", { channel_id: state.activeChannelId, body }); // KEY: message_post
     composerInput.value = "";
     autosizeTextarea(composerInput);
     setMsg(postMsg, "Sent", true);
+    flagQueryStatus("message_post", true);
 
     await loadMessages(state.activeChannelId, { silent: true });
   } catch (e) {
     setMsg(postMsg, e.message, false);
     toast("Send failed");
+    flagQueryStatus("message_post", false);
   } finally {
     sendBtn.disabled = false;
   }
