@@ -828,6 +828,7 @@ function renderChannels(list) {
       setMsg(postMsg, "", true);
 
       setActiveChannel(ch);
+      renderChannels(state.channels);
 
       state.lastSeenByChannel[String(ch.id)] = new Date().toISOString();
       saveLocal("lastSeenByChannel", state.lastSeenByChannel);
@@ -837,8 +838,8 @@ function renderChannels(list) {
       sidebar.classList.remove("open");
     });
 
-  right.appendChild(badge);
-  right.appendChild(btn);
+    right.appendChild(badge);
+    right.appendChild(btn);
 
     item.appendChild(left);
     item.appendChild(right);
