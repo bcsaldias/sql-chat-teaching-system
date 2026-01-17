@@ -183,6 +183,7 @@ function ensureSqlLabUI() {
 
   tabChatBtn = document.getElementById("tabChat");
   tabSqlBtn = document.getElementById("tabSql");
+  tabSqlBtn.addEventListener("click", () => setTab("sql"));
 
   // SQL panel
   sqlPanel = document.createElement("div");
