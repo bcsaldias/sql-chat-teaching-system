@@ -140,7 +140,7 @@ ORDER BY c.name;`
   {
     key: "messages_list",
     title: "7) Display messages for a channel",
-    description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Example: $1 = 3. Return username, body, created_at (newest first). Limit to ~50 rows.",
+    description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Return username, body, created_at (newest first). Limit to ~50 rows.",
     textAreaHeight: "120px",
     required:
 `SELECT username, body, created_at
@@ -160,7 +160,7 @@ LIMIT 50;`
   {
     key: "channel_members_list",
     title: "9) Channel members list",
-    description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Example: $1 = 3. Return a single column containing the username (ordered).",
+    description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Return a single column containing the username (ordered).",
     required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
   }
   ,
