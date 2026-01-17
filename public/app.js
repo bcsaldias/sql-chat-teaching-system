@@ -102,7 +102,7 @@ const SQL_LAB_ITEMS = [
   {
     key: "channels_list",
     title: "3) Display channels + membership",
-    description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean), user_count (integer).",
+    description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Returns id, name, description, is_member (boolean), user_count (integer).",
     textAreaHeight: "280px",
     required:
 `SELECT
@@ -150,7 +150,7 @@ LIMIT 50;`
   {
     key: "message_post",
     title: "8) Send button: Post message",
-    description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Example: $1 = 3, $2 = 'sam10', $3 = 'hello'. Return the inserted message id.",
+    description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Return the inserted message id.",
     // required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
     required: "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);"
   }
