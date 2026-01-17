@@ -151,10 +151,16 @@ ORDER BY c.name;`
     textAreaHeight: "120px",
     required:
 `SELECT username, body, created_at
-FROM chat_recent_messages
+FROM chat_inbox,
 WHERE channel_id = $1
 ORDER BY created_at DESC
 LIMIT 50;`
+//     required:
+// `SELECT username, body, created_at
+// FROM chat_recent_messages
+// WHERE channel_id = $1
+// ORDER BY created_at DESC
+// LIMIT 50;`
   },
   {
     key: "message_post",
@@ -433,7 +439,7 @@ function renderSqlLab(templates) {
 
     const queryStatus = document.createElement("div");
     queryStatus.className = "queryStatus";
-    queryStatus.textContent = "Status: " + String(item.status);
+    queryStatus.textContent = "Did run? " + String(item.status);
     // TODO when a query is successful keep it and mark it as green!
 
     const desc = document.createElement("div");
@@ -788,7 +794,7 @@ function renderMessages(messages) {
 }
 
 function flagQueryStatus(query, status){
-  for (var item of SQL_LAB_ITEMS) { 
+  for (var item of SQL_LAB_ITEMS) {
     if (item.key == query){
       item.status = status
     }
