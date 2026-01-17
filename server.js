@@ -38,7 +38,7 @@ const DEFAULT_SQL = {
   channel_leave: "DELETE '';",
   member_check: "SELECT '';",
   messages_list: "SELECT '';",
-  message_post: "SELECT '';",
+  message_post: "INSERT '';",
   channel_members_list: "SELECT '';",
   channel_create: "INSERT '';",
 };
