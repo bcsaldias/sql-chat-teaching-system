@@ -103,6 +103,7 @@ const SQL_LAB_ITEMS = [
     key: "channels_list",
     title: "3) Display channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Example: $1 = 'sam10'. Returns id, name, description, is_member (boolean), user_count (integer).",
+    textAreaHeight: "280px",
     required:
 `SELECT
   c.id,
@@ -138,6 +139,7 @@ ORDER BY c.name;`
     key: "messages_list",
     title: "7) Display messages for a channel",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Example: $1 = 3. Return username, body, created_at (newest first). Limit to ~50 rows.",
+    textAreaHeight: "120px",
     required:
 `SELECT username, body, created_at
 FROM chat_recent_messages
@@ -406,6 +408,7 @@ function renderSqlLab(templates) {
     outer.appendChild(label);
     outer.appendChild(desc);
     if (item.required) outer.appendChild(req);
+    if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
     outer.appendChild(ta);
 
     sqlLabList.appendChild(outer);
