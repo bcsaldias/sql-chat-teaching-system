@@ -110,7 +110,7 @@ var SQL_LAB_ITEMS = [
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Returns id, name, description, is_member (boolean), user_count (integer).",
     textAreaHeight: "280px",
     required:
-`SELECT
+      `SELECT
   c.id,
   c.name,
   c.description,
@@ -150,17 +150,17 @@ ORDER BY c.name;`
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Return username, body, created_at (newest at the bottom). Limit to ~50 rows.",
     textAreaHeight: "120px",
     required:
-`SELECT username, body, created_at
+      `SELECT username, body, created_at
 FROM chat_inbox
 WHERE channel_id = $1
 ORDER BY created_at DESC
 LIMIT 50;`
-//     required:
-// `SELECT username, body, created_at
-// FROM chat_recent_messages
-// WHERE channel_id = $1
-// ORDER BY created_at DESC
-// LIMIT 50;`
+    //     required:
+    // `SELECT username, body, created_at
+    // FROM chat_recent_messages
+    // WHERE channel_id = $1
+    // ORDER BY created_at DESC
+    // LIMIT 50;`
   },
   {
     key: "message_post",
@@ -441,8 +441,12 @@ function renderSqlLab(templates) {
 
     // console.log("STATUS", item.status, item.title);
     queryStatus.dataset.tip = item.status ? "Query runs." :
-      item.status === false ? "Query error." :
-      "Not tested";
+      item.status === false ? "Try again." :
+        "Not tested";
+
+    if (item.key === "user_login" && item.status === false) {
+      item.status = userAuthMsg.textContent ? userAuthMsg.textContent : "Try again.";
+    }
 
     const desc = document.createElement("div");
     desc.className = "sqlDesc";
@@ -456,7 +460,7 @@ function renderSqlLab(templates) {
     ta.className = "sqlInput";
     ta.dataset.sqlkey = item.key;
     const s = String(templates[item.key] || "");
-    ta.value =  s.endsWith(";") ? s : s + ";";
+    ta.value = s.endsWith(";") ? s : s + ";";
     // for a given text area color keywords, SELECT, INSERT, ...
 
     const headerRow = document.createElement("div");
@@ -556,7 +560,7 @@ function toChronological(messages) {
 }
 
 function saveLocal(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { }
 }
 
 function expandTo128(s) {
@@ -801,9 +805,9 @@ function renderMessages(messages) {
   if (shouldStick) scrollToBottom(messagesEl);
 }
 
-function flagQueryStatus(query, status){
+function flagQueryStatus(query, status) {
   for (var item of SQL_LAB_ITEMS) {
-    if (item.key == query){
+    if (item.key == query) {
       item.status = status
     }
   }
@@ -816,9 +820,9 @@ function renderChannels(list) {
   const q = (channelSearchEl.value || "").trim().toLowerCase();
   const filtered = q
     ? list.filter(c =>
-        (c.name || "").toLowerCase().includes(q) ||
-        (c.description || "").toLowerCase().includes(q)
-      )
+      (c.name || "").toLowerCase().includes(q) ||
+      (c.description || "").toLowerCase().includes(q)
+    )
     : list;
 
   // If the server returned no channels (for example because the SQL template
@@ -886,7 +890,7 @@ function renderChannels(list) {
         await loadChannels();
       } catch (err) {
         setMsg(channelMsg, err.message, false);
-        if (ch.is_member){
+        if (ch.is_member) {
           flagQueryStatus("channel_leave", false);
         } else {
           flagQueryStatus("channel_join", false);
@@ -1147,7 +1151,7 @@ async function tryDBCredentials() {
 
 logoutBtn.addEventListener("click", async () => {
   // Sign out chat user only (keep DB session)
-  try { await api("/api/user/logout", "POST"); } catch {}
+  try { await api("/api/user/logout", "POST"); } catch { }
 
   stopPolling();
 
