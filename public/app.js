@@ -439,7 +439,7 @@ function renderSqlLab(templates) {
     if (item.status) queryStatus.classList.add("is-pass");
     else if (item.status === false) queryStatus.classList.add("is-fail");
 
-    console.log("STATUS", item.status, item.title);
+    // console.log("STATUS", item.status, item.title);
     queryStatus.dataset.tip = item.status ? "Query runs." :
       item.status === false ? "Query error." :
       "Not tested";
