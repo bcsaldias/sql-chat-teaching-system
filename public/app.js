@@ -1217,9 +1217,9 @@ userLoginBtn.addEventListener("click", async () => {
     }
     flagQueryStatus("user_login", false);
   } finally {
-    await loadChannels(); // channels_list
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
+    await loadChannels(); // channels_list
   }
 });
 
