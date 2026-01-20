@@ -1125,6 +1125,26 @@ loginBtn.addEventListener("click", async () => {
   }
 });
 
+async function tryDBCredentials() {
+  setMsg(loginMsg, "");
+  loginBtn.disabled = true;
+  try {
+    await api("/api/credentials_login", "POST");
+    setMsg(loginMsg, "Connected to your group schema.", true);
+    state.isDbConnected = true;
+    renderGate();
+    showUserAuth();
+    toast("Connected");
+  } catch (e) {
+    setMsg(loginMsg, e.message, false);
+    state.isDbConnected = false;
+    renderGate();
+  } finally {
+    loginBtn.disabled = false;
+  }
+}
+
+
 logoutBtn.addEventListener("click", async () => {
   // Sign out chat user only (keep DB session)
   try { await api("/api/user/logout", "POST"); } catch {}
@@ -1339,3 +1359,4 @@ sendBtn.addEventListener("click", async () => {
 state.isDbConnected = false;
 renderGate();
 autosizeTextarea(composerInput);
+tryDBCredentials();

@@ -184,6 +184,30 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
+    const username = req.session.dbUser;
+    const password = req.session.dbPass;
+    const schema = req.session.schema;
+
+    await withDb(username, password, schema, async (client) => {
+      await client.query("select 1;");
+    });
+
+    try {
+      await withDb(username, password, schema, async (client) => {
+        await client.query("select 1;");
+      });
+
+      res.json({ ok: true, schema });
+    } catch (e) {
+      res.status(401).json({
+        error: "Login failed. Check username/password and connectivity.",
+        detail: String(e.message || e)
+      });
+    }
+});
+
+
 app.post("/api/logout", (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
