@@ -933,6 +933,7 @@ function renderChannels(list) {
 // Data Loading
 // ----------------------------
 async function loadChannels() {
+  setMsg(channelMsg, "");
   try {
     const data = await api("/api/channels"); // KEY: channels_list
     // Debug: log the raw response so we can confirm the server returned the
