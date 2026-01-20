@@ -668,3 +668,77 @@ body.sql-mode #userAuthPanel {
 li {
   margin-bottom: 6px;
 }
+
+
+/* Small status dot (untested / pass / fail) */
+.queryStatus {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+  flex: 0 0 auto;
+
+  /* default = untested */
+  background: rgba(245, 158, 11, 0.9);     /* yellow */
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+
+/* green = passed */
+.queryStatus.is-pass {
+  background: rgba(34, 197, 94, 0.95);     /* green */
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+
+/* red = failed */
+.queryStatus.is-fail {
+  background: rgba(239, 68, 68, 0.95);     /* red */
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+
+/* optional: add hover tooltip cursor */
+.queryStatus[title] { cursor: help; }
+
+.sqlItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sqlItemHeader .sqlTitle {
+  margin: 0;
+  padding-top: 6px;
+}
+
+.queryStatus {
+  position: relative;
+  cursor: help;
+}
+
+.queryStatus[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  transform: translateY(-50%);
+  background: rgba(17, 24, 39, 0.95);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.queryStatus[data-tip]:hover::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: rgba(17, 24, 39, 0.95);
+  z-index: 9999;
+  pointer-events: none;
+}
