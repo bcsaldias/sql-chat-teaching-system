@@ -205,8 +205,22 @@ app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
 
 
 app.post("/api/logout", (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
+  req.session.destroy(() => {
+    res.clearCookie("connect.sid");
+    res.json({ ok: true });
+  });
 });
+
+
+// Browser-friendly logout URL
+app.get("/logout", (req, res) => {
+  req.session.destroy(() => {
+    // clear the default express-session cookie name
+    res.clearCookie("connect.sid");
+    res.redirect("/"); // or res.redirect("/index.html");
+  });
+});
+
 
 // --------------------
 // Chat user auth

@@ -61,6 +61,11 @@ const newChannelModalList = document.getElementById("newChannelModalList");
 const newChannelModalTitle = document.getElementById("newChannelModalTitle");
 const newChannelModalClose = document.getElementById("newChannelModalClose");
 
+// Connection menu elements (present in index.html)
+const connMenu = document.getElementById("connMenu");
+const connMenuUserLogout = document.getElementById("connMenuUserLogout");
+const connMenuDbLogout = document.getElementById("connMenuDbLogout");
+
 
 // ----------------------------
 // SQL Lab (UI created dynamically)
@@ -101,7 +106,7 @@ var SQL_LAB_ITEMS = [
     status: null,
     title: "2) Sign up button",
     description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into.",
-    required: "INSERT INTO users(username, password) VALUES ($1, $2);"
+    // required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "channels_list",
@@ -109,39 +114,39 @@ var SQL_LAB_ITEMS = [
     title: "3) Display channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Returns id, name, description, is_member (boolean), user_count (integer).",
     textAreaHeight: "280px",
-    required:
-      `SELECT
-  c.id,
-  c.name,
-  c.description,
-  (cm.username IS NOT NULL) AS is_member,
-  (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
-FROM channels c
-LEFT JOIN channel_members cm
-  ON cm.channel_id = c.id
- AND cm.username = $1
-ORDER BY c.name;`
+//     required:
+//       `SELECT
+//   c.id,
+//   c.name,
+//   c.description,
+//   (cm.username IS NOT NULL) AS is_member,
+//   (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
+// FROM channels c
+// LEFT JOIN channel_members cm
+//   ON cm.channel_id = c.id
+//  AND cm.username = $1
+// ORDER BY c.name;`
   },
   {
     key: "channel_join",
     status: null,
     title: "4) Join channel",
     description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Use ON CONFLICT DO NOTHING to avoid duplicates.",
-    required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
+    // required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
     status: null,
     title: "5) Leave channel",
     description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id.",
-    required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
+    // required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
     status: null,
     title: "6) Check membership before loading messages",
     description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id.",
-    required: "SELECT true FROM channel_members WHERE username = $1 AND channel_id = $2;"
+    // required: "SELECT true FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
@@ -149,12 +154,12 @@ ORDER BY c.name;`
     title: "7) Display messages for a channel",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Return username, body, created_at (newest at the bottom). Limit to ~50 rows.",
     textAreaHeight: "120px",
-    required:
-      `SELECT username, body, created_at
-FROM chat_inbox
-WHERE channel_id = $1
-ORDER BY created_at DESC
-LIMIT 50;`
+//     required:
+//       `SELECT username, body, created_at
+// FROM chat_inbox
+// WHERE channel_id = $1
+// ORDER BY created_at DESC
+// LIMIT 50;`
     //     required:
     // `SELECT username, body, created_at
     // FROM chat_recent_messages
@@ -168,7 +173,7 @@ LIMIT 50;`
     title: "8) Send button: Post message",
     description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Return the inserted message id.",
     // required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
-    required: "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);"
+    // required: "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);"
   }
   ,
   {
@@ -176,7 +181,7 @@ LIMIT 50;`
     status: null,
     title: "9) Channel members list",
     description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Return a single column containing the username (ordered).",
-    required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
+    // required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
   }
   ,
   {
@@ -184,7 +189,7 @@ LIMIT 50;`
     status: null,
     title: "10) Create channel",
     description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel id.",
-    required: "INSERT INTO channels(name, description) VALUES ($1, $2);"
+    // required: "INSERT INTO channels(name, description) VALUES ($1, $2);"
   }
 ];
 
@@ -1356,6 +1361,66 @@ sendBtn.addEventListener("click", async () => {
     sendBtn.disabled = false;
   }
 });
+
+// ----------------------------
+// Logout handlers
+// -------------------------------
+
+function openConnMenu() {
+  if (!state.isDbConnected) return; // only when connected
+  connMenu.classList.toggle("hidden");
+}
+
+function closeConnMenu() {
+  connMenu.classList.add("hidden");
+}
+
+// Toggle menu when clicking the pill
+connPill.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openConnMenu();
+});
+
+// Click outside closes it
+document.addEventListener("click", () => closeConnMenu());
+
+// 1) Sign out chat user only
+connMenuUserLogout.addEventListener("click", async () => {
+  closeConnMenu();
+  try { await api("/api/user/logout", "POST"); } catch {}
+
+  stopPolling();
+  state.chatUsername = null;
+  state.activeChannelId = null;
+  state.channels = [];
+  setActiveChannel(null);
+
+  showUserAuth();
+  channelsEl.innerHTML = "";
+  setMsg(channelMsg, "Signed out. Log in to load channels.", true);
+  setMsg(postMsg, "", true);
+  setConnectedPill(true);
+  toast("Signed out (chat user)");
+});
+
+// 2) Log out from DB (full reset)
+connMenuDbLogout.addEventListener("click", async () => {
+  closeConnMenu();
+  try { await api("/api/logout", "POST"); } catch {}
+
+  // full reset to group login
+  stopPolling();
+  state.chatUsername = null;
+  state.activeChannelId = null;
+  state.channels = [];
+  state.isDbConnected = false;
+
+  setActiveChannel(null);
+  renderGate();           // shows only group login
+  toast("Logged out (DB)");
+});
+
+
 
 // ----------------------------
 // Init
