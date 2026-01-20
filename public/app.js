@@ -760,6 +760,7 @@ function renderGate() {
     state.chatUsername = null;
     messagesEl.innerHTML = "";
     channelsEl.innerHTML = "";
+    logoutBtn.click(); // TBD revise
   }
 }
 
