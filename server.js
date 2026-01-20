@@ -134,7 +134,7 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
     // Log a compact summary for debugging (server-side)
     try {
       // console.log('[sql_templates] saved keys ->', Object.keys(req.session.sqlTemplates || {}));
-    } catch (e) {}
+    } catch (e) { }
     res.json({ ok: true, templates: merged });
   } catch (e) {
     res.status(400).json({ error: "Invalid SQL template.", detail: String(e.message || e) });
@@ -146,7 +146,7 @@ app.post("/api/sql_templates/reset", requireGroupLogin, (req, res) => {
   const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
   try {
     console.log('[sql_templates] reset to defaults');
-  } catch (e) {}
+  } catch (e) { }
   res.json({ ok: true, templates: merged });
 });
 // =====================================================
@@ -185,22 +185,22 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
-    const username = req.session.dbUser;
-    const password = req.session.dbPass;
-    const schema = req.session.schema;
+  const username = req.session.dbUser;
+  const password = req.session.dbPass;
+  const schema = req.session.schema;
 
-    try {
-      await withDb(username, password, schema, async (client) => {
-        await client.query("select 1;");
-      });
+  try {
+    await withDb(username, password, schema, async (client) => {
+      await client.query("select 1;");
+    });
 
-      res.json({ ok: true, schema });
-    } catch (e) {
-      res.status(401).json({
-        error: "Login failed. Check username/password and connectivity.",
-        detail: String(e.message || e)
-      });
-    }
+    res.json({ ok: true, schema });
+  } catch (e) {
+    res.status(401).json({
+      error: "Login failed. Check username/password and connectivity.",
+      detail: String(e.message || e)
+    });
+  }
 });
 
 
@@ -318,7 +318,7 @@ app.post("/api/channels/create", requireGroupLogin, requireChatUser, async (req,
   if (!channel_description) return res.status(400).json({ error: "channel_description is required." });
   const { dbUser, dbPass, schema } = req.session;
   try {
-      await withDb(dbUser, dbPass, schema, async (client) => {
+    await withDb(dbUser, dbPass, schema, async (client) => {
       await client.query(getSql(req, "channel_create"), [channel_name, channel_description]);
     });
     res.json({ ok: true });
@@ -432,16 +432,16 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
     "select username, password from users limit 0;"
   ];
 
-  for (const checkQuery of sanityChecks){
+  for (const checkQuery of sanityChecks) {
     try {
-        const ok = await withDb(dbUser, dbPass, schema, async (client) => {
-          const r = await client.query(checkQuery);
-          if (r.rowCount != 0) return false;
-          return true;
-        });
-        console.log("Testing", ok, checkQuery);
-      } catch (e) {
-        res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
+      const ok = await withDb(dbUser, dbPass, schema, async (client) => {
+        const r = await client.query(checkQuery);
+        if (r.rowCount != 0) return false;
+        return true;
+      });
+      console.log("Testing", ok, checkQuery);
+    } catch (e) {
+      res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
     }
   }
 });
