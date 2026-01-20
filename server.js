@@ -189,10 +189,6 @@ app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
     const password = req.session.dbPass;
     const schema = req.session.schema;
 
-    await withDb(username, password, schema, async (client) => {
-      await client.query("select 1;");
-    });
-
     try {
       await withDb(username, password, schema, async (client) => {
         await client.query("select 1;");
