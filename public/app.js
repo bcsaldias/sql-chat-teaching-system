@@ -806,7 +806,7 @@ function flagQueryStatus(query, status){
       item.status = status
     }
   }
-  console.log(query, status);
+  // console.log(query, status);
 }
 
 function renderChannels(list) {
