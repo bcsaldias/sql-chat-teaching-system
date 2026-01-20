@@ -1110,10 +1110,8 @@ loginBtn.addEventListener("click", async () => {
 
     state.isDbConnected = true;
     renderGate();
-
-    // Default to Chat tab after schema connect
-    await setTab("chat");
-
+    // DO I NEED THIS?
+    // await setTab("chat");
     showUserAuth();
     toast("Connected");
   } catch (e) {
