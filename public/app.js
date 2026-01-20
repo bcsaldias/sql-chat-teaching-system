@@ -456,7 +456,6 @@ function renderSqlLab(templates) {
     ta.className = "sqlInput";
     ta.dataset.sqlkey = item.key;
     const s = String(templates[item.key] || "");
-    console.log("LOADING TEMPLATE", item.key, s);
     ta.value =  s.endsWith(";") ? s : s + ";";
     // for a given text area color keywords, SELECT, INSERT, ...
 
@@ -761,7 +760,7 @@ function renderGate() {
     state.chatUsername = null;
     messagesEl.innerHTML = "";
     channelsEl.innerHTML = "";
-    logoutBtn.click(); // TBD revise
+    // logoutBtn.click(); // TBD revise
   }
 }
 
