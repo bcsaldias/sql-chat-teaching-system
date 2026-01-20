@@ -192,7 +192,7 @@ function ensureSqlLabUI() {
     <li>Before you try your SQL queries here, make sure to test them in your group database (with test values) using pgAdmin with sample values.</li>
     <li>Once you are confident your SQL queries are correct, paste them into the corresponding textareas below and try out your app! You'll receive the user input or parameters for your SQL queries as $1, $2, etc. (e.g., $1 = 3, $2 = 'username_value').</li>
     <li>Queries are automatically saved when you switch back to the Chat tab.</li>
-    <li>If any of the funcitonalities do not work as expected, check your database model in pgAdmin or adjust your SQL queries.</li>
+    <li>If any of the funcitonalities does not work as expected, check your database model in pgAdmin or adjust your SQL queries.</li>
   </ul>
   Good luck, and SQL querying! <br><br>`;
 
