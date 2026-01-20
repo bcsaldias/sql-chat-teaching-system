@@ -83,17 +83,9 @@ let schemabMsg = null;
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
 
+var showAnswers = false;
+
 var SQL_LAB_ITEMS = [
-  // {
-  //   key: "set_search_path",
-  //   title: "1) Set schema search_path",
-  //   required: "SET LOCAL search_path TO {{schema}}, public;"
-  // // },
-  // {
-  //   key: "conn_test",
-  //   title: "2) Connection test",
-  //   required: "SELECT 1;"
-  // },
   {
     key: "user_login",
     status: null,
@@ -106,7 +98,6 @@ var SQL_LAB_ITEMS = [
     status: null,
     title: "2) Sign up button",
     description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into.",
-    // required: "INSERT INTO users(username, password) VALUES ($1, $2);"
   },
   {
     key: "channels_list",
@@ -114,39 +105,24 @@ var SQL_LAB_ITEMS = [
     title: "3) Display channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Returns id, name, description, is_member (boolean), user_count (integer).",
     textAreaHeight: "280px",
-//     required:
-//       `SELECT
-//   c.id,
-//   c.name,
-//   c.description,
-//   (cm.username IS NOT NULL) AS is_member,
-//   (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
-// FROM channels c
-// LEFT JOIN channel_members cm
-//   ON cm.channel_id = c.id
-//  AND cm.username = $1
-// ORDER BY c.name;`
   },
   {
     key: "channel_join",
     status: null,
     title: "4) Join channel",
     description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Use ON CONFLICT DO NOTHING to avoid duplicates.",
-    // required: "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;"
   },
   {
     key: "channel_leave",
     status: null,
     title: "5) Leave channel",
     description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id.",
-    // required: "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "member_check",
     status: null,
     title: "6) Check membership before loading messages",
     description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id.",
-    // required: "SELECT true FROM channel_members WHERE username = $1 AND channel_id = $2;"
   },
   {
     key: "messages_list",
@@ -154,26 +130,12 @@ var SQL_LAB_ITEMS = [
     title: "7) Display messages for a channel",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Return username, body, created_at (newest at the bottom). Limit to ~50 rows.",
     textAreaHeight: "120px",
-//     required:
-//       `SELECT username, body, created_at
-// FROM chat_inbox
-// WHERE channel_id = $1
-// ORDER BY created_at DESC
-// LIMIT 50;`
-    //     required:
-    // `SELECT username, body, created_at
-    // FROM chat_recent_messages
-    // WHERE channel_id = $1
-    // ORDER BY created_at DESC
-    // LIMIT 50;`
   },
   {
     key: "message_post",
     status: null,
     title: "8) Send button: Post message",
     description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Return the inserted message id.",
-    // required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
-    // required: "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);"
   }
   ,
   {
@@ -181,7 +143,6 @@ var SQL_LAB_ITEMS = [
     status: null,
     title: "9) Channel members list",
     description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Return a single column containing the username (ordered).",
-    // required: "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;"
   }
   ,
   {
@@ -189,7 +150,6 @@ var SQL_LAB_ITEMS = [
     status: null,
     title: "10) Create channel",
     description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel id.",
-    // required: "INSERT INTO channels(name, description) VALUES ($1, $2);"
   }
 ];
 
