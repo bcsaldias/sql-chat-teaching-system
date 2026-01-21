@@ -611,7 +611,13 @@ textarea:focus {
   color: white;
 }
 
+:root[data-theme="light"] .msgRow:not(.me) .metaUser {
+  color: var(--text);
+}
 
+:root:not([data-theme="dark"]) .msgRow:not(.me) .metaUser {
+  color: var(--text);
+}
 
 .metaTime {
   font-size: 12px;
@@ -627,6 +633,14 @@ textarea:focus {
   word-break: break-word;
   line-height: 1.35;
   color: white;
+}
+
+:root[data-theme="light"] .msgRow:not(.me) .msgText {
+  color: var(--text);
+}
+
+:root:not([data-theme="dark"]) .msgRow:not(.me) .msgText {
+  color: var(--text);
 }
 
 .composer {
