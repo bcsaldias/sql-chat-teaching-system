@@ -6,7 +6,7 @@ const { Client } = require("pg");
 require("dotenv").config();
 
 const app = express();
-const isSuperUser = true; // set to true to execute the ground truth queries
+const isSuperUser = false; // set to true to execute the ground truth queries
 
 app.use(express.json());
 app.use(cookieParser());
