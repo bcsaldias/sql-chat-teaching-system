@@ -169,6 +169,20 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
         throw new Error(`Template "${key}" must start with SELECT/INSERT/DELETE/UPDATE/WITH.`);
       }
 
+      if (normalized.includes("*")) {
+        throw new Error(`Template "${key}" cannot contain "*". Please list explicit columns.`);
+      }
+
+      if (normalized.includes("--")) {
+        throw new Error(`Template "${key}" cannot contain comments (--).`);
+      }
+
+      if (normalized.toLowerCase().includes("drop ") ||
+        normalized.toLowerCase().includes("alter ") ||
+        normalized.toLowerCase().includes("create ")) {
+        throw new Error(`Template "${key}" cannot contain DROP/ALTER/CREATE statements.`);
+      }
+
       req.session.sqlTemplates[key] = normalized;
     }
     const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
