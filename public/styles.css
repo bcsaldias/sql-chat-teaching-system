@@ -770,3 +770,59 @@ li {
 .connMenuItem:hover{ background: #f3f4f6; }
 .connMenuItem.danger{ color: #ef4444; }
 .connMenuItem.danger:hover{ background: rgba(239,68,68,.08); }
+
+.modalBackdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.modalBackdrop.hidden{ display:none; }
+
+.modalCard{
+  width: min(520px, calc(100vw - 24px));
+  background: #fff;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+  padding: 16px;
+}
+
+.modalTitle{
+  font-weight: 900;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.modalSub{
+  color: var(--muted, #6b7280);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.modalGrid{
+  display: grid;
+  gap: 10px;
+}
+
+.modalGrid input{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border, #e5e7eb);
+  outline: none;
+  font-weight: 700;
+}
+
+.modalRow{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  margin-top: 12px;
+}
+
+.modalMsg{ margin-top: 10px; }

@@ -41,6 +41,7 @@ const DEFAULT_SQL = {
   message_post: "INSERT '';",
   channel_members_list: "SELECT '';",
   channel_create: "INSERT '';",
+  update_password: "UPDATE '';"
 };
 
 // Force a single statement (no multi-statement injection via ;)
@@ -457,5 +458,42 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
     } catch (e) {
       res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
     }
+  }
+});
+
+
+// =====================================================
+// Reset password (requires ONLY group DB login, not chat-user session)
+// =====================================================
+
+app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
+  const { username, old_password_hash, new_password_hash } = req.body || {};
+  const u = String(username || "").trim();
+  const oldH = String(old_password_hash || "").trim();
+  const newH = String(new_password_hash || "").trim();
+
+  if (!u) return res.status(400).json({ error: "username is required." });
+  if (oldH.length !== 128) return res.status(400).json({ error: "old_password_hash must be 128 characters." });
+  if (newH.length !== 128) return res.status(400).json({ error: "new_password_hash must be 128 characters." });
+  if (oldH === newH) return res.status(400).json({ error: "New password must be different." });
+
+  const { dbUser, dbPass, schema } = req.session;
+
+  try {
+    const changed = await withDb(dbUser, dbPass, schema, async (client) => {
+      const r = await client.query(getSql(req, "update_password"), [u, newH, oldH]);
+      return r.rowCount;
+    });
+
+    if (changed === 0) {
+      return res.status(401).json({ error: "Invalid username or current password." });
+    }
+
+    // Optional: if they were logged in as this user, keep them logged in
+    if (req.session.chatUsername === u) req.session.chatUsername = u;
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: "Password reset failed.", detail: String(e.message || e) });
   }
 });

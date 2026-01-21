@@ -89,66 +89,72 @@ var SQL_LAB_ITEMS = [
   {
     key: "user_login",
     status: null,
-    title: "1) Log in button",
+    title: "Log in button",
     description: "When a user clicks 'Log in' you need to retrieve that user's stored password from your database for the app to verify credentials. Use $1 = username.",
     required: "SELECT password FROM users WHERE username = $1;"
   },
   {
     key: "user_register",
     status: null,
-    title: "2) Sign up button",
+    title: "Sign up button",
     description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a student can later log into.",
+  },
+  {
+    key: "update_password",
+    status: null,
+    title: "Update password",
+    description: "When a user clicks 'Update Password' you receive two parameters, $1 = username and $2 = password. Write an SQL query to UPDATE the user's password in the users table.",
   },
   {
     key: "channels_list",
     status: null,
-    title: "3) Display channels + membership",
+    title: "Display channels + membership",
     description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Returns id, name, description, is_member (boolean), user_count (integer).",
     textAreaHeight: "280px",
   },
   {
     key: "channel_join",
     status: null,
-    title: "4) Join channel",
+    title: "Join channel",
     description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = channel_id. Use ON CONFLICT DO NOTHING to avoid duplicates.",
   },
   {
     key: "channel_leave",
     status: null,
-    title: "5) Leave channel",
+    title: "Leave channel",
     description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = channel_id.",
   },
   {
     key: "member_check",
     status: null,
-    title: "6) Check membership before loading messages",
+    title: "Check membership before loading messages",
     description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = channel_id.",
   },
   {
     key: "messages_list",
     status: null,
-    title: "7) Display messages for a channel",
+    title: "Display messages for a channel",
     description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = channel_id. Return username, body, created_at (newest at the bottom). Limit to ~50 rows.",
     textAreaHeight: "120px",
   },
   {
     key: "message_post",
     status: null,
-    title: "8) Send button: Post message",
+    title: "Send button: Post message",
     description: "Post a new message using the server function. Parameters: $1 = channel_id, $2 = username, $3 = body. Return the inserted message id.",
   }
   ,
   {
     key: "channel_members_list",
     status: null,
-    title: "9) Channel members list",
+    title: "Channel members list",
     description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = channel_id. Return a single column containing the username (ordered).",
   }
   ,
   {
     key: "channel_create",
     status: null,
-    title: "10) Create channel",
+    title: "Create channel",
     description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel id.",
   }
 ];
@@ -390,13 +396,13 @@ function renderSqlLab(templates) {
   ensureSqlLabUI();
   sqlLabList.innerHTML = "";
 
-  for (const item of SQL_LAB_ITEMS) {
+  for (const [index, item] of SQL_LAB_ITEMS.entries()) {
     const outer = document.createElement("div");
     outer.className = "sqlItem";
 
     const title = document.createElement("div");
     title.className = "sqlTitle";
-    title.textContent = item.title;
+    title.textContent = String(index) + ") " + item.title;
 
     const queryStatus = document.createElement("span");
     queryStatus.className = "queryStatus";
@@ -1322,6 +1328,124 @@ sendBtn.addEventListener("click", async () => {
   }
 });
 
+// -------------------------
+// Update password handler
+// -------------------------
+
+const resetPwdBtn = document.getElementById("resetPwdBtn");
+
+let resetModal = null;
+let resetOldEl, resetNew1El, resetNew2El, resetCancelBtn, resetSaveBtn, resetMsgEl;
+
+function ensureResetModal() {
+  if (resetModal) return;
+
+  resetModal = document.createElement("div");
+  resetModal.className = "modalBackdrop hidden";
+  resetModal.id = "resetPwdModal";
+
+  resetModal.innerHTML = `
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="resetPwdTitle">
+      <div class="modalTitle" id="resetPwdTitle">Reset password</div>
+      <div class="modalSub">Enter your current password and choose a new one.</div>
+
+      <div class="modalGrid">
+        <input id="resetOldPwd" type="password" placeholder="Current password" autocomplete="current-password" />
+        <input id="resetNewPwd1" type="password" placeholder="New password" autocomplete="new-password" />
+        <input id="resetNewPwd2" type="password" placeholder="Repeat new password" autocomplete="new-password" />
+      </div>
+
+      <div id="resetPwdMsg" class="msg modalMsg"></div>
+
+      <div class="modalRow">
+        <button id="resetCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="resetSaveBtn" class="btn btn-primary" type="button">Update</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(resetModal);
+
+  resetOldEl = document.getElementById("resetOldPwd");
+  resetNew1El = document.getElementById("resetNewPwd1");
+  resetNew2El = document.getElementById("resetNewPwd2");
+  resetCancelBtn = document.getElementById("resetCancelBtn");
+  resetSaveBtn = document.getElementById("resetSaveBtn");
+  resetMsgEl = document.getElementById("resetPwdMsg");
+
+  function close() {
+    resetModal.classList.add("hidden");
+    resetOldEl.value = "";
+    resetNew1El.value = "";
+    resetNew2El.value = "";
+    setMsg(resetMsgEl, "");
+  }
+
+  // close on backdrop click
+  resetModal.addEventListener("click", (e) => {
+    if (e.target === resetModal) close();
+  });
+
+  // close on ESC
+  document.addEventListener("keydown", (e) => {
+    if (!resetModal.classList.contains("hidden") && e.key === "Escape") close();
+  });
+
+  resetCancelBtn.addEventListener("click", close);
+
+  resetSaveBtn.addEventListener("click", async () => {
+    setMsg(resetMsgEl, "");
+    const u = chatUsernameEl.value.trim(); // reuse existing username field
+    const oldP = resetOldEl.value;
+    const n1 = resetNew1El.value;
+    const n2 = resetNew2El.value;
+
+    if (!u) return setMsg(resetMsgEl, "Username is required (in the main form).", false);
+    if (!oldP || !n1 || !n2) return setMsg(resetMsgEl, "Fill all fields.", false);
+    if (n1 !== n2) return setMsg(resetMsgEl, "New passwords do not match.", false);
+    if (n1 === oldP) return setMsg(resetMsgEl, "New password must be different.", false);
+
+    try {
+      resetSaveBtn.disabled = true;
+      const oldH = await sha512Hex(oldP);
+      const newH = await sha512Hex(n1);
+
+      await api("/api/user/reset_password", "POST", {
+        username: u,
+        old_password_hash: oldH,
+        new_password_hash: newH
+      });
+
+      setMsg(resetMsgEl, "Password updated. You can log in with the new password.", true);
+      flagQueryStatus("update_password", true);
+      setTimeout(close, 700);
+    } catch (err) {
+      setMsg(resetMsgEl, err.message, false);
+      flagQueryStatus("update_password", false);
+    } finally {
+      resetSaveBtn.disabled = false;
+    }
+  });
+
+  // expose close for button handler
+  resetModal._close = close;
+}
+
+function openResetModal() {
+  ensureResetModal();
+  resetModal.classList.remove("hidden");
+  resetOldEl.focus();
+}
+
+resetPwdBtn.addEventListener("click", () => {
+  // Only allow if DB connected (you already have state.isDbConnected)
+  if (!state.isDbConnected) return toast("Connect to group DB first");
+  openResetModal();
+});
+
+
+
+
 // ----------------------------
 // Logout handlers
 // -------------------------------
@@ -1347,7 +1471,7 @@ document.addEventListener("click", () => closeConnMenu());
 // 1) Sign out chat user only
 connMenuUserLogout.addEventListener("click", async () => {
   closeConnMenu();
-  try { await api("/api/user/logout", "POST"); } catch {}
+  try { await api("/api/user/logout", "POST"); } catch { }
 
   stopPolling();
   state.chatUsername = null;
@@ -1366,7 +1490,7 @@ connMenuUserLogout.addEventListener("click", async () => {
 // 2) Log out from DB (full reset)
 connMenuDbLogout.addEventListener("click", async () => {
   closeConnMenu();
-  try { await api("/api/logout", "POST"); } catch {}
+  try { await api("/api/logout", "POST"); } catch { }
 
   // full reset to group login
   stopPolling();

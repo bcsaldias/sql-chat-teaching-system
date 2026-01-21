@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="/styles.css" />
   <link rel="shortcut icon" href="#">
 </head>
+
 <body>
   <div class="appShell">
     <header class="topbar">
@@ -99,7 +101,7 @@
             <h3>Welcome – please register or log in to join the chat channels!</h3>
             <p class="muted">
               <!-- Register or log in. Use a dummy password for now, not a real one. -->
-               <!-- Your password is hashed in the browser using SHA-512 (128 hex chars). -->
+              <!-- Your password is hashed in the browser using SHA-512 (128 hex chars). -->
             </p>
 
             <div class="grid2">
@@ -116,6 +118,7 @@
             <div class="row">
               <button id="registerBtn" class="btn btn-ghost">Sign up</button>
               <button id="userLoginBtn" class="btn btn-primary">Log in</button>
+              <button id="resetPwdBtn" class="btn btn-ghost" type="button">Reset password</button>
               <div id="userAuthMsg" class="msg"></div>
             </div>
           </section>
@@ -139,7 +142,8 @@
 
             <div class="composer">
               <div class="composerInner">
-                <textarea id="composerInput" rows="1" placeholder="Message… (Enter to send, Shift+Enter for newline)"></textarea>
+                <textarea id="composerInput" rows="1"
+                  placeholder="Message… (Enter to send, Shift+Enter for newline)"></textarea>
                 <button id="sendBtn" class="btn btn-primary">Send</button>
               </div>
               <div id="postMsg" class="msg"></div>
@@ -212,4 +216,5 @@
 
   <script src="/app.js" defer></script>
 </body>
+
 </html>
