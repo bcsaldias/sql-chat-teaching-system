@@ -102,7 +102,7 @@ var SQL_LAB_ITEMS = [
   {
     key: "update_password",
     status: null,
-    title: "Update password",
+    title: "Reset password",
     description: "When a user clicks 'Update Password' you receive two parameters, $1 = username and $2 = password. Write an SQL query to UPDATE the user's password in the users table.",
   },
   {
