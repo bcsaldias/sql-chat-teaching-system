@@ -1500,9 +1500,45 @@ connMenuDbLogout.addEventListener("click", async () => {
   state.isDbConnected = false;
 
   setActiveChannel(null);
+  sessionStorage.removeItem(THEME_KEY);
   renderGate();           // shows only group login
   toast("Logged out (DB)");
 });
+
+// ----------------------------
+// THEME TOGGLING
+// ----------------------------
+
+const THEME_KEY = "info330_theme"; // session-only
+const root = document.documentElement;
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+function applyTheme(theme) {
+  root.setAttribute("data-theme", theme);
+  if (themeToggleBtn) themeToggleBtn.textContent = (theme === "dark") ? "☀️" : "🌙";
+}
+
+function getInitialTheme() {
+  const saved = sessionStorage.getItem(THEME_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+
+  // optional: default to OS preference for first load in this tab
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return prefersDark ? "dark" : "light";
+}
+
+// init on page load
+applyTheme(getInitialTheme());
+
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme") || "light";
+    const next = (current === "dark") ? "light" : "dark";
+    sessionStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  });
+}
+
 
 
 
