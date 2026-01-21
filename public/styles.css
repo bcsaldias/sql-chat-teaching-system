@@ -31,7 +31,14 @@
   --bubble-border: #edf2f7;
   --codeblock-bg: #f3f4f6;
   --codeblock-border: var(--border);
-  --badge-off: #e5e7eb color-scheme: light;
+  /* --badge-off: #fd1d1d; */
+  --action-hover: var(--soft);
+  --action-hover: var(--soft);
+  --action-active: var(--soft2);
+  --action-hover-bg: var(--soft);
+  --action-hover-fg: var(--accent2);
+
+  color-scheme: light;
 }
 
 :root[data-theme="dark"] {
@@ -59,6 +66,11 @@
   --codeblock-bg: rgba(255, 255, 255, 0.06);
   --codeblock-border: rgba(255, 255, 255, 0.12);
   --badge-off: rgba(255, 255, 255, 0.22);
+
+  --action-hover: rgba(255, 255, 255, 0.08);
+  --action-active: rgba(255, 255, 255, 0.12);
+  --action-hover-bg: rgba(255, 255, 255, 0.08);
+  --action-hover-fg: rgba(255, 255, 255, 0.95);
 
   color-scheme: dark;
 }
@@ -423,6 +435,28 @@ textarea:focus {
 
 .channelActionBtn {
   padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.channelActionBtn:hover {
+  background: var(--action-hover-bg);
+  color: var(--action-hover-fg);
+  border-color: color-mix(in srgb, var(--action-hover-fg) 35%, var(--border));
+}
+
+.channelActionBtn:active {
+  transform: translateY(1px);
+}
+
+.channelActionBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent2) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent2) 55%, var(--border2));
 }
 
 .channelLeft {
