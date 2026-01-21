@@ -65,12 +65,12 @@
 
   --codeblock-bg: rgba(255, 255, 255, 0.06);
   --codeblock-border: rgba(255, 255, 255, 0.12);
-  --badge-off: rgba(255, 255, 255, 0.22);
+  /* --badge-off: rgba(255, 255, 255, 0.22); */
 
   --action-hover: rgba(255, 255, 255, 0.08);
   --action-active: rgba(255, 255, 255, 0.12);
   --action-hover-bg: rgba(255, 255, 255, 0.08);
-  --action-hover-fg: rgba(255, 255, 255, 0.95);
+  --action-hover-fg: orangered;
 
   color-scheme: dark;
 }
