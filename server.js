@@ -69,6 +69,11 @@ function parseGroupToSchema(username) {
 // TODO: remove schema param since not used
 
 async function withDb(dbUser, dbPass, schema, fn) {
+
+  if (dbUser === "demo" && dbPass == "demo") {
+    dbPass = process.env.REAL_DEMO_PASSWORD;
+  }
+
   const client = new Client({
     host: process.env.PGHOST,
     port: Number(process.env.PGPORT || 5432),
