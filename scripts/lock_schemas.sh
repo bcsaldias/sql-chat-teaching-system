@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# I had to add this code bcs I missed it earlier, so now locking down existing DBs
+# for demo user, all of this is in the same sql file.
+
 # EDIT these if needed
 PGUSER="${PGUSER:-postgres}"     # or your admin user
 PGHOST="${PGHOST:-localhost}"    # or your server host
