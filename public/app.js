@@ -257,8 +257,6 @@ function ensureSqlLabUI() {
 
   // Events
   tabChatBtn.addEventListener("click", async () => {
-    // When switching back to Chat, save any SQL edits the user made so the server
-    // will immediately use them. Failures shouldn't block switching to chat.
     try {
       if (sqlPanel && !sqlPanel.classList.contains('hidden')) {
         setMsg(sqlLabMsg, "");
@@ -278,9 +276,6 @@ function ensureSqlLabUI() {
       // show the error but continue to chat
       setMsg(sqlLabMsg, e.message, false);
     } finally {
-      // Always switch to the Chat tab, then force a channels refresh so the
-      // `#channels` div reflects any server-side changes even if the user
-      // clicks the Chat tab while already on Chat.
       try {
         await setTab("chat");
         if (state.chatUsername) {

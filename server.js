@@ -161,8 +161,6 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
       if (!(key in DEFAULT_SQL)) continue; // ignore unknown keys
       const normalized = normalizeSingleStatement(sql);
 
-      // (Optional lightweight guard) ensure the template begins with the expected verb
-      // This prevents students from saving totally unrelated statements.
       const firstWord = normalized.trim().split(/\s+/)[0].toLowerCase();
       const allowed = ["select", "insert", "delete", "update", "with"];
       if (!allowed.includes(firstWord)) {
@@ -186,7 +184,6 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
       req.session.sqlTemplates[key] = normalized;
     }
     const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
-    // Log a compact summary for debugging (server-side)
     try {
       // console.log('[sql_templates] saved keys ->', Object.keys(req.session.sqlTemplates || {}));
     } catch (e) { }
@@ -215,7 +212,6 @@ app.post("/api/login", async (req, res) => {
   if (!schema) return res.status(400).json({ error: "Invalid group username (grp01..grp20)." });
 
   try {
-    // Test connection (students can overwrite later, but default is SELECT 1)
     await withDb(username, password, schema, async (client) => {
       await client.query("select 1;");
     });
@@ -361,10 +357,6 @@ app.get("/api/channels/members", requireGroupLogin, requireChatUser, async (req,
   const { dbUser, dbPass, schema } = req.session;
   try {
     const members = await withDb(dbUser, dbPass, schema, async (client) => {
-      // Use the editable SQL template so students can change how members are
-      // selected/filtered. The template should accept $1 = channel_id and
-      // return one column per row containing the username (or the first
-      // column will be used).
       const r = await client.query(getSql(req, "channel_members_list"), [cid]);
       // Map each row to the first column value (flexible to column name)
       return r.rows.map(row => {
