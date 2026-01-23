@@ -1,3 +1,4 @@
+const { DEFAULT_SQL, SOLUTION_SQL, PGDATABASES_MAPPING } = require('./utils.js');
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
@@ -6,7 +7,7 @@ const { Client } = require("pg");
 require("dotenv").config();
 
 const app = express();
-const isSuperUser = true; // set to true to execute the ground truth queries
+var isSuperUser = true; // set to true to execute the ground truth queries
 
 app.set("trust proxy", 1);
 app.use(express.json());
@@ -34,62 +35,6 @@ app.use((req, _res, next) => {
   console.log("sid", req.sessionID, "dbUser", req.session?.dbUser, "schema", req.session?.schema);
   next();
 });
-// =====================================================
-// SQL LAB SUPPORT (ADDED)
-// =====================================================
-
-// Default SQL templates (match your current server.js exactly)
-const DEFAULT_SQL = {
-  user_login: "SELECT '';",
-  user_register: "INSERT '';",
-  channels_list: "SELECT '';",
-  channel_join: "INSERT '';",
-  channel_leave: "DELETE '';",
-  member_check: "SELECT '';",
-  messages_list: "SELECT '';",
-  message_post: "INSERT '';",
-  channel_members_list: "SELECT '';",
-  channel_create: "INSERT '';",
-  update_password: "UPDATE '';"
-};
-
-const SOLUTION_SQL = {
-  "user_login": "SELECT password FROM users WHERE username = $1;",
-  "user_register": "INSERT INTO users(username, password) VALUES ($1, $2);",
-  "update_password": "UPDATE users SET password = $2 WHERE username = $1 AND password = $3;",
-  "channels_list": `SELECT
- c.id,
- c.name,
- c.description,
- (cm.username IS NOT NULL) AS is_member,
- (SELECT COUNT(*) FROM channel_members cm2 WHERE cm2.channel_id = c.id) AS user_count
-FROM channels c
-LEFT JOIN channel_members cm
- ON cm.channel_id = c.id
-AND cm.username = $1
-ORDER BY c.name;`,
-  "channel_join": "INSERT INTO channel_members(username, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;",
-  "channel_leave": "DELETE FROM channel_members WHERE username = $1 AND channel_id = $2;",
-  "member_check": "SELECT true FROM channel_members WHERE username = $1 AND channel_id = $2;",
-  "messages_list": `SELECT username, body, created_at
-FROM chat_inbox
-WHERE channel_id = $1
-ORDER BY created_at DESC
-LIMIT 50;`,
-  "message_post": "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);",
-  "channel_members_list": "SELECT username FROM channel_members WHERE channel_id = $1 ORDER BY username;",
-  "channel_create": "INSERT INTO channels(name, description) VALUES ($1, $2);"
-};
-
-//     required:
-// `SELECT username, body, created_at
-// FROM chat_recent_messages
-// WHERE channel_id = $1
-// ORDER BY created_at DESC
-// LIMIT 50;`
-// required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
-
-
 
 // Force a single statement (no multi-statement injection via ;)
 function normalizeSingleStatement(sql) {
@@ -112,6 +57,7 @@ function getSql(req, key) {
 // =====================================================
 
 function parseGroupToSchema(username) {
+  if (username === "demo") return "demo";
   const m = /^grp(\d{2})$/.exec(username);
   if (!m) return null;
   const n = Number(m[1]);
@@ -119,19 +65,28 @@ function parseGroupToSchema(username) {
   return `g${m[1]}`;
 }
 
+
+// TODO: remove schema param since not used
+
 async function withDb(dbUser, dbPass, schema, fn) {
   const client = new Client({
     host: process.env.PGHOST,
     port: Number(process.env.PGPORT || 5432),
-    database: process.env.PGDATABASE,
+    database: PGDATABASES_MAPPING[dbUser],
     user: dbUser,
     password: dbPass
   });
 
   await client.connect();
+
+  if (dbUser === "demo") {
+    isSuperUser = true;
+  }
+
   try {
     // schema is validated to g01..g20
-    await client.query(`SET LOCAL search_path TO ${schema}, public;`);
+    // await client.query(`SET LOCAL search_path TO ${schema}, public;`); // DEPRECATED: I had this when schemas were per-group.
+    await client.query(`SET LOCAL search_path TO public;`);
     return await fn(client);
   } finally {
     await client.end();
