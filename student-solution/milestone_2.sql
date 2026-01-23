@@ -1,3 +1,6 @@
+-- Notes, some columns might have different names than those suggested in the milestone doc.
+-- For example, channel_id might be name in channels table.
+
 
 -- SQL schema for user authentication system
 CREATE TABLE users (
@@ -47,8 +50,10 @@ INSERT INTO channel_members(username, channel) VALUES
 ('belen', 'help');
 
 INSERT INTO channel_members(username, channel) VALUES
+('justin_m', 'general'),
 ('charlene', 'general');
 
 
 INSERT INTO channel_members(username, channel) VALUES
-('gunner', 'random');
+('gunner', 'random'),
+('justin_d', 'random');
