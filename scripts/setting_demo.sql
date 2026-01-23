@@ -66,6 +66,7 @@ BEGIN
     FROM pg_roles
     WHERE rolname NOT IN ('demo', 'project_admin')
       AND rolsuper IS FALSE
+      AND rolname !~ '^pg_' -- exclude system roles
   LOOP
     EXECUTE format('REVOKE CONNECT ON DATABASE %I FROM %I;', '__project_demo_app', r.rolname);
   END LOOP;
