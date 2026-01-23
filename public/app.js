@@ -76,7 +76,7 @@ let sqlPanel = null;
 let sqlLabList = null;
 let sqlSaveBtn = null;
 let sqlResetBtn = null;
-let testSchemaBtn = null;
+let testSchemaBtn = null; // The idea of using schema got updated to database but keeping the variable name.
 let sqlLabMsg = null;
 let schemabMsg = null;
 // keep the last templates we loaded from the server so we can avoid
@@ -316,7 +316,7 @@ function ensureSqlLabUI() {
   testSchemaBtn.addEventListener("click", async () => {
     setMsg(schemabMsg, "");
     try {
-      setMsg(schemabMsg, "All required tables and columns exist in your Schema.", true);
+      setMsg(schemabMsg, "All required tables and columns exist in your database.", true);
       await api("/api/test_schema", "GET");
     } catch (e) {
       setMsg(schemabMsg, e.message, false);
@@ -713,7 +713,7 @@ function renderGate() {
     chatPanel.classList.remove("hidden");
     setConnectedPill(true);
 
-    // show tabs (chat + sql lab) only when connected to schema
+    // show tabs (chat + sql lab) only when connected to schema / database
     setTabsVisible(true);
   } else {
     // show ONLY group db login
@@ -1078,7 +1078,7 @@ loginBtn.addEventListener("click", async () => {
       username: usernameEl.value.trim(),
       password: passwordEl.value
     });
-    setMsg(loginMsg, "Connected to your group schema.", true);
+    setMsg(loginMsg, "Connected to your group database.", true);
 
     state.isDbConnected = true;
     renderGate();
@@ -1100,7 +1100,7 @@ async function tryDBCredentials() {
   loginBtn.disabled = true;
   try {
     await api("/api/credentials_login", "POST");
-    setMsg(loginMsg, "Connected to your group schema.", true);
+    setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
     renderGate();
     showUserAuth();
