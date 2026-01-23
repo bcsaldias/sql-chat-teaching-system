@@ -8,6 +8,7 @@ require("dotenv").config();
 const app = express();
 const isSuperUser = true; // set to true to execute the ground truth queries
 
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -15,8 +16,11 @@ app.use(
     secret: process.env.SESSION_SECRET || "dev_secret",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
       httpOnly: true,
+      // OK – self note. I thought about this a lot, and I don't want to make
+      // it more secure than necessary for local testing for now.
       secure: false, // set true behind HTTPS
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 6
@@ -26,6 +30,10 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use((req, _res, next) => {
+  console.log("sid", req.sessionID, "dbUser", req.session?.dbUser, "schema", req.session?.schema);
+  next();
+});
 // =====================================================
 // SQL LAB SUPPORT (ADDED)
 // =====================================================
@@ -502,9 +510,10 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
       });
       console.log("Testing", ok, checkQuery);
     } catch (e) {
-      res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
+      return res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
     }
   }
+  return res.json({ ok: true });
 });
 
 
