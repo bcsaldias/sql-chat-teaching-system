@@ -1,5 +1,5 @@
 // =====================================================
-// SQL LAB SUPPORT (ADDED)
+// SQL LAB SUPPORTING CODE
 // =====================================================
 
 // Default SQL templates (match your current server.js exactly)
