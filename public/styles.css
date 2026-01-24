@@ -1434,6 +1434,29 @@ li {
 .sqlDesc div { margin: 4px 0; }
 .sqlDesc code { padding: 0 4px; border-radius: 6px; }
 
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  background: var(--c, var(--accent));
+  opacity: 0.9;
+  border-radius: 2px;
+  animation: confetti-fall 1600ms linear forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); }
+  100% { transform: translate3d(0, 110vh, 0) rotate(540deg); }
+}
+
 @keyframes riseIn {
   from { opacity: 0; transform: translateY(8px) scale(0.99); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -1449,5 +1472,8 @@ li {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+  .confetti-piece {
+    display: none;
   }
 }

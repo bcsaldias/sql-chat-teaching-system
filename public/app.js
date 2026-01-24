@@ -49,6 +49,7 @@ const memberModalTitle = el("memberModalTitle");
 const memberModalClose = el("memberModalClose");
 
 const toastEl = el("toast");
+const confettiEl = el("confetti");
 
 const createChannelBtn = el("createChannelBtn");
 const newChannelName = el("newChannelName");
@@ -82,6 +83,7 @@ let sqlLabMsg = null;
 let schemabMsg = null;
 let sqlProgressText = null;
 let sqlProgressBar = null;
+let confettiShown = false;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
@@ -408,6 +410,15 @@ function updateSqlProgress() {
   const pct = total ? Math.round((passed / total) * 100) : 0;
   sqlProgressText.textContent = `${passed}/${total} passing`;
   sqlProgressBar.style.width = `${pct}%`;
+
+  if (total > 0 && passed === total) {
+    if (!confettiShown) {
+      confettiShown = true;
+      launchConfetti();
+    }
+  } else {
+    confettiShown = false;
+  }
 }
 
 function collectSqlLabInputs() {
@@ -748,6 +759,42 @@ function flagQueryStatus(query, status) {
   }
   // console.log(query, status);
   updateSqlProgress();
+}
+
+function launchConfetti() {
+  if (!confettiEl) return;
+  confettiEl.innerHTML = "";
+  confettiEl.classList.remove("hidden");
+
+  const colors = ["var(--accent)", "var(--accent2)", "var(--accent3)", "var(--good)"];
+  const count = 70;
+  const maxDelay = 700;
+  const maxDuration = 1800;
+
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    const left = Math.random() * 100;
+    const delay = Math.random() * maxDelay;
+    const duration = 1200 + Math.random() * 800;
+    const rotate = Math.random() * 360;
+    const scale = 0.8 + Math.random() * 0.6;
+    const color = colors[i % colors.length];
+
+    piece.style.left = `${left}%`;
+    piece.style.animationDelay = `${delay}ms`;
+    piece.style.animationDuration = `${duration}ms`;
+    piece.style.transform = `translate3d(0, -10vh, 0) rotate(${rotate}deg) scale(${scale})`;
+    piece.style.setProperty("--c", color);
+
+    confettiEl.appendChild(piece);
+  }
+
+  const totalTime = maxDelay + maxDuration;
+  window.setTimeout(() => {
+    confettiEl.classList.add("hidden");
+    confettiEl.innerHTML = "";
+  }, totalTime);
 }
 
 function renderChannels(list) {
