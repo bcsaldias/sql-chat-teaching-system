@@ -25,9 +25,9 @@ app.use(
     proxy: true,
     cookie: {
       httpOnly: true,
-      // OK – self note. I thought about this a lot, and I don't want to make
+      // IMPORTANT. OK – self note. I thought about this a lot, and I don't want to make
       // it more secure than necessary for local testing for now.
-      secure: false, // set true behind HTTPS
+      secure: false, // in theory, should true behind HTTPS
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 6
     }
