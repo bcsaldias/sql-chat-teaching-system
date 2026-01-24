@@ -6,25 +6,6 @@ const path = require("path");
 const { Client } = require("pg");
 require("dotenv").config();
 
-// var users_pk = "username";
-// var chat_inbox_pk = "message_id";
-var channels_pk = "channel_id";
-var chat_to_channels_fk = "channel_id";
-var ref_data_type = "text";
-var fk_data_type = "text";
-const num_types = ['smallint', 'integer', 'bigint', 'numeric', 'real', 'double', 'int']
-const text_types = ['text', 'character', 'char']
-
-function parseChannelId(channel_id) {
-  const firstWord = ref_data_type.trim().split(/\s+/)[0].toLowerCase();
-  if (text_types.includes(firstWord)) {
-    return channel_id
-  }
-  if (num_types.includes(firstWord)) {
-    return Number(channel_id)
-  }
-}
-
 const app = express();
 var isSuperUser = true; // set to true to execute the ground truth queries
 
@@ -73,15 +54,40 @@ function getSql(req, key) {
   return normalizeSingleStatement(base);
 }
 
+
+
 // =====================================================
+
+// these are default values but students can chose others,
+// this code allows for some flexibility on name and type
+// for channels pk
+// var users_pk = "username";
+// var chat_inbox_pk = "message_id";
+var channels_pk = "channel_id";
+var chat_to_channels_fk = "channel_id";
+var ref_data_type = "text";
+var fk_data_type = "text";
+const num_types = ['smallint', 'integer', 'bigint', 'numeric', 'real', 'double', 'int']
+const text_types = ['text', 'character', 'char']
+
+function parseChannelId(channel_id) {
+  const firstWord = ref_data_type.trim().split(/\s+/)[0].toLowerCase();
+  if (text_types.includes(firstWord)) {
+    return channel_id
+  }
+  if (num_types.includes(firstWord)) {
+    return Number(channel_id)
+  }
+}
 
 function parseGroupToSchema(username) {
   if (username === "demo") return "demo";
-  const m = /^grp(\d{2})$/.exec(username);
-  if (!m) return null;
-  const n = Number(m[1]);
-  if (n < 1 || n > 20) return null;
-  return `g${m[1]}`;
+  return username
+  // const m = /^grp(\d{2})$/.exec(username);
+  // if (!m) return null;
+  // const n = Number(m[1]);
+  // if (n < 1 || n > 20) return null;
+  // return `g${m[1]}`;
 }
 
 
@@ -475,7 +481,7 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
   const sanityChecks = [
     "select * from channel_members limit 0;",
     "select " + channels_pk + ", name, description from channels limit 0;",
-    "select message_id, username, " + chat_to_channels_fk + ", body, created_at from chat_inbox limit 0;",
+    "select username, " + chat_to_channels_fk + ", body, created_at from chat_inbox limit 0;",
     "select username, password from users limit 0;"
   ];
 
@@ -531,10 +537,21 @@ app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
   }
 });
 
+app.get("/api/channels_pk", async (req, res) => {
+  console.log("/api/channels_pk called");
+  try {
+    await getChannelsPk(req);
+    return res.json({ ok: true, keys: { channels_pk, chat_to_channels_fk } });
+  } catch (e) {
+    return res
+      .status(400)
+      .json({ error: "Error in channels PK.", detail: String(e.message || e) });
+  }
+});
+
+
 async function getChannelsPk(req) {
-
   const { dbUser, dbPass, schema } = req.session;
-
   try {
     return await withDb(dbUser, dbPass, schema, async (client) => {
       const r = await client.query(
@@ -585,17 +602,3 @@ async function getChannelsPk(req) {
     throw new Error("Error retrieving channels PK: " + String(e.message || e));
   }
 }
-
-
-app.get("/api/channels_pk", async (req, res) => {
-  console.log("/api/channels_pk called");
-
-  try {
-    await getChannelsPk(req);
-    return res.json({ ok: true, keys: { channels_pk, chat_to_channels_fk } });
-  } catch (e) {
-    return res
-      .status(400)
-      .json({ error: "Error in channels PK.", detail: String(e.message || e) });
-  }
-});
