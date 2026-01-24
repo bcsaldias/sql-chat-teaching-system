@@ -109,7 +109,7 @@ const SQL_LAB_ITEMS = [
       </div>
     `,
     required: "SELECT password FROM users WHERE username = $1;",
-    expectedCols: ["password"]
+    expectedCols: [{ name: "password" }]
   },
   {
     key: "user_register",
@@ -141,7 +141,13 @@ const SQL_LAB_ITEMS = [
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
     `,
     textAreaHeight: "280px",
-    expectedCols: ["id", "name", "description", "is_member", "user_count"]
+    expectedCols: [
+      { name: "id" },
+      { name: "name" },
+      { name: "description" },
+      { name: "is_member", type: "boolean" },
+      { name: "user_count", type: "integer" }
+    ]
   },
   {
     key: "channel_join",
@@ -185,7 +191,11 @@ const SQL_LAB_ITEMS = [
       <div><b>Limit:</b> ~50 rows</div>
     `,
     textAreaHeight: "140px",
-    expectedCols: ["username", "body", "created_at"]
+    expectedCols: [
+      { name: "username" },
+      { name: "body" },
+      { name: "created_at", type: "timestamp" }
+    ]
   },
   {
     key: "message_post",
@@ -206,7 +216,7 @@ const SQL_LAB_ITEMS = [
       <div><b>What happens:</b> members modal opens</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
     `,
-    expectedCols: ["username"]
+    expectedCols: [{ name: "username" }]
   },
   {
     key: "channel_create",
@@ -420,7 +430,20 @@ function renderSqlLab(templates) {
       for (const col of item.expectedCols) {
         const chip = document.createElement("span");
         chip.className = "sqlChip";
-        chip.textContent = col;
+        const name = (col && typeof col === "object") ? col.name : col;
+        const type = (col && typeof col === "object") ? col.type : null;
+        if (type) {
+          const nameEl = document.createElement("span");
+          nameEl.className = "sqlChipName";
+          nameEl.textContent = name;
+          const typeEl = document.createElement("span");
+          typeEl.className = "sqlChipType";
+          typeEl.textContent = type;
+          chip.appendChild(nameEl);
+          chip.appendChild(typeEl);
+        } else {
+          chip.textContent = name;
+        }
         row.appendChild(chip);
       }
 

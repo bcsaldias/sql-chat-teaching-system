@@ -1169,6 +1169,53 @@ textarea:focus {
   background: var(--chip-bg);
   border: 1px solid var(--border);
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#sqlLabList .sqlChipName {
+  font-weight: 700;
+}
+
+#sqlLabList .sqlChipType {
+  font-size: 11px;
+  color: var(--muted2);
+}
+
+#sqlLabList .sqlMeta {
+  margin: 10px 0;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: var(--soft);
+}
+
+#sqlLabList .sqlMetaLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+#sqlLabList .sqlMetaCode {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+#sqlLabList .sqlMetaText {
+  font-size: 12px;
+  color: var(--bad);
+  font-weight: 700;
+}
+
+#sqlLabList .sqlMeta.sqlMetaError {
+  border-color: color-mix(in srgb, var(--bad) 40%, var(--border));
+  background: color-mix(in srgb, var(--bad) 8%, var(--soft));
 }
 
 #sqlLabList .sqlRequired {
