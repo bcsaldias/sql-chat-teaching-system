@@ -19,6 +19,29 @@ If you run this at larger scale, watch your Postgres `max_connections` and use s
   - `setting_demo.sql` — demo-mode configuration (instructor/admin use)
   - `lock_schemas.sh` — locking/protecting schemas (instructor/admin use)
 
+## Quick start (local)
+
+### 1) Configure `.env`
+Create a `.env` file in the repo root. Typical values:
+
+- `PGHOST=is-info330.ischool.uw.edu`
+- `PGPORT=5433`
+- `SESSION_SECRET=...`
+- `PORT=3000`
+- `SUPERUSER_MODE=false`
+- `PG_POOL_MAX=3`
+- `PG_POOL_IDLE_MS=30000`
+- `PG_POOL_CONN_MS=5000`
+
+### 2) Install + run
+From the repo root:
+
+- `npm install`
+- `npm start` (or `node server.js`)
+
+Then open:
+- `http://localhost:3000`
+
 ## Student handout
 Project description for students:
 - https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE/edit?tab=t.0
@@ -26,16 +49,7 @@ Project description for students:
 ## Instructor quick start (my flow)
 
 ### 1) Configure `.env`
-I create a `.env` file in the repo root (already present on the server). Typical values:
-
-- `PGHOST=is-info330.ischool.uw.edu`
-- `PGPORT=5433`
-- `SESSION_SECRET=...`
-- `PORT=3000`
-- `SUPERUSER_MODE=false` (I only turn this on for specific demos/tests)
-- `PG_POOL_MAX=3` (per‑group pool size)
-- `PG_POOL_IDLE_MS=30000` (close idle connections quickly)
-- `PG_POOL_CONN_MS=5000` (fail fast if the DB is unavailable)
+I create a `.env` file in the repo root (already present on the server). Use the same values as in **Quick start (local)**. I only turn `SUPERUSER_MODE` on for specific demos/tests.
 
 > Students do **not** set `PGHOST`/`PGPORT` in their browser. They only enter their DB username/password on the login page.
 
