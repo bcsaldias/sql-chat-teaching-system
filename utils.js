@@ -131,6 +131,12 @@ const PGDATABASES_MAPPING = {
 // =====================================================
 // SCHEMA INTROSPECTION
 // =====================================================
+// ========================================================================
+// The code below allows to adapt to students schemas if needed.
+// Because it's the first time running this project, I'll keep it
+// in case I need it, but in a refined version, this shouldn't be needed.
+// ========================================================================
+
 
 // NOTE: this could be spared if we force the students to an ID type, but I want to allow some flexibility.
 function parseByDataType(dataType, raw) {
@@ -144,14 +150,11 @@ function parseByDataType(dataType, raw) {
     return n;
 }
 
-
-
-// ========================================================================
-// The code below allows to adapt to students schemas if needed.
-// Because it's the first time running this project, I'll keep it
-// in case I need it, but in a refined version, this shouldn't be needed.
-// ========================================================================
-
+function parseChannelId(req, channel_id_raw) {
+    const info = req.session?.chatSchemaInfo;
+    const dtype = info?.channels_pk_type || info?.tables?.channels?.pk?.types?.[0] || "text";
+    return parseByDataType(dtype, channel_id_raw);
+}
 
 async function loadChatSchemaInfo(client) {
     // with this info, we can double check that students are using PK and FK properly.
@@ -214,6 +217,6 @@ module.exports = {
     DEFAULT_SQL,
     SOLUTION_SQL,
     PGDATABASES_MAPPING,
-    parseByDataType,
+    parseChannelId,
     loadChatSchemaInfo
 };
