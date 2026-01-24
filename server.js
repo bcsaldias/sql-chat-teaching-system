@@ -1,12 +1,4 @@
-const {
-  DEFAULT_SQL,
-  SOLUTION_SQL,
-  PGDATABASES_MAPPING,
-  qIdent,
-  parseChannelId,
-  ensureChatSchemaInfo,
-  loadChatSchemaInfo
-} = require('./utils.js');
+const { DEFAULT_SQL, SOLUTION_SQL, PGDATABASES_MAPPING, loadChatSchemaInfo, parseByDataType } = require('./utils.js');
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
@@ -43,6 +35,37 @@ app.use((req, _res, next) => {
   // console.log("sid", req.sessionID, "dbUser", req.session?.dbUser, "schema", req.session?.schema);
   next();
 });
+
+function parseChannelId(req, channel_id_raw) {
+  const info = req.session?.chatSchemaInfo;
+  const dtype =
+    info?.channels_pk_type ||
+    info?.tables?.channels?.pk?.types?.[0] ||
+    "text";
+  return parseByDataType(dtype, channel_id_raw);
+}
+
+const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
+function qIdent(name) {
+  const n = String(name || "").trim();
+  if (!IDENT_RE.test(n)) throw new Error(`Unsafe identifier: ${n}`);
+  return `"${n.replace(/"/g, '""')}"`;
+}
+
+// Ensure schema info exists in-session
+async function ensureChatSchemaInfo(req) {
+  if (req.session?.chatSchemaInfo?.channels_pk) return req.session.chatSchemaInfo;
+
+  const { dbUser, dbPass, schema } = req.session;
+  if (!dbUser || !dbPass || !schema) throw new Error("Not logged in.");
+
+  const info = await withDb(dbUser, dbPass, schema, async (client) => {
+    return await loadChatSchemaInfo(client);
+  });
+
+  req.session.chatSchemaInfo = info;
+  return info;
+}
 
 // Force a single statement (no multi-statement injection via ;)
 function normalizeSingleStatement(sql) {
@@ -187,11 +210,8 @@ app.post("/api/login", async (req, res) => {
   if (!schema) return res.status(400).json({ error: "Invalid group username (grp01..grp20)." });
 
   try {
-    let schemaInfo = null;
-
     await withDb(username, password, schema, async (client) => {
       await client.query("select 1;");
-      schemaInfo = await loadChatSchemaInfo(client);
     });
 
     req.session.dbUser = username;
@@ -200,8 +220,6 @@ app.post("/api/login", async (req, res) => {
 
     req.session.chatUsername = null;
     if (!req.session.sqlTemplates) req.session.sqlTemplates = {};
-
-    req.session.chatSchemaInfo = schemaInfo;
 
     res.json({ ok: true, schema });
   } catch (e) {
@@ -219,14 +237,10 @@ app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
   const schema = req.session.schema;
 
   try {
-    let schemaInfo = null;
-
     await withDb(username, password, schema, async (client) => {
       await client.query("select 1;");
-      schemaInfo = await loadChatSchemaInfo(client);
     });
 
-    req.session.chatSchemaInfo = schemaInfo;
     res.json({ ok: true, schema });
   } catch (e) {
     res.status(401).json({
@@ -386,7 +400,8 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, async (req, r
 
 app.post("/api/channels/leave", requireGroupLogin, requireChatUser, async (req, res) => {
   const { channel_id } = req.body || {};
-  var cid = parseChannelId(channel_id);
+  await ensureChatSchemaInfo(req);
+  var cid = parseChannelId(req, channel_id);
 
   const { dbUser, dbPass, schema, chatUsername } = req.session;
 
@@ -521,31 +536,5 @@ app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(400).json({ error: "Password reset failed.", detail: String(e.message || e) });
-  }
-});
-
-app.get("/api/channels_pk", requireGroupLogin, async (req, res) => {
-  try {
-    const info = await ensureChatSchemaInfo(req);
-    return res.json({
-      ok: true,
-      keys: {
-        channels_pk: info.channels_pk,
-        chat_to_channels_fk: info.chat_to_channels_fk,
-        channels_pk_type: info.channels_pk_type,
-        chat_to_channels_fk_type: info.chat_to_channels_fk_type
-      }
-    });
-  } catch (e) {
-    return res.status(400).json({ error: "Error in channels PK.", detail: String(e.message || e) });
-  }
-});
-
-app.get("/api/schema_keys", requireGroupLogin, async (req, res) => {
-  try {
-    const info = await ensureChatSchemaInfo(req);
-    return res.json({ ok: true, schemaInfo: info });
-  } catch (e) {
-    return res.status(400).json({ error: "Error retrieving schema keys.", detail: String(e.message || e) });
   }
 });

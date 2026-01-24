@@ -85,16 +85,12 @@ let _lastSqlTemplates = null;
 
 var showAnswers = false;
 
-var channels_pk = "";
-var chat_to_channels_fk = "";
 var SQL_LAB_ITEMS = null;
 
 
 function get_SQL_LAB_ITEMS() {
 
   if (SQL_LAB_ITEMS) return SQL_LAB_ITEMS;
-
-  // await loadSchemaKeys();
 
   SQL_LAB_ITEMS = [
     {
@@ -127,46 +123,46 @@ function get_SQL_LAB_ITEMS() {
       key: "channel_join",
       status: null,
       title: "Join channel",
-      description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = " + chat_to_channels_fk + ". Use ON CONFLICT DO NOTHING to avoid duplicates.",
+      description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = `channel_pk`. Use ON CONFLICT DO NOTHING to avoid duplicates.",
     },
     {
       key: "channel_leave",
       status: null,
       title: "Leave channel",
-      description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = " + channels_pk + ".",
+      description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = `channel_pk`.",
     },
     {
       key: "member_check",
       status: null,
       title: "Check membership before loading messages",
-      description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = " + chat_to_channels_fk + ".",
+      description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = `channel_pk`.",
     },
     {
       key: "messages_list",
       status: null,
       title: "Display messages for a channel",
-      description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = " + channels_pk + ". Return username, body, created_at (newest at the bottom). Limit to ~50 rows.",
+      description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = `channel_pk`. Return username, body, created_at (newest at the bottom). Limit to ~50 rows.",
       textAreaHeight: "120px",
     },
     {
       key: "message_post",
       status: null,
       title: "Send button: Post message",
-      description: "Post a new message using the server function. Parameters: $1 = " + chat_to_channels_fk + ", $2 = username, $3 = body. Return the inserted message id.",
+      description: "Post a new message using the server function. Parameters: $1 = `channel_pk`, $2 = username, $3 = body. Return the inserted message id.",
     }
     ,
     {
       key: "channel_members_list",
       status: null,
       title: "Channel members list",
-      description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = " + chat_to_channels_fk + ". Return a single column containing the username (ordered).",
+      description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = `channel_pk` . Return a single column containing the username (ordered).",
     }
     ,
     {
       key: "channel_create",
       status: null,
       title: "Create channel",
-      description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new channel PK (" + channels_pk + ").",
+      description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new `channel_pk`.",
     }
   ];
 
@@ -354,10 +350,6 @@ let _pollResume = false;
 
 async function setTab(which) {
 
-  if (state.isDbConnected && !channels_pk) {
-    await loadSchemaKeys();
-  }
-
   ensureSqlLabUI();
 
   const isSql = which === "sql";
@@ -482,19 +474,6 @@ async function loadSqlTemplates() {
   _lastSqlTemplates = data.templates || {};
   renderSqlLab(_lastSqlTemplates);
 }
-
-async function loadSchemaKeys(force = false) {
-  if (!state.isDbConnected) return;
-  if (!force && channels_pk && chat_to_channels_fk) return;
-  const data = await api("/api/channels_pk");
-  channels_pk = data.keys.channels_pk;
-  chat_to_channels_fk = data.keys.chat_to_channels_fk;
-  SQL_LAB_ITEMS = null; // clear cache
-  if (sqlPanel && !sqlPanel.classList.contains("hidden") && _lastSqlTemplates) {
-    renderSqlLab(_lastSqlTemplates);
-  }
-}
-
 
 
 // ----------------------------
@@ -684,7 +663,7 @@ function setActiveChannel(channel) {
     stopPolling();
     return;
   }
-  state.activeChannelId = channel[channels_pk];
+  state.activeChannelId = channel.id;
   activeChannelLabel.textContent = `# ${channel.name}`;
   // Show description and, if provided by the backend, a clickable member count
   activeChannelSub.textContent = "";
@@ -706,7 +685,7 @@ function setActiveChannel(channel) {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       // open modal and load members
-      await loadChannelMembers(channel[channels_pk], channel.name);
+      await loadChannelMembers(channel.id, channel.name);
     });
     activeChannelSub.appendChild(btn);
   }
@@ -859,7 +838,7 @@ function renderChannels(list) {
     const right = document.createElement("div");
     right.className = "channelRight";
 
-    const lastSeen = state.lastSeenByChannel[String(ch[channels_pk])];
+    const lastSeen = state.lastSeenByChannel[String(ch.id)];
     const hasUnread = lastSeen && ch.latest_created_at && new Date(ch.latest_created_at) > new Date(lastSeen);
     const badge = document.createElement("div");
     badge.className = "channelBadge " + (hasUnread ? "on" : "off");
@@ -875,12 +854,12 @@ function renderChannels(list) {
       try {
         btn.disabled = true;
         if (ch.is_member) {
-          await api("/api/channels/leave", "POST", { channel_id: ch[channels_pk] }); // KEY: "channel_leave"
+          await api("/api/channels/leave", "POST", { channel_id: ch.id }); // KEY: "channel_leave"
           toast(`Left #${ch.name}`);
           flagQueryStatus("channel_leave", true);
-          if (state.activeChannelId === ch[channels_pk]) setActiveChannel(null);
+          if (state.activeChannelId === ch.id) setActiveChannel(null);
         } else {
-          await api("/api/channels/join", "POST", { channel_id: ch[channels_pk] }); // KEY: "channel_join"
+          await api("/api/channels/join", "POST", { channel_id: ch.id }); // KEY: "channel_join"
           flagQueryStatus("channel_join", true);
           toast(`Joined #${ch.name}`);
         }
@@ -909,10 +888,10 @@ function renderChannels(list) {
       setActiveChannel(ch);
       renderChannels(state.channels);
 
-      state.lastSeenByChannel[String(ch[channels_pk])] = new Date().toISOString();
+      state.lastSeenByChannel[String(ch.id)] = new Date().toISOString();
       saveLocal("lastSeenByChannel", state.lastSeenByChannel);
 
-      await loadMessages(ch[channels_pk]);
+      await loadMessages(ch.id);
       startPolling();
       sidebar.classList.remove("open");
     });
@@ -923,7 +902,7 @@ function renderChannels(list) {
     item.appendChild(left);
     item.appendChild(right);
 
-    if (state.activeChannelId === ch[channels_pk]) {
+    if (state.activeChannelId === ch.id) {
       item.classList.add("active");
     }
 
@@ -970,9 +949,9 @@ async function loadChannels() {
   // returns to Chat we must show messages.
   const firstJoined = state.channels.find(c => c.is_member);
   if (firstJoined) {
-    if (state.activeChannelId !== firstJoined[channels_pk]) {
+    if (state.activeChannelId !== firstJoined.id) {
       setActiveChannel(firstJoined);
-      await loadMessages(firstJoined[channels_pk]);
+      await loadMessages(firstJoined.id);
     }
     startPolling();
   } else {
@@ -1111,7 +1090,6 @@ loginBtn.addEventListener("click", async () => {
     });
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
-    await loadSchemaKeys(true);
     renderGate();
     // DO I NEED THIS?
     // await setTab("chat");
@@ -1133,9 +1111,6 @@ async function tryDBCredentials() {
     await api("/api/credentials_login", "POST");
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
-    if (!channels_pk) {
-      await loadSchemaKeys(true);
-    }
     renderGate();
     showUserAuth();
     toast("Connected");
@@ -1269,7 +1244,7 @@ postNewChannelBtn.addEventListener("click", async () => {
   }
 
   try {
-    console.log("Creating channel:", n, d);
+    // console.log("Creating channel:", n, d);
     await api("/api/channels/create", "POST", { name: n, description: d }); // KEY: channel_create
     setMsg(userAuthMsg, `Channel #${n} created.`, true);
     hidechannelModal();

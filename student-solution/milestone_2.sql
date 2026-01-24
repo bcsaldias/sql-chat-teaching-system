@@ -2,6 +2,18 @@
 -- For example, channel_id might be name in channels table.
 -- There is some flexibility in how the students model their channels (id vs name unique).
 
+-- Another strategy is to require that channels_list returns id always
+-- Then the UI uses channel.id, not channel[channels_pk].
+
+
+-- Instead of the UI depending on channels_pk dynamically (channel[channels_pk]),
+-- we can require that templates return a stable alias:
+-- channels_list must return: id, name, description, is_member, user_count
+-- messages_list must return: username, body, created_at
+-- etc.
+
+
+
 -- SQL schema for user authentication system
 CREATE TABLE users (
  username TEXT PRIMARY KEY,
