@@ -356,8 +356,7 @@ async function setTab(which) {
   }
 
 
-  document.documentElement.classList.toggle("sql-mode", isSql);
-  document.body.classList.toggle("sql-mode", isSql);
+  [document.documentElement, document.body].forEach((el) => el.classList.toggle("sql-mode", isSql));
 
   tabChatBtn.classList.toggle("active", !isSql);
   tabSqlBtn.classList.toggle("active", isSql);
@@ -552,15 +551,6 @@ function loadLocal(key, fallback) {
 
 function toChronological(messages) {
   return messages.reverse();
-  const arr = Array.isArray(messages) ? [...messages] : [];
-
-  // If backend returns DESC (newest first), flip it to ASC (oldest first).
-  if (arr.length >= 2) {
-    const first = arr[0]?.created_at;
-    const last = arr[arr.length - 1]?.created_at;
-    if (first && last && new Date(first) > new Date(last)) arr.reverse();
-  }
-  return arr;
 }
 
 function saveLocal(key, value) {
@@ -668,13 +658,8 @@ function startPolling() {
 }
 
 function setConnectedPill(connected) {
-  if (connected) {
-    connPill.classList.remove("pill-muted");
-    connPill.textContent = "Connected";
-  } else {
-    connPill.classList.add("pill-muted");
-    connPill.textContent = "Not connected";
-  }
+  connPill.classList.toggle("pill-muted", !connected);
+  connPill.textContent = connected ? "Connected" : "Not connected";
 }
 
 function setActiveChannel(channel) {
