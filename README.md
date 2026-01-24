@@ -4,6 +4,11 @@ Author: Belén Saldías (bcsaldias)
 
 I use this repo as the starter app + instructor tooling for the INFO 330 project. Students connect using their **group database username/password** on the login page, and then implement the SQL required by the project so the UI features work.
 
+## Different DB vs different schemas (isolation)
+I originally tried separate schemas per group, but pgAdmin (which we use for the class) still exposes other schemas via the public catalog. Even with GRANTs locked down, students could still **see names** they didn’t own, which is confusing in a teaching context.
+To avoid cross‑group visibility, each group now gets its **own database**. This is heavier (more roles/databases to manage) but gives clearer isolation and simpler mental models for students (“your whole DB is yours”).
+If you run this at larger scale, watch your Postgres `max_connections` and use small per‑group pools to avoid connection storms.
+
 ## Repo map
 
 - `server.js` — Express server + API routes
@@ -28,6 +33,9 @@ I create a `.env` file in the repo root (already present on the server). Typical
 - `SESSION_SECRET=...`
 - `PORT=3000`
 - `SUPERUSER_MODE=false` (I only turn this on for specific demos/tests)
+- `PG_POOL_MAX=3` (per‑group pool size)
+- `PG_POOL_IDLE_MS=30000` (close idle connections quickly)
+- `PG_POOL_CONN_MS=5000` (fail fast if the DB is unavailable)
 
 > Students do **not** set `PGHOST`/`PGPORT` in their browser. They only enter their DB username/password on the login page.
 
@@ -64,10 +72,10 @@ I run this when I’m setting up or resetting demo behavior for the course (inst
 ## Common gotchas I watch for
 
 - **“Login works but nothing loads”**  
-  Usually means students created tables in the wrong schema/database, or they’re missing required constraints (FKs, PKs, CHECKs), or their column names don’t match what the app expects.
+  Usually means students created tables in the wrong **database**, or they’re missing required constraints (FKs, PKs, CHECKs), or their column names don’t match what the app expects.
 
-- **Confusing `SUPERUSER_MODE`**  
-  I keep it `false` for normal operation. I only enable it when I explicitly want to test against the “solution/ground truth” behavior.
+- **`SUPERUSER_MODE`**
+  I keep it `false` for normal operation. I only enable it when I explicitly want to test against the “solution/ground truth” behavior, and it only works with the db `demo`.
 
 ## Versions
 - INFO 330 — Winter 2026 (iSchool)
