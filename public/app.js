@@ -80,6 +80,8 @@ let sqlResetBtn = null;
 let testSchemaBtn = null; // The idea of using schema got updated to database but keeping the variable name.
 let sqlLabMsg = null;
 let schemabMsg = null;
+let sqlProgressText = null;
+let sqlProgressBar = null;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
@@ -226,6 +228,8 @@ function ensureSqlLabUI() {
   testSchemaBtn = el("testSchemaBtn");
   sqlLabMsg = el("sqlLabMsg");
   schemabMsg = el("schemabMsg");
+  sqlProgressText = el("sqlProgressText");
+  sqlProgressBar = el("sqlProgressBar");
 
   // Events
   tabChatBtn.addEventListener("click", async () => { await setTab("chat"); });
@@ -393,6 +397,17 @@ function renderSqlLab(templates) {
 
     sqlLabList.appendChild(outer);
   }
+
+  updateSqlProgress();
+}
+
+function updateSqlProgress() {
+  if (!sqlProgressText || !sqlProgressBar) return;
+  const total = SQL_LAB_ITEMS.length;
+  const passed = SQL_LAB_ITEMS.filter((i) => i.status === true).length;
+  const pct = total ? Math.round((passed / total) * 100) : 0;
+  sqlProgressText.textContent = `${passed}/${total} passing`;
+  sqlProgressBar.style.width = `${pct}%`;
 }
 
 function collectSqlLabInputs() {
@@ -732,6 +747,7 @@ function flagQueryStatus(query, status) {
     }
   }
   // console.log(query, status);
+  updateSqlProgress();
 }
 
 function renderChannels(list) {

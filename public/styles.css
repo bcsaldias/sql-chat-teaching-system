@@ -992,6 +992,31 @@ textarea:focus {
   line-height: 1.55;
 }
 
+.sqlProgress {
+  margin: 10px 0 8px;
+}
+
+.sqlProgressLabel {
+  font-size: 13px;
+  color: var(--muted2);
+  margin-bottom: 6px;
+}
+
+.sqlProgressTrack {
+  width: 100%;
+  height: 10px;
+  background: var(--soft2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sqlProgressBar {
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  transition: width 200ms ease;
+}
+
 #sqlLabList {
   margin-top: 12px;
 }
