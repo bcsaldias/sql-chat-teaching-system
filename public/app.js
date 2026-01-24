@@ -98,6 +98,10 @@ const SQL_LAB_ITEMS = [
       <div><b>What happens:</b> user clicks <code>Log in</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
       <div><b>Must return:</b> <b>password</b></div>
+      <div class="mutedSmall" style="margin-top: 8px;">
+        Note: Users created directly in the DB with a plain‑text password won’t be able to log in here.
+        This app hashes passwords before sending them, so sign up users in the chat app for stored passwords to match.
+      </div>
     `,
     required: "SELECT password FROM users WHERE username = $1;"
   },
