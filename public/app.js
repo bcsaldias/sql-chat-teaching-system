@@ -1467,29 +1467,42 @@ connMenuDbLogout.addEventListener("click", async () => {
 
 const THEME_KEY = "info330_theme"; // session-only
 const root = document.documentElement;
-const themeToggleBtn = el("themeToggleBtn");
+const themeSelect = el("themeSelect");
+
+const THEMES = {
+  "studio-light": { family: "studio", tone: "light" },
+  "studio-dark": { family: "studio", tone: "dark" },
+  "classic-light": { family: "classic", tone: "light" },
+  "classic-dark": { family: "classic", tone: "dark" }
+};
+
+function normalizeTheme(theme) {
+  if (!theme) return null;
+  if (theme === "light") return "classic-light";
+  if (theme === "dark") return "classic-dark";
+  return THEMES[theme] ? theme : null;
+}
 
 function applyTheme(theme) {
-  root.setAttribute("data-theme", theme);
-  if (themeToggleBtn) themeToggleBtn.textContent = (theme === "dark") ? "☀️" : "🌙";
+  const next = normalizeTheme(theme) || "classic-light";
+  root.setAttribute("data-theme", next);
+  if (themeSelect) themeSelect.value = next;
 }
 
 function getInitialTheme() {
-  const saved = sessionStorage.getItem(THEME_KEY);
-  if (saved === "light" || saved === "dark") return saved;
+  const saved = normalizeTheme(sessionStorage.getItem(THEME_KEY));
+  if (saved) return saved;
 
-  // optional: default to OS preference for first load in this tab
   const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  return prefersDark ? "dark" : "light";
+  return prefersDark ? "classic-dark" : "classic-light";
 }
 
 // init on page load
 applyTheme(getInitialTheme());
 
-if (themeToggleBtn) {
-  themeToggleBtn.addEventListener("click", () => {
-    const current = root.getAttribute("data-theme") || "light";
-    const next = (current === "dark") ? "light" : "dark";
+if (themeSelect) {
+  themeSelect.addEventListener("change", () => {
+    const next = themeSelect.value;
     sessionStorage.setItem(THEME_KEY, next);
     applyTheme(next);
   });

@@ -1,4 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap");
+
 :root {
+  --bg: #f7f1e7;
+  --panel: #fffaf2;
+  --panel2: #f6efe4;
+  --border: #e6d9c7;
+  --text: #1c1a17;
+  --muted: #6d6256;
+  --muted2: #8a7f73;
+
+  --accent: #0f766e;
+  --accent2: #f97316;
+  --accent3: #eab308;
+  --good: #16a34a;
+  --bad: #dc2626;
+
+  --shadow: 0 10px 30px rgba(32, 26, 18, 0.12);
+  --radius: 14px;
+  --radius2: 18px;
+  --font-body: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --code-bg: #f2ece2;
+  --chip-bg: #fffaf2;
+  --soft: #f6efe4;
+  --soft2: #eee5d6;
+  --msgGradTop: #fffaf2;
+  --msgGradBot: #f6efe4;
+  --bubble-bg: #fffaf2;
+  --bubble-border: #efe2d2;
+  --codeblock-bg: #f2ece2;
+  --codeblock-border: var(--border);
+  --action-hover: var(--soft);
+  --action-active: var(--soft2);
+  --action-hover-bg: var(--soft);
+  --action-hover-fg: var(--accent2);
+
+  color-scheme: light;
+}
+
+:root[data-theme="studio-light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"],
+:root[data-theme="studio-dark"] {
+  --bg: #0f1419;
+  --panel: #141b22;
+  --panel2: #1a232d;
+  --border: rgba(255, 255, 255, 0.10);
+
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.68);
+  --muted2: rgba(255, 255, 255, 0.48);
+
+  --code-bg: rgba(255, 255, 255, 0.06);
+  --chip-bg: rgba(255, 255, 255, 0.06);
+  --soft: rgba(255, 255, 255, 0.05);
+  --soft2: rgba(255, 255, 255, 0.08);
+
+  --msgGradTop: rgba(255, 255, 255, 0.04);
+  --msgGradBot: rgba(255, 255, 255, 0.02);
+
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  --bubble-bg: rgba(255, 255, 255, 0.06);
+  --bubble-border: rgba(255, 255, 255, 0.12);
+
+  --codeblock-bg: rgba(255, 255, 255, 0.06);
+  --codeblock-border: rgba(255, 255, 255, 0.12);
+
+  --action-hover: rgba(255, 255, 255, 0.08);
+  --action-active: rgba(255, 255, 255, 0.12);
+  --action-hover-bg: rgba(255, 255, 255, 0.08);
+  --action-hover-fg: #fb923c;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="classic-light"] {
   --bg: #fafafa;
   --panel: #ffffff;
   --panel2: #f6f7f9;
@@ -8,18 +88,12 @@
   --muted2: #9aa0a6;
 
   --accent: #405de6;
-  /* IG-ish blue */
   --accent2: #fd1d1d;
-  /* IG-ish pink/red */
   --accent3: #fcb045;
-  /* IG-ish orange */
   --good: #16a34a;
   --bad: #ef4444;
 
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-  --radius: 14px;
-  --radius2: 18px;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   --code-bg: #f3f4f6;
   --chip-bg: #ffffff;
@@ -31,8 +105,6 @@
   --bubble-border: #edf2f7;
   --codeblock-bg: #f3f4f6;
   --codeblock-border: var(--border);
-  /* --badge-off: #fd1d1d; */
-  --action-hover: var(--soft);
   --action-hover: var(--soft);
   --action-active: var(--soft2);
   --action-hover-bg: var(--soft);
@@ -41,7 +113,7 @@
   color-scheme: light;
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="classic-dark"] {
   --bg: #0b0f19;
   --panel: #0f1629;
   --panel2: #131c33;
@@ -50,6 +122,12 @@
   --text: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.65);
   --muted2: rgba(255, 255, 255, 0.48);
+
+  --accent: #405de6;
+  --accent2: #fd1d1d;
+  --accent3: #fcb045;
+  --good: #16a34a;
+  --bad: #ef4444;
 
   --code-bg: rgba(255, 255, 255, 0.06);
   --chip-bg: rgba(255, 255, 255, 0.06);
@@ -65,7 +143,6 @@
 
   --codeblock-bg: rgba(255, 255, 255, 0.06);
   --codeblock-border: rgba(255, 255, 255, 0.12);
-  /* --badge-off: rgba(255, 255, 255, 0.22); */
 
   --action-hover: rgba(255, 255, 255, 0.08);
   --action-active: rgba(255, 255, 255, 0.12);
@@ -88,13 +165,43 @@ body {
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--text);
   background:
-    radial-gradient(1000px 400px at 10% -10%, rgba(64, 93, 230, 0.10), transparent 55%),
-    radial-gradient(1000px 400px at 90% -10%, rgba(253, 29, 29, 0.08), transparent 55%),
-    radial-gradient(1000px 500px at 50% 120%, rgba(252, 176, 69, 0.08), transparent 60%),
+    radial-gradient(900px 480px at 12% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    radial-gradient(900px 520px at 90% -15%, color-mix(in srgb, var(--accent2) 16%, transparent), transparent 60%),
+    radial-gradient(700px 420px at 50% 120%, color-mix(in srgb, var(--accent3) 14%, transparent), transparent 60%),
     var(--bg);
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(30px);
+  opacity: 0.35;
+}
+
+body::before {
+  width: 520px;
+  height: 520px;
+  top: -160px;
+  right: -120px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%);
+  animation: float 18s ease-in-out infinite alternate;
+}
+
+body::after {
+  width: 540px;
+  height: 540px;
+  bottom: -220px;
+  left: -160px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent2) 55%, transparent), transparent 70%);
+  animation: float 22s ease-in-out infinite alternate-reverse;
 }
 
 code {
@@ -122,7 +229,7 @@ code {
   justify-content: space-between;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   z-index: 10;
@@ -147,16 +254,17 @@ code {
   height: 18px;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
-  box-shadow: 0 0 0 6px rgba(253, 29, 29, 0.08);
+  box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.12);
 }
 
 .brandTitle {
+  font-family: var(--font-display);
   font-weight: 800;
   letter-spacing: 0.2px;
 }
 
 .brandSub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   margin-top: 2px;
 }
@@ -168,22 +276,50 @@ code {
   gap: 10px;
 }
 
+.themeSelect {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.themeSelect:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius2);
   box-shadow: var(--shadow);
   padding: 18px;
+  animation: riseIn 420ms ease-out both;
 }
 
 h2 {
   margin: 0 0 10px;
-  font-size: 18px;
+  font-size: 19px;
+  font-family: var(--font-display);
 }
 
 h3 {
   margin: 0 0 10px;
-  font-size: 15px;
+  font-size: 16px;
+  font-family: var(--font-display);
+}
+
+.sidebarTitle,
+.channelTitle,
+.sqlTitle,
+.modalTitle {
+  font-family: var(--font-display);
+  letter-spacing: 0.2px;
 }
 
 .muted {
@@ -193,7 +329,7 @@ h3 {
 
 .mutedSmall {
   color: var(--muted2);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .grid2 {
@@ -210,7 +346,7 @@ h3 {
 
 .field label {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   margin-bottom: 6px;
 }
@@ -228,8 +364,8 @@ textarea {
 
 input:focus,
 textarea:focus {
-  border-color: rgba(64, 93, 230, 0.35);
-  box-shadow: 0 0 0 4px rgba(64, 93, 230, 0.10);
+  border-color: rgba(15, 118, 110, 0.35);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
 }
 
 .row {
@@ -247,10 +383,12 @@ textarea:focus {
   background: var(--panel);
   color: var(--text);
   font-weight: 650;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .btn:hover {
   background: var(--soft);
+  transform: translateY(-1px);
 }
 
 .btn:disabled {
@@ -262,6 +400,7 @@ textarea:focus {
   border-color: transparent;
   background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
   color: #fff;
+  box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
 }
 
 .btn-primary:hover {
@@ -370,6 +509,7 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  animation: riseIn 520ms ease-out both;
 }
 
 .sidebarHeader {
@@ -475,7 +615,7 @@ textarea:focus {
 }
 
 .channelDesc {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted2);
   white-space: nowrap;
   overflow: hidden;
@@ -499,7 +639,7 @@ textarea:focus {
 
 /* Number of users in a channel (small pill) */
 .memberCount {
-  font-size: 12px;
+  font-size: 13px;
   background: var(--soft2);
   border-color: var(--border);
   padding: 4px 8px;
@@ -640,21 +780,17 @@ textarea:focus {
 }
 
 .metaUser {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   color: white;
 }
 
-:root[data-theme="light"] .msgRow:not(.me) .metaUser {
-  color: var(--text);
-}
-
-:root:not([data-theme="dark"]) .msgRow:not(.me) .metaUser {
+:root:not([data-theme$="dark"]) .msgRow:not(.me) .metaUser {
   color: var(--text);
 }
 
 .metaTime {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted2);
 }
 
@@ -669,11 +805,7 @@ textarea:focus {
   color: white;
 }
 
-:root[data-theme="light"] .msgRow:not(.me) .msgText {
-  color: var(--text);
-}
-
-:root:not([data-theme="dark"]) .msgRow:not(.me) .msgText {
+:root:not([data-theme$="dark"]) .msgRow:not(.me) .msgText {
   color: var(--text);
 }
 
@@ -697,13 +829,13 @@ textarea:focus {
   /* taller box */
   padding: 12px 14px;
   /* more breathing room */
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.35;
 }
 
 #composerInput:focus {
-  border-color: rgba(64, 93, 230, 0.35);
-  box-shadow: 0 0 0 4px rgba(64, 93, 230, 0.10);
+  border-color: rgba(15, 118, 110, 0.35);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
 }
 
 /* Mobile sidebar overlay behavior (kept from prior version) */
@@ -748,6 +880,7 @@ textarea:focus {
 
 .chatMain {
   min-height: 0;
+  animation: riseIn 560ms ease-out both;
 }
 
 /* allow inner scrolling */
@@ -785,12 +918,19 @@ textarea:focus {
   color: var(--text);
   cursor: pointer;
   font-weight: 700;
+  font-size: 14px;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .tab.active {
   border-color: transparent;
   color: #fff;
   background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+  box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
+}
+
+.tab:hover {
+  transform: translateY(-1px);
 }
 
 .sqlCard {
@@ -803,7 +943,7 @@ textarea:focus {
 
 .sqlHint {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   background: var(--codeblock-bg);
   border: 1px solid var(--codeblock-border);
   color: var(--text);
@@ -842,14 +982,14 @@ textarea:focus {
 
 #panelSql .mutedSmall {
   color: var(--muted, #6b7280);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.35;
 }
 
 #panelSql .description {
   color: var(--text);
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 #sqlLabList {
@@ -870,14 +1010,14 @@ textarea:focus {
 }
 
 #sqlLabList .sqlReqLabel {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted, #6b7280);
   margin-bottom: 6px;
 }
 
 #sqlLabList .sqlDesc {
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   margin-bottom: 10px;
   margin-top: 13px;
   white-space: normal;
@@ -886,7 +1026,7 @@ textarea:focus {
 
 #sqlLabList .sqlRequired {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
+  font-size: 13px;
   background: var(--codeblock-bg);
   border: 1px solid var(--codeblock-border);
   color: var(--text);
@@ -907,8 +1047,8 @@ textarea:focus {
   border: 1px solid var(--border, #e5e7eb);
   background: #fff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.4;
   resize: vertical;
   outline: none;
 }
@@ -1268,3 +1408,21 @@ li {
 
 .sqlDesc div { margin: 4px 0; }
 .sqlDesc code { padding: 0 4px; border-radius: 6px; }
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(18px) translateX(-12px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
