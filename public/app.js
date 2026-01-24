@@ -1,70 +1,72 @@
 // ----------------------------
 // Elements
 // ----------------------------
-const loginPanel = document.getElementById("loginPanel");
-const chatPanel = document.getElementById("chatPanel");
+const el = (id) => document.getElementById(id);
 
-const usernameEl = document.getElementById("username");   // group DB login username (grp10)
-const passwordEl = document.getElementById("password");   // group DB login password
-const loginBtn = document.getElementById("loginBtn");
-const loginMsg = document.getElementById("loginMsg");
+const loginPanel = el("loginPanel");
+const chatPanel = el("chatPanel");
 
-const logoutBtn = document.getElementById("logoutBtn");
-const connPill = document.getElementById("connPill");
+const usernameEl = el("username");   // group DB login username (grp10)
+const passwordEl = el("password");   // group DB login password
+const loginBtn = el("loginBtn");
+const loginMsg = el("loginMsg");
 
-const userAuthPanel = document.getElementById("userAuthPanel");
-const chatUI = document.getElementById("chatUI");
-const mainChatUI = document.getElementById("mainChatUI");
-const chatUsernameEl = document.getElementById("chatUsername");
-const chatPasswordEl = document.getElementById("chatPassword");
-const registerBtn = document.getElementById("registerBtn");
-const userLoginBtn = document.getElementById("userLoginBtn");
-const userAuthMsg = document.getElementById("userAuthMsg");
+const logoutBtn = el("logoutBtn");
+const connPill = el("connPill");
 
-const channelsEl = document.getElementById("channels");
-const channelSearchEl = document.getElementById("channelSearch");
-const channelMsg = document.getElementById("channelMsg");
-const activeChannelLabel = document.getElementById("activeChannelLabel");
-const activeChannelSub = document.getElementById("activeChannelSub");
+const userAuthPanel = el("userAuthPanel");
+const chatUI = el("chatUI");
+const mainChatUI = el("mainChatUI");
+const chatUsernameEl = el("chatUsername");
+const chatPasswordEl = el("chatPassword");
+const registerBtn = el("registerBtn");
+const userLoginBtn = el("userLoginBtn");
+const userAuthMsg = el("userAuthMsg");
 
-const composerInput = document.getElementById("composerInput");
-const sendBtn = document.getElementById("sendBtn");
-const postMsg = document.getElementById("postMsg");
-const messagesEl = document.getElementById("messages");
+const channelsEl = el("channels");
+const channelSearchEl = el("channelSearch");
+const channelMsg = el("channelMsg");
+const activeChannelLabel = el("activeChannelLabel");
+const activeChannelSub = el("activeChannelSub");
 
-const userPill = document.getElementById("userPill");
-const userLabel = document.getElementById("userLabel");
-const userAvatar = document.getElementById("userAvatar");
+const composerInput = el("composerInput");
+const sendBtn = el("sendBtn");
+const postMsg = el("postMsg");
+const messagesEl = el("messages");
 
-const sidebar = document.getElementById("sidebar");
-const chatMain = document.getElementById("chatMain");
+const userPill = el("userPill");
+const userLabel = el("userLabel");
+const userAvatar = el("userAvatar");
+
+const sidebar = el("sidebar");
+const chatMain = el("chatMain");
 
 // Member modal elements (present in index.html)
-const memberModal = document.getElementById("memberModal");
-const memberModalOverlay = document.getElementById("memberModalOverlay");
-const memberModalList = document.getElementById("memberModalList");
-const memberModalTitle = document.getElementById("memberModalTitle");
-const memberModalClose = document.getElementById("memberModalClose");
+const memberModal = el("memberModal");
+const memberModalOverlay = el("memberModalOverlay");
+const memberModalList = el("memberModalList");
+const memberModalTitle = el("memberModalTitle");
+const memberModalClose = el("memberModalClose");
 
-const toastEl = document.getElementById("toast");
+const toastEl = el("toast");
 
-const createChannelBtn = document.getElementById("createChannelBtn");
-const newChannelName = document.getElementById("newChannelName");
-const newChannelDescription = document.getElementById("newChannelDescription");
-const createChannelPostBtn = document.getElementById("postNewChannelBtn");
+const createChannelBtn = el("createChannelBtn");
+const newChannelName = el("newChannelName");
+const newChannelDescription = el("newChannelDescription");
+const createChannelPostBtn = el("postNewChannelBtn");
 
 
 // New channel modal elements (present in index.html)
-const newChannelModal = document.getElementById("newChannelModal");
-const newChannelModalOverlay = document.getElementById("newChannelModalOverlay");
-const newChannelModalList = document.getElementById("newChannelModalList");
-const newChannelModalTitle = document.getElementById("newChannelModalTitle");
-const newChannelModalClose = document.getElementById("newChannelModalClose");
+const newChannelModal = el("newChannelModal");
+const newChannelModalOverlay = el("newChannelModalOverlay");
+const newChannelModalList = el("newChannelModalList");
+const newChannelModalTitle = el("newChannelModalTitle");
+const newChannelModalClose = el("newChannelModalClose");
 
 // Connection menu elements (present in index.html)
-const connMenu = document.getElementById("connMenu");
-const connMenuUserLogout = document.getElementById("connMenuUserLogout");
-const connMenuDbLogout = document.getElementById("connMenuDbLogout");
+const connMenu = el("connMenu");
+const connMenuUserLogout = el("connMenuUserLogout");
+const connMenuDbLogout = el("connMenuDbLogout");
 
 
 // ----------------------------
@@ -82,9 +84,7 @@ let schemabMsg = null;
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
 
-var showAnswers = false;
-
-var SQL_LAB_ITEMS = [
+const SQL_LAB_ITEMS = [
   {
     key: "user_login",
     status: null,
@@ -218,8 +218,8 @@ function setSidebarVisible(v) {
 function ensureSqlLabUI() {
   if (sqlPanel && sqlLabList) return;
 
-  tabChatBtn = document.getElementById("tabChat");
-  tabSqlBtn = document.getElementById("tabSql");
+  tabChatBtn = el("tabChat");
+  tabSqlBtn = el("tabSql");
   tabSqlBtn.addEventListener("click", () => setTab("sql"));
 
   // SQL panel
@@ -807,7 +807,7 @@ function renderMessages(messages) {
 }
 
 function flagQueryStatus(query, status) {
-  for (var item of SQL_LAB_ITEMS) {
+  for (const item of SQL_LAB_ITEMS) {
     if (item.key == query) {
       item.status = status
     }
@@ -1361,7 +1361,7 @@ sendBtn.addEventListener("click", async () => {
 // Update password handler
 // -------------------------
 
-const resetPwdBtn = document.getElementById("resetPwdBtn");
+const resetPwdBtn = el("resetPwdBtn");
 
 let resetModal = null;
 let resetOldEl, resetNew1El, resetNew2El, resetCancelBtn, resetSaveBtn, resetMsgEl;
@@ -1395,12 +1395,12 @@ function ensureResetModal() {
 
   document.body.appendChild(resetModal);
 
-  resetOldEl = document.getElementById("resetOldPwd");
-  resetNew1El = document.getElementById("resetNewPwd1");
-  resetNew2El = document.getElementById("resetNewPwd2");
-  resetCancelBtn = document.getElementById("resetCancelBtn");
-  resetSaveBtn = document.getElementById("resetSaveBtn");
-  resetMsgEl = document.getElementById("resetPwdMsg");
+  resetOldEl = el("resetOldPwd");
+  resetNew1El = el("resetNewPwd1");
+  resetNew2El = el("resetNewPwd2");
+  resetCancelBtn = el("resetCancelBtn");
+  resetSaveBtn = el("resetSaveBtn");
+  resetMsgEl = el("resetPwdMsg");
 
   function close() {
     resetModal.classList.add("hidden");
@@ -1540,7 +1540,7 @@ connMenuDbLogout.addEventListener("click", async () => {
 
 const THEME_KEY = "info330_theme"; // session-only
 const root = document.documentElement;
-const themeToggleBtn = document.getElementById("themeToggleBtn");
+const themeToggleBtn = el("themeToggleBtn");
 
 function applyTheme(theme) {
   root.setAttribute("data-theme", theme);
