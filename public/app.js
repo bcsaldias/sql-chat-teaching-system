@@ -56,6 +56,7 @@ const createChannelBtn = el("createChannelBtn");
 const newChannelName = el("newChannelName");
 const newChannelDescription = el("newChannelDescription");
 const createChannelPostBtn = el("postNewChannelBtn");
+const newChannelMsg = el("newChannelMsg");
 
 
 // New channel modal elements (present in index.html)
@@ -1093,18 +1094,26 @@ async function createNewChannelModal() {
   if (!newChannelModal) return;
   newChannelModalTitle.textContent = `Creating new channel`;
   newChannelModal.classList.remove("hidden");
+  if (newChannelMsg) setMsg(newChannelMsg, "");
 
   try {
 
   } catch (err) {
     newChannelModalList.innerHTML = "";
-    setMsg(channelMsg, err.message || String(err), false);
+    if (newChannelMsg) {
+      setMsg(newChannelMsg, err.message || String(err), false);
+    } else {
+      setMsg(channelMsg, err.message || String(err), false);
+    }
   }
 }
 
 function hidechannelModal() {
   if (!newChannelModal) return;
   newChannelModal.classList.add("hidden");
+  if (newChannelName) newChannelName.value = "";
+  if (newChannelDescription) newChannelDescription.value = "";
+  if (newChannelMsg) setMsg(newChannelMsg, "");
 }
 
 // hook up modal close events
@@ -1290,29 +1299,60 @@ createChannelBtn.addEventListener("click", async () => {
   if (state.chatUsername) await createNewChannelModal();
 });
 
+if (emptyRefreshBtn) {
+  emptyRefreshBtn.addEventListener("click", async () => {
+    try {
+      setMsg(channelMsg, "");
+      await loadChannels();
+      toast("Channels refreshed");
+    } catch (err) {
+      setMsg(channelMsg, err.message || String(err), false);
+    }
+  });
+}
+
+if (emptyCreateBtn) {
+  emptyCreateBtn.addEventListener("click", async () => {
+    if (!state.chatUsername) return toast("Log in to create a channel");
+    await createNewChannelModal();
+  });
+}
+
 
 postNewChannelBtn.addEventListener("click", async () => {
-  setMsg(userAuthMsg, "");
+  if (newChannelMsg) setMsg(newChannelMsg, "");
   registerBtn.disabled = true;
 
   const n = newChannelName.value.trim();
   const d = newChannelDescription.value.trim();
 
   if (!n || !d) {
-    setMsg(userAuthMsg, "Channel name and description are required.", false);
+    if (newChannelMsg) {
+      setMsg(newChannelMsg, "Channel name and description are required.", false);
+    } else {
+      setMsg(userAuthMsg, "Channel name and description are required.", false);
+    }
     return;
   }
 
   try {
     // console.log("Creating channel:", n, d);
     await api("/api/channels/create", "POST", { name: n, description: d }); // KEY: channel_create
-    setMsg(userAuthMsg, `Channel #${n} created.`, true);
+    if (newChannelMsg) {
+      setMsg(newChannelMsg, `Channel #${n} created.`, true);
+    } else {
+      setMsg(userAuthMsg, `Channel #${n} created.`, true);
+    }
     hidechannelModal();
     await loadChannels();
     toast(`Channel #${n} created.`);
     flagQueryStatus("channel_create", true);
   } catch (e) {
-    setMsg(userAuthMsg, e.message, false);
+    if (newChannelMsg) {
+      setMsg(newChannelMsg, e.message, false);
+    } else {
+      setMsg(userAuthMsg, e.message, false);
+    }
     flagQueryStatus("channel_create", false);
   } finally {
     registerBtn.disabled = false;

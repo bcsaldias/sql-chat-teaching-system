@@ -748,6 +748,58 @@ textarea:focus {
   background: linear-gradient(180deg, var(--msgGradTop), var(--msgGradBot));
 }
 
+.emptyState {
+  padding: 14px;
+}
+
+.emptyCard {
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: var(--panel2);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.emptyTitle {
+  font-weight: 900;
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+
+.emptySub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.emptySteps {
+  margin: 6px 0 12px;
+  padding-left: 18px;
+}
+
+.emptySteps li {
+  margin-bottom: 6px;
+}
+
+.emptyActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.emptyHint {
+  margin-top: 10px;
+}
+
+.emptyInline {
+  text-align: center;
+  margin: 10px 14px 6px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--panel2);
+}
+
 .msgRow {
   display: flex;
   gap: 10px;
@@ -1162,6 +1214,11 @@ body.sql-mode #userAuthPanel {
 
 .channelEmpty {
   padding: 12px;
+}
+
+.channelEmptyTitle {
+  font-weight: 800;
+  margin-bottom: 6px;
 }
 
 .channelRight {
