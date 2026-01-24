@@ -103,13 +103,13 @@ const SQL_LAB_ITEMS = [
     description: `
       <div><b>What happens:</b> user clicks <code>Log in</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
-      <div><b>Must return:</b> <b>password</b></div>
       <div class="mutedSmall" style="margin-top: 8px;">
         Note: Users created directly in the DB with a plain‑text password won’t be able to log in here.
         This app hashes passwords before sending them, so sign up users in the chat app for stored passwords to match.
       </div>
     `,
-    required: "SELECT password FROM users WHERE username = $1;"
+    required: "SELECT password FROM users WHERE username = $1;",
+    expectedCols: ["password"]
   },
   {
     key: "user_register",
@@ -139,11 +139,9 @@ const SQL_LAB_ITEMS = [
     description: `
       <div><b>What happens:</b> load sidebar channel list + join/leave state</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
-      <div><b>Must return columns:</b>
-        <b>id</b>, <b>name</b>, <b>description</b>, <b>is_member</b> (boolean), <b>user_count</b> (integer)
-      </div>
     `,
     textAreaHeight: "280px",
+    expectedCols: ["id", "name", "description", "is_member", "user_count"]
   },
   {
     key: "channel_join",
@@ -173,7 +171,7 @@ const SQL_LAB_ITEMS = [
     description: `
       <div><b>What happens:</b> app checks access before showing messages</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
-      <div><b>Must return:</b> true (boolean) only if the user is a member (truthy existence check)</div>
+      <div><b>Must return:</b> at least one row only if the user is a member (no rows otherwise)</div>
     `,
   },
   {
@@ -183,11 +181,11 @@ const SQL_LAB_ITEMS = [
     description: `
       <div><b>What happens:</b> load messages when a channel is opened</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
-      <div><b>Must return columns:</b> <b>username</b>, <b>body</b>, <b>created_at</b></div>
       <div><b>Ordering:</b> newest at the bottom (ASC by <b>created_at</b>)</div>
       <div><b>Limit:</b> ~50 rows</div>
     `,
-    textAreaHeight: "120px",
+    textAreaHeight: "140px",
+    expectedCols: ["username", "body", "created_at"]
   },
   {
     key: "message_post",
@@ -207,8 +205,8 @@ const SQL_LAB_ITEMS = [
     description: `
       <div><b>What happens:</b> members modal opens</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
-      <div><b>Must return:</b> a single column: <b>username</b> (ordered)</div>
     `,
+    expectedCols: ["username"]
   },
   {
     key: "channel_create",
@@ -409,6 +407,27 @@ function renderSqlLab(templates) {
     outer.appendChild(headerRow);
 
     outer.appendChild(desc);
+    if (item.expectedCols && item.expectedCols.length) {
+      const chips = document.createElement("div");
+      chips.className = "sqlChips";
+
+      const label = document.createElement("div");
+      label.className = "sqlChipLabel";
+      label.textContent = "Expected columns";
+
+      const row = document.createElement("div");
+      row.className = "sqlChipRow";
+      for (const col of item.expectedCols) {
+        const chip = document.createElement("span");
+        chip.className = "sqlChip";
+        chip.textContent = col;
+        row.appendChild(chip);
+      }
+
+      chips.appendChild(label);
+      chips.appendChild(row);
+      outer.appendChild(chips);
+    }
     if (item.required) outer.appendChild(req);
     if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
     outer.appendChild(ta);

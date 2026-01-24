@@ -1141,6 +1141,36 @@ textarea:focus {
   line-height: 20px;
 }
 
+#sqlLabList .sqlChips {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+
+#sqlLabList .sqlChipLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+#sqlLabList .sqlChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#sqlLabList .sqlChip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
 #sqlLabList .sqlRequired {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
