@@ -74,7 +74,6 @@ let tabChatBtn = null;
 let tabSqlBtn = null;
 let sqlPanel = null;
 let sqlLabList = null;
-let sqlSaveBtn = null;
 let sqlResetBtn = null;
 let testSchemaBtn = null; // The idea of using schema got updated to database but keeping the variable name.
 let sqlLabMsg = null;
@@ -256,12 +255,6 @@ function ensureSqlLabUI() {
 
   const row = document.createElement("div");
 
-  sqlSaveBtn = document.createElement("button");
-  sqlSaveBtn.id = "sqlSaveBtn";
-  sqlSaveBtn.className = "btn btn-primary";
-  sqlSaveBtn.type = "button";
-  sqlSaveBtn.textContent = "Save SQL";
-
   sqlResetBtn = document.createElement("button");
   sqlResetBtn.id = "sqlResetBtn";
   sqlResetBtn.className = "btn btn-ghost";
@@ -284,7 +277,6 @@ function ensureSqlLabUI() {
   schemabMsg.className = "msg";
 
 
-  // row.appendChild(sqlSaveBtn);
   row.appendChild(sqlResetBtn);
   row.appendChild(sqlLabMsg);
 
@@ -305,51 +297,8 @@ function ensureSqlLabUI() {
   chatPanel.prepend(sqlPanel);
 
   // Events
-  tabChatBtn.addEventListener("click", async () => {
-    try {
-      if (sqlPanel && !sqlPanel.classList.contains('hidden')) {
-        setMsg(sqlLabMsg, "");
-        const templates = collectSqlLabInputs();
-        // Only save if templates actually changed since we last loaded them.
-        // This avoids re-running the same SQL on the server when the user
-        // simply switches back to Chat without editing anything.
-        const prev = _lastSqlTemplates || {};
-        const changed = JSON.stringify(templates) !== JSON.stringify(prev);
-        if (changed) {
-          await api("/api/sql_templates", "POST", { templates });
-          await loadSqlTemplates();
-          setMsg(sqlLabMsg, "Saved. The server will now use your SQL templates.", true);
-        }
-      }
-    } catch (e) {
-      // show the error but continue to chat
-      setMsg(sqlLabMsg, e.message, false);
-    } finally {
-      try {
-        await setTab("chat");
-        if (state.chatUsername) {
-          await loadChannels();
-          if (state.activeChannelId) await loadMessages(state.activeChannelId, { silent: true });
-        }
-      } catch (err) {
-        console.error('Error refreshing channels after switching to chat:', err);
-      }
-    }
-  });
-  tabSqlBtn.addEventListener("click", () => setTab("sql"));
-
-  sqlSaveBtn.addEventListener("click", async () => {
-    setMsg(sqlLabMsg, "");
-    try {
-      const templates = collectSqlLabInputs();
-      await api("/api/sql_templates", "POST", { templates });
-      // Reload templates from server to confirm what the server stored is now active
-      await loadSqlTemplates();
-      setMsg(sqlLabMsg, "Saved. The server will now use your SQL templates.", true);
-    } catch (e) {
-      setMsg(sqlLabMsg, e.message, false);
-    }
-  });
+  tabChatBtn.addEventListener("click", async () => { await setTab("chat"); });
+  tabSqlBtn.addEventListener("click", async () => { await setTab("sql"); });
 
   sqlResetBtn.addEventListener("click", async () => {
     setMsg(sqlLabMsg, "");
@@ -391,6 +340,22 @@ async function setTab(which) {
   ensureSqlLabUI();
 
   const isSql = which === "sql";
+  const leavingSql = !isSql && sqlPanel && !sqlPanel.classList.contains("hidden");
+
+  if (leavingSql) {
+    try {
+      setMsg(sqlLabMsg, "");
+      const didSave = await saveSqlTemplatesIfChanged();
+      if (didSave) toast("SQL saved");
+    } catch (e) {
+      // Make it visible AND prevent leaving SQL tab
+      toast("SQL save failed: " + (e.message || e));
+      setMsg(sqlLabMsg, e.message || String(e), false);
+      return;
+    }
+  }
+
+
   document.documentElement.classList.toggle("sql-mode", isSql);
   document.body.classList.toggle("sql-mode", isSql);
 
@@ -460,9 +425,9 @@ function renderSqlLab(templates) {
       item.status === false ? "Try again." :
         "Not tested";
 
-    if (item.key === "user_login" && item.status === false) {
-      item.status = userAuthMsg.textContent ? userAuthMsg.textContent : "Try again.";
-    }
+    // if (item.key === "user_login" && item.status === false) {
+    //   item.status = userAuthMsg.textContent ? userAuthMsg.textContent : "Try again.";
+    // }
 
     const desc = document.createElement("div");
     desc.className = "sqlDesc";
@@ -476,8 +441,8 @@ function renderSqlLab(templates) {
     const ta = document.createElement("textarea");
     ta.className = "sqlInput";
     ta.dataset.sqlkey = item.key;
-    const s = String(templates[item.key] || "");
-    ta.value = s.endsWith(";") ? s : s + ";";
+    const s = String(templates[item.key] ?? "").trimEnd();
+    ta.value = s ? (s.endsWith(";") ? s : s + ";") : "";
     // for a given text area color keywords, SELECT, INSERT, ...
 
     const headerRow = document.createElement("div");
@@ -512,6 +477,27 @@ async function loadSqlTemplates() {
   // remember what we loaded so we can detect real edits later
   _lastSqlTemplates = data.templates || {};
   renderSqlLab(_lastSqlTemplates);
+}
+
+
+
+function normalizeTemplates(obj) {
+  // trimEnd avoids “I had ; then newline” causing false diffs / extra semicolons
+  return Object.fromEntries(
+    Object.entries(obj || {}).map(([k, v]) => [k, String(v ?? "").trimEnd()])
+  );
+}
+
+async function saveSqlTemplatesIfChanged() {
+  const templates = normalizeTemplates(collectSqlLabInputs());
+  const prev = normalizeTemplates(_lastSqlTemplates);
+
+  const changed = JSON.stringify(templates) !== JSON.stringify(prev);
+  if (!changed) return false;
+
+  await api("/api/sql_templates", "POST", { templates });
+  _lastSqlTemplates = templates;
+  return true;
 }
 
 

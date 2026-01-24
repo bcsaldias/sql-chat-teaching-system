@@ -154,8 +154,17 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
         throw new Error(`Template "${key}" must start with SELECT/INSERT/DELETE/UPDATE/WITH.`);
       }
 
-      if (normalized.includes("*")) {
-        throw new Error(`Template "${key}" cannot contain "*". Please list explicit columns.`);
+      // Allow COUNT(*) but disallow any other "*"
+      const starWithoutCount = /\*(?!\s*\))/; // any "*" not immediately followed by ")"
+      const countStar = /\bcount\s*\(\s*\*\s*\)/i;
+
+      if (normalized.includes("*") && !countStar.test(normalized)) {
+        throw new Error(`Template "${key}" can only use "*" inside COUNT(*). Please list explicit columns.`);
+      }
+
+      // (Optional extra-hardening) also reject any "*" that isn't part of COUNT(*)
+      if (starWithoutCount.test(normalized.replace(countStar, ""))) {
+        throw new Error(`Template "${key}" can only use "*" inside COUNT(*). Please list explicit columns.`);
       }
 
       if (normalized.includes("--")) {
