@@ -256,7 +256,7 @@ function ensureSqlLabUI() {
   testSchemaBtn.addEventListener("click", async () => {
     setMsg(schemabMsg, "");
     try {
-      setMsg(schemabMsg, "All required tables and columns exist in your database.", true);
+      setMsg(schemabMsg, "Database schema looks good.", true);
       await api("/api/test_schema", "GET");
     } catch (e) {
       setMsg(schemabMsg, e.message, false);

@@ -504,6 +504,7 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
     `select ${usersPkCol}, password from users limit 0;`,
     `select ${channelsPkCol}, name, description from channels limit 0;`,
     `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
+    `select body, created_at from chat_inbox limit 0;`,
     // `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
   ];
 
