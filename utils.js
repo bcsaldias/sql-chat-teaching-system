@@ -177,125 +177,60 @@ function parseByDataType(dataType, raw) {
 // ========================================================================
 
 
-async function loadPrimaryKey(client, tableName) {
-    const r = await client.query(
-        `
-    SELECT
-      kcu.column_name,
-      cols.data_type,
-      kcu.ordinal_position
-    FROM information_schema.table_constraints tc
-    JOIN information_schema.key_column_usage kcu
-      ON tc.constraint_name = kcu.constraint_name
-     AND tc.constraint_schema = kcu.constraint_schema
-    JOIN information_schema.columns cols
-      ON cols.table_schema = tc.table_schema
-     AND cols.table_name = tc.table_name
-     AND cols.column_name = kcu.column_name
-    WHERE tc.constraint_type = 'PRIMARY KEY'
-      AND tc.table_schema = 'public'
-      AND tc.table_name = $1
-    ORDER BY kcu.ordinal_position;
-    `,
-        [tableName]
-    );
-
-    if (r.rowCount === 0) return null;
-
-    return {
-        columns: r.rows.map(x => x.column_name),
-        types: r.rows.map(x => x.data_type)
-    };
-}
-
-async function loadForeignKey(client, fromTable, toTable) {
-    // returns possibly multiple rows (composite FK), ordered by position
-    const r = await client.query(
-        `
-    SELECT
-      kcu.column_name    AS fk_column,
-      fk_cols.data_type  AS fk_data_type,
-      ccu.table_name     AS ref_table,
-      ccu.column_name    AS ref_column,
-      ref_cols.data_type AS ref_data_type,
-      kcu.ordinal_position
-    FROM information_schema.table_constraints tc
-    JOIN information_schema.key_column_usage kcu
-      ON tc.constraint_name = kcu.constraint_name
-     AND tc.constraint_schema = kcu.constraint_schema
-    JOIN information_schema.constraint_column_usage ccu
-      ON ccu.constraint_name = tc.constraint_name
-     AND ccu.constraint_schema = tc.constraint_schema
-    JOIN information_schema.columns fk_cols
-      ON fk_cols.table_schema = tc.table_schema
-     AND fk_cols.table_name = tc.table_name
-     AND fk_cols.column_name = kcu.column_name
-    JOIN information_schema.columns ref_cols
-      ON ref_cols.table_schema = ccu.table_schema
-     AND ref_cols.table_name = ccu.table_name
-     AND ref_cols.column_name = ccu.column_name
-    WHERE tc.constraint_type = 'FOREIGN KEY'
-      AND tc.table_schema = 'public'
-      AND tc.table_name = $1
-      AND ccu.table_name = $2
-    ORDER BY kcu.ordinal_position;
-    `,
-        [fromTable, toTable]
-    );
-
-    if (r.rowCount === 0) return null;
-
-    return r.rows.map(row => ({
-        fk_column: row.fk_column,
-        fk_data_type: row.fk_data_type,
-        ref_table: row.ref_table,
-        ref_column: row.ref_column,
-        ref_data_type: row.ref_data_type
-    }));
-}
-
 async function loadChatSchemaInfo(client) {
     // with this info, we can double check that students are using PK and FK properly.
-
-    const tables = {};
-    let chatInboxToChannels = null;
-    let chatInboxToUsers = null;
-    let membersToChannels = null;
-    let membersToUsers = null;
-
-    try { tables.users = { pk: await loadPrimaryKey(client, "users") }; } catch { }
-    try { tables.channels = { pk: await loadPrimaryKey(client, "channels") }; } catch { }
-    try { tables.chat_inbox = { pk: await loadPrimaryKey(client, "chat_inbox") }; } catch { }
-    try { tables.channel_members = { pk: await loadPrimaryKey(client, "channel_members") }; } catch { }
-
-    try { chatInboxToChannels = await loadForeignKey(client, "chat_inbox", "channels"); } catch { }
-    try { chatInboxToUsers = await loadForeignKey(client, "chat_inbox", "users"); } catch { }
-    try { membersToChannels = await loadForeignKey(client, "channel_members", "channels"); } catch { }
-    try { membersToUsers = await loadForeignKey(client, "channel_members", "users"); } catch { }
-
-    // Pick “the” channel PK + “the” chat->channels FK (single-column expected in this project)
-    const channels_pk = tables.channels?.pk?.columns?.[0] || "channel_id";
-    const channels_pk_type = tables.channels?.pk?.types?.[0] || "text";
-    const membership_channels_fk = membersToChannels?.[0]?.fk_column || "channel_id";
-    const membership_channels_fk_type = membersToChannels?.[0]?.fk_data_type || "text";
-
-    const users_pk = tables.users?.pk?.columns?.[0] || "user_id";
-    const users_pk_type = tables.users?.pk?.types?.[0] || "text";
-    const membership_users_fk = membersToUsers?.[0]?.fk_column || "user_id";
-    const membership_users_fk_type = membersToUsers?.[0]?.fk_data_type || "text";
-
-    return {
-        loadedAt: Date.now(),
-        tables,
+    const {
         channels_pk,
         channels_pk_type,
         membership_channels_fk,
         membership_channels_fk_type,
-        users_pk,
-        users_pk_type,
-        membership_users_fk,
-        membership_users_fk_type
-    };
+    } = await loadChannelMembershipKeys(client);
+
+    return {
+        channels_pk,
+        channels_pk_type,
+        membership_channels_fk,
+        membership_channels_fk_type,
+    }
+}
+
+async function loadChannelMembershipKeys(client) {
+    const { rows } = await client.query(`
+    SELECT
+      COALESCE(ch_pk.col,  'channel_id') AS channels_pk,
+      COALESCE(ch_pk.typ,  'text')       AS channels_pk_type,
+      COALESCE(mem_fk.col, 'channel_id') AS membership_channels_fk,
+      COALESCE(mem_fk.typ, 'text')       AS membership_channels_fk_type
+    FROM (SELECT 1) base
+    LEFT JOIN LATERAL (
+      SELECT a.attname AS col, a.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum, ord) ON true
+      JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = k.attnum
+      WHERE n.nspname = 'public' AND t.relname = 'channels' AND c.contype = 'p'
+      ORDER BY k.ord
+      LIMIT 1
+    ) ch_pk ON true
+    LEFT JOIN LATERAL (
+      SELECT a.attname AS col, a.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN pg_class rt     ON rt.oid = c.confrelid
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum, ord) ON true
+      JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = k.attnum
+      WHERE n.nspname = 'public'
+        AND t.relname = 'channel_members'
+        AND rt.relname = 'channels'
+        AND c.contype = 'f'
+      ORDER BY k.ord
+      LIMIT 1
+    ) mem_fk ON true;
+  `);
+
+    return rows[0]; // always exactly 1 row
 }
 
 
