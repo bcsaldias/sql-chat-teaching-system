@@ -132,40 +132,16 @@ const PGDATABASES_MAPPING = {
 // SCHEMA INTROSPECTION
 // =====================================================
 
-// Parse an incoming id (from query/body) based on the DB column data_type
-// NOTE: this could be spared if we force the students to an ID, but I want to allow some flexibility.
+// NOTE: this could be spared if we force the students to an ID type, but I want to allow some flexibility.
 function parseByDataType(dataType, raw) {
-    const t = String(dataType || "").toLowerCase();
+    const t = String(dataType ?? "").toLowerCase();
+    const isNum = /(int|numeric|decimal|real|double|float)/.test(t);
 
-    // Treat these as "stringy"
-    if (
-        t.includes("char") ||
-        t.includes("text") ||
-        t.includes("uuid") ||
-        t.includes("date") ||
-        t.includes("time") ||
-        t.includes("json") ||
-        t.includes("bool")
-    ) {
-        return String(raw);
-    }
+    if (!isNum) return String(raw);
 
-    // Treat these as numeric
-    if (
-        t.includes("int") ||
-        t.includes("numeric") ||
-        t.includes("decimal") ||
-        t.includes("real") ||
-        t.includes("double") ||
-        t.includes("float")
-    ) {
-        const n = Number(raw);
-        if (Number.isNaN(n)) throw new Error(`Expected numeric id, got: ${raw}`);
-        return n;
-    }
-
-    // Fallback: keep as string
-    return String(raw);
+    const n = Number(raw);
+    if (Number.isNaN(n)) throw new Error(`Expected numeric id, got: ${raw}`);
+    return n;
 }
 
 
