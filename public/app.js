@@ -1132,6 +1132,7 @@ userLoginBtn.addEventListener("click", async () => {
   setMsg(userAuthMsg, "");
   registerBtn.disabled = true;
   userLoginBtn.disabled = true;
+  let loggedIn = false;
 
   const u = chatUsernameEl.value.trim();
   const p = chatPasswordEl.value;
@@ -1149,6 +1150,8 @@ userLoginBtn.addEventListener("click", async () => {
 
     state.chatUsername = u;
     showMainUI(u);
+    await setTab("chat");
+    loggedIn = true;
   } catch (e) {
     const m = String(e.message || "");
     if (m.toLowerCase().includes("invalid username") || m.toLowerCase().includes("does not exist")) {
@@ -1157,10 +1160,17 @@ userLoginBtn.addEventListener("click", async () => {
       setMsg(userAuthMsg, m, false);
     }
     flagQueryStatus("user_login", false);
+    state.chatUsername = null;
+    state.activeChannelId = null;
+    state.channels = [];
+    stopPolling();
+    setActiveChannel(null);
+    channelsEl.innerHTML = "";
+    showUserAuth();
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
-    await loadChannels(); // channels_list
+    if (loggedIn) await loadChannels(); // channels_list
   }
 });
 
