@@ -257,6 +257,9 @@ function ensureSqlLabUI() {
 function setTabsVisible(visible) {
   ensureSqlLabUI();
   if (!visible) {
+    [document.documentElement, document.body].forEach((el) => el.classList.remove("sql-mode"));
+    tabChatBtn.classList.add("active");
+    tabSqlBtn.classList.remove("active");
     sqlPanel.classList.add("hidden");
     // restore chat panels to default state
     if (state.chatUsername) showMainUI(state.chatUsername);
@@ -1032,9 +1035,7 @@ loginBtn.addEventListener("click", async () => {
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
     renderGate();
-    // DO I NEED THIS?
-    // await setTab("chat");
-    showUserAuth();
+    await setTab("chat");
     toast("Connected");
   } catch (e) {
     setMsg(loginMsg, e.message, false);
@@ -1053,7 +1054,7 @@ async function tryDBCredentials() {
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
     renderGate();
-    showUserAuth();
+    await setTab("chat");
     toast("Connected");
   } catch (e) {
     setMsg(loginMsg, e.message, false);
