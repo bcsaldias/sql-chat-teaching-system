@@ -6,6 +6,25 @@ const path = require("path");
 const { Client } = require("pg");
 require("dotenv").config();
 
+// var users_pk = "username";
+// var chat_inbox_pk = "message_id";
+var channels_pk = "channel_id";
+var chat_to_channels_fk = "channel_id";
+var ref_data_type = "text";
+var fk_data_type = "text";
+const num_types = ['smallint', 'integer', 'bigint', 'numeric', 'real', 'double', 'int']
+const text_types = ['text', 'character', 'char']
+
+function parseChannelId(channel_id) {
+  const firstWord = ref_data_type.trim().split(/\s+/)[0].toLowerCase();
+  if (text_types.includes(firstWord)) {
+    return channel_id
+  }
+  if (num_types.includes(firstWord)) {
+    return Number(channel_id)
+  }
+}
+
 const app = express();
 var isSuperUser = true; // set to true to execute the ground truth queries
 
@@ -319,8 +338,8 @@ app.get("/api/channels", requireGroupLogin, requireChatUser, async (req, res) =>
 
 // Members list for a channel
 app.get("/api/channels/members", requireGroupLogin, requireChatUser, async (req, res) => {
-  const cid = Number(req.query.channel_id);
-  if (!Number.isFinite(cid)) return res.status(400).json({ error: "channel_id query param required." });
+  var cid = req.query.channel_id;
+  cid = parseChannelId(cid)
 
   const { dbUser, dbPass, schema } = req.session;
   try {
@@ -358,8 +377,7 @@ app.post("/api/channels/create", requireGroupLogin, requireChatUser, async (req,
 
 app.post("/api/channels/join", requireGroupLogin, requireChatUser, async (req, res) => {
   const { channel_id } = req.body || {};
-  const cid = Number(channel_id);
-  if (!Number.isFinite(cid)) return res.status(400).json({ error: "channel_id must be a number." });
+  var cid = parseChannelId(channel_id)
 
   const { dbUser, dbPass, schema, chatUsername } = req.session;
 
@@ -375,8 +393,7 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, async (req, r
 
 app.post("/api/channels/leave", requireGroupLogin, requireChatUser, async (req, res) => {
   const { channel_id } = req.body || {};
-  const cid = Number(channel_id);
-  if (!Number.isFinite(cid)) return res.status(400).json({ error: "channel_id must be a number." });
+  var cid = parseChannelId(channel_id);
 
   const { dbUser, dbPass, schema, chatUsername } = req.session;
 
@@ -394,8 +411,8 @@ app.post("/api/channels/leave", requireGroupLogin, requireChatUser, async (req, 
 // Messages
 // --------------------
 app.get("/api/messages", requireGroupLogin, requireChatUser, async (req, res) => {
-  const cid = Number(req.query.channel_id);
-  if (!Number.isFinite(cid)) return res.status(400).json({ error: "channel_id query param required." });
+  console.log("/api/messages", req.query);
+  const cid = parseChannelId(req.query.channel_id);
 
   const { dbUser, dbPass, schema, chatUsername } = req.session;
 
@@ -418,10 +435,9 @@ app.get("/api/messages", requireGroupLogin, requireChatUser, async (req, res) =>
 
 app.post("/api/message", requireGroupLogin, requireChatUser, async (req, res) => {
   const { channel_id, body } = req.body || {};
-  const cid = Number(channel_id);
   const b = String(body || "").trim();
+  var cid = parseChannelId(channel_id);
 
-  if (!Number.isFinite(cid)) return res.status(400).json({ error: "channel_id must be a number." });
   if (!b) return res.status(400).json({ error: "body is required." });
 
   const { dbUser, dbPass, schema, chatUsername } = req.session;
@@ -454,10 +470,12 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
   console.log("TESTING /api/test_schema")
   const { dbUser, dbPass, schema } = req.session;
 
+  await getChannelsPk(req);
+
   const sanityChecks = [
-    "select username, channel_id from channel_members limit 0;",
-    "select id, name, description from channels limit 0;",
-    "select message_id, username, channel_id, body, created_at from chat_inbox limit 0;",
+    "select * from channel_members limit 0;",
+    "select " + channels_pk + ", name, description from channels limit 0;",
+    "select message_id, username, " + chat_to_channels_fk + ", body, created_at from chat_inbox limit 0;",
     "select username, password from users limit 0;"
   ];
 
@@ -510,5 +528,74 @@ app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(400).json({ error: "Password reset failed.", detail: String(e.message || e) });
+  }
+});
+
+async function getChannelsPk(req) {
+
+  const { dbUser, dbPass, schema } = req.session;
+
+  try {
+    return await withDb(dbUser, dbPass, schema, async (client) => {
+      const r = await client.query(
+        `
+          SELECT
+            kcu.column_name      AS fk_column,
+            fk_cols.data_type    AS fk_data_type,
+            ccu.table_name       AS ref_table,
+            ccu.column_name      AS ref_column,
+            ref_cols.data_type   AS ref_data_type
+          FROM information_schema.table_constraints tc
+          JOIN information_schema.key_column_usage kcu
+            ON tc.constraint_name   = kcu.constraint_name
+          AND tc.constraint_schema = kcu.constraint_schema
+          JOIN information_schema.constraint_column_usage ccu
+            ON ccu.constraint_name   = tc.constraint_name
+          AND ccu.constraint_schema = tc.constraint_schema
+          JOIN information_schema.columns fk_cols
+            ON fk_cols.table_schema = tc.table_schema
+          AND fk_cols.table_name   = tc.table_name
+          AND fk_cols.column_name  = kcu.column_name
+          JOIN information_schema.columns ref_cols
+            ON ref_cols.table_schema = ccu.table_schema
+          AND ref_cols.table_name   = ccu.table_name
+          AND ref_cols.column_name  = ccu.column_name
+          WHERE tc.constraint_type = 'FOREIGN KEY'
+            AND tc.table_name = 'chat_inbox'
+            AND ccu.table_name = 'channels'
+          ORDER BY kcu.ordinal_position;
+        `
+      );
+
+      if (r.rowCount !== 1) return false;
+      const row0 = r.rows[0];
+      if (row0) {
+        channels_pk = row0.ref_column; // simplest here
+        chat_to_channels_fk = row0.fk_column; // simplest here
+        ref_data_type = row0.ref_data_type; // simplest here
+        fk_data_type = row0.fk_data_type; // simplest here
+
+        console.log("channels_pk", channels_pk, ref_data_type);
+        console.log("chat_to_channels_fk", chat_to_channels_fk, fk_data_type);
+      }
+      return { channels_pk, chat_to_channels_fk };
+    });
+
+  } catch (e) {
+    throw new Error("Error retrieving channels PK: " + String(e.message || e));
+  }
+}
+
+
+app.get("/api/channels_pk", async (req, res) => {
+  console.log("/api/channels_pk called");
+
+  try {
+    await getChannelsPk(req);
+    return res.json({ ok: true, keys: { channels_pk, chat_to_channels_fk } });
+  } catch (e) {
+    return res
+      .status(400)
+      .json({ error: "Error in channels PK.", detail: String(e.message || e) });
   }
 });
