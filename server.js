@@ -11,7 +11,7 @@ const app = express();
 const IS_SUPERUSER = process.env.SUPERUSER_MODE === "true";
 function isSuperUserReq(req) {
   // Superuser check. Superuser uses solution SQL.
-  return IS_SUPERUSER || req.session?.dbUser === "demo";
+  return IS_SUPERUSER && req.session?.dbUser === "demo";
 }
 
 app.set("trust proxy", 1);
