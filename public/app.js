@@ -590,7 +590,7 @@ function showLogin() {
   loginPanel.classList.remove("hidden");
 }
 
-const BRAND_SUB_DEFAULT = "INFO 330 • SQL-driven messaging";
+const BRAND_SUB_DEFAULT = "UW INFO 330 • SQL-driven messaging";
 const DB_USER_KEY = "info330_db_user";
 
 function getDbUserFromSession() {
@@ -600,7 +600,7 @@ function getDbUserFromSession() {
 function setBrandSubFromSession() {
   if (!brandSubEl) return;
   const dbUser = getDbUserFromSession();
-  brandSubEl.textContent = dbUser ? `INFO 330 – SQL chat for ${dbUser}` : BRAND_SUB_DEFAULT;
+  brandSubEl.textContent = dbUser ? `UW INFO 330 – SQL chat for ${dbUser}` : BRAND_SUB_DEFAULT;
 }
 
 function setBrandSubDefault() {
@@ -1145,7 +1145,17 @@ async function tryDBCredentials() {
   setMsg(loginMsg, "");
   loginBtn.disabled = true;
   try {
-    await api("/api/credentials_login", "POST");
+    const data = await api("/api/credentials_login", "POST");
+    if (data?.dbUser) {
+      sessionStorage.setItem(DB_USER_KEY, data.dbUser);
+    } else {
+      // If the browser already knows the username (e.g. autofill), mirror it into sessionStorage
+      const existing = getDbUserFromSession();
+      const candidate = usernameEl?.value?.trim();
+      if (!existing && candidate) {
+        sessionStorage.setItem(DB_USER_KEY, candidate);
+      }
+    }
     setBrandSubFromSession();
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;

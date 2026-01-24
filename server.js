@@ -257,7 +257,7 @@ app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
 
   try {
     await testDbLogin(username, password);
-    res.json({ ok: true });
+    res.json({ ok: true, dbUser: username });
   } catch (e) {
     res.status(401).json({
       error: "Login failed. Check username/password and connectivity.",
