@@ -121,7 +121,8 @@ const PGDATABASES_MAPPING = {
     "grp59_cb": "__project_grp59_cb_app",
     "grp60_cb": "__project_grp60_cb_app",
 
-    "demo": "__project_demo_app"
+    "demo": "__project_demo_app",
+    "test0": "__project_test0_app"
 
 }
 

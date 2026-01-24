@@ -14,3 +14,5 @@ Versions
 - Winter 2026, iSchool
 
 
+- use `demo` to test as superuser
+- use `test0` to show it doesnt work without the sql
