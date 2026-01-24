@@ -512,6 +512,10 @@ textarea:focus {
   animation: riseIn 520ms ease-out both;
 }
 
+.sidebar.sidebar-locked > * {
+  display: none;
+}
+
 .sidebarHeader {
   display: flex;
   align-items: center;

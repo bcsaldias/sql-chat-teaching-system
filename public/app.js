@@ -586,16 +586,19 @@ function showLogin() {
 }
 
 function showUserAuth() {
+  sidebar.classList.remove("hidden");
+  sidebar.classList.add("sidebar-locked");
   userAuthPanel.classList.remove("hidden");
   chatUI.classList.add("hidden");
   mainChatUI.classList.add("hidden");
   userPill.classList.add("pill-muted");
-  userPill.textContent = "Not logged in";
-  userLabel.textContent = "Not signed in";
-  userAvatar.textContent = "?";
+  userPill.textContent = "";
+  userLabel.textContent = "";
+  userAvatar.textContent = "";
 }
 
 function showMainUI(username) {
+  sidebar.classList.remove("sidebar-locked");
   userAuthPanel.classList.add("hidden");
   chatUI.classList.remove("hidden");
   mainChatUI.classList.remove("hidden");
