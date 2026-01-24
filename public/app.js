@@ -571,10 +571,7 @@ function expandTo128(s) {
 
 // --- SHA-512 hash (128 hex chars) using Web Crypto API ---
 async function sha512Hex(input) {
-  // NOTE: currently using a simple placeholder expansion (your original code).
-  // Replace with real SHA-512 if you want:
   // return expandTo128(input);
-
   const enc = new TextEncoder();
   const buf = await crypto.subtle.digest("SHA-512", enc.encode(input));
   const bytes = new Uint8Array(buf);

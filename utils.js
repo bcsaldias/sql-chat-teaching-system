@@ -2,7 +2,7 @@
 // SQL LAB SUPPORTING CODE
 // =====================================================
 
-// Default SQL templates (match your current server.js exactly)
+// Default SQL templates
 const DEFAULT_SQL = {
     user_login: "SELECT '';",
     user_register: "INSERT '';",
@@ -283,7 +283,7 @@ async function loadChatSchemaInfo(client) {
             channel_members_to_channels: membersToChannels,
             channel_members_to_users: membersToUsers
         },
-        // convenience fields used by your app today
+        // convenience fields used by the app, might want to expand to be more flexible for students schemas
         channels_pk,
         channels_pk_type,
         chat_to_channels_fk,
@@ -306,7 +306,6 @@ async function ensureChatSchemaInfo(req) {
     return info;
 }
 
-// Replace your old parseChannelId(channel_id) with this:
 function parseChannelId(req, channel_id_raw) {
     const info = req.session?.chatSchemaInfo;
     const dtype =
