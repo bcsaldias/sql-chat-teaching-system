@@ -118,7 +118,7 @@ async function withDb(dbUser, dbPass, fn) {
 }
 
 function requireGroupLogin(req, res, next) {
-  if (!req.session?.dbUser || !req.session?.dbPass || !req.session?.schema) {
+  if (!req.session?.dbUser || !req.session?.dbPass) {
     return res.status(401).json({ error: "Not logged in to group database." });
   }
   next();
