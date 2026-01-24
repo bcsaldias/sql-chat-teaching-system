@@ -70,7 +70,7 @@ const connMenuDbLogout = el("connMenuDbLogout");
 
 
 // ----------------------------
-// SQL Lab (UI created dynamically)
+// SQL Lab
 // ----------------------------
 let tabChatBtn = null;
 let tabSqlBtn = null;
@@ -220,81 +220,12 @@ function ensureSqlLabUI() {
 
   tabChatBtn = el("tabChat");
   tabSqlBtn = el("tabSql");
-  tabSqlBtn.addEventListener("click", () => setTab("sql"));
-
-  // SQL panel
-  sqlPanel = document.createElement("div");
-  sqlPanel.id = "sqlLabPanel";
-  sqlPanel.className = "hidden";
-
-  const card = document.createElement("div");
-  card.className = "card";
-
-  const h2 = document.createElement("div");
-  h2.className = "sqlPanelTitle";
-  h2.textContent = "SQL Lab";
-
-  const p = document.createElement("div");
-  p.className = "description";
-  p.innerHTML = `
-  <h3>Welcome to SQL Lab!</h3>
-  If you are here, it means your group database connection is active!
-  <ul>
-    <li>This app is only missing a few SQL queries to be fully functional.</li>
-    <li><b>You will implement those missing SQL queries</b>, which the app will use to perform key actions like user login, channel listing, message retrieval, etc.</li>
-    <li>Be sure to follow the exact requirements for each query, including returning the correct columns and data types as specified.</li>
-    <li>Before you try your SQL queries here, make sure to test them in your group database (with test values) using pgAdmin with sample values.</li>
-    <li>Once you are confident your SQL queries are correct, paste them into the corresponding textareas below and try out your app! You'll receive the user input or parameters for your SQL queries as $1, $2, etc. (e.g., $1 = 3, $2 = 'username_value').</li>
-    <li>Queries are automatically saved when you switch back to the Chat tab.</li>
-    <li>If any of the funcitonalities does not work as expected, check your database model in pgAdmin or adjust your SQL queries.</li>
-  </ul>
-  Good luck, and SQL querying! <br><br>`;
-
-  sqlLabList = document.createElement("div");
-  sqlLabList.id = "sqlLabList";
-
-  const row = document.createElement("div");
-
-  sqlResetBtn = document.createElement("button");
-  sqlResetBtn.id = "sqlResetBtn";
-  sqlResetBtn.className = "btn btn-ghost";
-  sqlResetBtn.type = "button";
-  sqlResetBtn.textContent = "Reset to defaults";
-  // spacing for the reset button is handled in CSS
-
-  testSchemaBtn = document.createElement("button");
-  testSchemaBtn.id = "testSchemaBtn";
-  testSchemaBtn.className = "btn btn-ghost";
-  testSchemaBtn.type = "button";
-  testSchemaBtn.textContent = "Test Schema";
-
-  sqlLabMsg = document.createElement("span");
-  sqlLabMsg.id = "sqlLabMsg";
-  sqlLabMsg.className = "msg";
-
-  schemabMsg = document.createElement("span");
-  schemabMsg.id = "schemabMsg";
-  schemabMsg.className = "msg";
-
-
-  row.appendChild(sqlResetBtn);
-  row.appendChild(sqlLabMsg);
-
-  card.appendChild(h2);
-  card.appendChild(p);
-
-  const topRow = document.createElement("div");
-  topRow.appendChild(testSchemaBtn);
-  topRow.appendChild(schemabMsg);
-  card.appendChild(topRow);
-
-  card.appendChild(sqlLabList);
-  card.appendChild(row);
-
-  sqlPanel.appendChild(card);
-
-  // Insert into chatPanel at the top
-  chatPanel.prepend(sqlPanel);
+  sqlPanel = el("panelSql");
+  sqlLabList = el("sqlLabList");
+  sqlResetBtn = el("sqlResetBtn");
+  testSchemaBtn = el("testSchemaBtn");
+  sqlLabMsg = el("sqlLabMsg");
+  schemabMsg = el("schemabMsg");
 
   // Events
   tabChatBtn.addEventListener("click", async () => { await setTab("chat"); });

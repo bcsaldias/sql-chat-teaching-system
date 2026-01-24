@@ -152,14 +152,30 @@
       <div id="panelSql" class="hidden">
         <div class="card">
           <h2>SQL Lab</h2>
-          <!-- <p class="mutedSmall">
-            Type the SQL exactly as shown in <b>Required</b>. It saves automatically.
-          </p> -->
+          <div class="description">
+            <h3>Welcome to SQL Lab!</h3>
+            If you are here, it means your group database connection is active!
+            <ul>
+              <li>This app is only missing a few SQL queries to be fully functional.</li>
+              <li><b>You will implement those missing SQL queries</b>, which the app will use to perform key actions like user login, channel listing, message retrieval, etc.</li>
+              <li>Be sure to follow the exact requirements for each query, including returning the correct columns and data types as specified.</li>
+              <li>Before you try your SQL queries here, make sure to test them in your group database (with test values) using pgAdmin with sample values.</li>
+              <li>Once you are confident your SQL queries are correct, paste them into the corresponding textareas below and try out your app! You'll receive the user input or parameters for your SQL queries as $1, $2, etc. (e.g., $1 = 3, $2 = 'username_value').</li>
+              <li>Queries are automatically saved when you switch back to the Chat tab.</li>
+              <li>If any of the funcitonalities does not work as expected, check your database model in pgAdmin or adjust your SQL queries.</li>
+            </ul>
+            Good luck, and SQL querying! <br><br>
+          </div>
+
+          <div class="row">
+            <button id="testSchemaBtn" class="btn btn-ghost" type="button">Test Schema</button>
+            <span id="schemabMsg" class="msg"></span>
+          </div>
 
           <div id="sqlLabList"></div>
 
           <div class="row">
-            <button id="sqlResetBtn" class="btn btn-ghost">Reset to defaults</button>
+            <button id="sqlResetBtn" class="btn btn-ghost" type="button">Reset to defaults</button>
             <span id="sqlLabMsg" class="msg"></span>
           </div>
         </div>

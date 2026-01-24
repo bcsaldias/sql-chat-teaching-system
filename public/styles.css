@@ -828,11 +828,11 @@ textarea:focus {
    SQL Lab Panel
 ---------------------------- */
 
-#sqlLabPanel {
+#panelSql {
   margin-top: 12px;
 }
 
-#sqlLabPanel .card {
+#panelSql .card {
   background: #fff;
   border: 1px solid var(--border, #e5e7eb);
   border-radius: 16px;
@@ -840,13 +840,13 @@ textarea:focus {
   box-shadow: 0 10px 25px rgba(0, 0, 0, .06);
 }
 
-#sqlLabPanel .mutedSmall {
+#panelSql .mutedSmall {
   color: var(--muted, #6b7280);
   font-size: 13px;
   line-height: 1.35;
 }
 
-#sqlLabPanel .description {
+#panelSql .description {
   color: var(--text);
   font-size: 13px;
   line-height: 1.4;
@@ -918,7 +918,7 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(124, 58, 237, .15);
 }
 
-#sqlLabPanel .sqlActions {
+#panelSql .sqlActions {
   display: flex;
   gap: 10px;
   align-items: center;
@@ -926,13 +926,18 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
-#sqlLabPanel #sqlLabMsg.msg {
+#panelSql #sqlLabMsg.msg {
   margin-left: 6px;
 }
 
 /* ============================
    SQL MODE: full-width panel
    ============================ */
+
+html.sql-mode #chatPanel,
+body.sql-mode #chatPanel {
+  display: none !important;
+}
 
 html.sql-mode #sidebar,
 body.sql-mode #sidebar {
@@ -957,10 +962,10 @@ body.sql-mode #chatPanel .container {
 }
 
 /* If your main column has a max-width, remove it */
-html.sql-mode #sqlLabPanel,
-body.sql-mode #sqlLabPanel,
-html.sql-mode #sqlLabPanel .card,
-body.sql-mode #sqlLabPanel .card {
+html.sql-mode #panelSql,
+body.sql-mode #panelSql,
+html.sql-mode #panelSql .card,
+body.sql-mode #panelSql .card {
   width: 100% !important;
   max-width: none !important;
 }
@@ -1251,7 +1256,7 @@ li {
 .iconBtn,
 .composer,
 .sqlCard,
-#sqlLabPanel .card,
+#panelSql .card,
 #sqlLabList .sqlItem,
 #sqlLabList textarea.sqlInput,
 .modalCard,
