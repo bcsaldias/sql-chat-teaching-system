@@ -28,11 +28,15 @@ const channelSearchEl = el("channelSearch");
 const channelMsg = el("channelMsg");
 const activeChannelLabel = el("activeChannelLabel");
 const activeChannelSub = el("activeChannelSub");
+const chatEmptyState = el("chatEmptyState");
+const emptyRefreshBtn = el("emptyRefreshBtn");
+const emptyCreateBtn = el("emptyCreateBtn");
 
 const composerInput = el("composerInput");
 const sendBtn = el("sendBtn");
 const postMsg = el("postMsg");
 const messagesEl = el("messages");
+const messagesEmptyState = el("messagesEmptyState");
 
 const userPill = el("userPill");
 const userLabel = el("userLabel");
@@ -484,6 +488,33 @@ state.messagesByChannel = {};
 // ----------------------------
 // Helpers
 // ----------------------------
+function getChannelSearchQuery() {
+  return (channelSearchEl?.value || "").trim().toLowerCase();
+}
+
+function filterChannels(list, query) {
+  const q = (query || "").trim().toLowerCase();
+  if (!q) return list || [];
+  return (list || []).filter(c =>
+    (c.name || "").toLowerCase().includes(q) ||
+    (c.description || "").toLowerCase().includes(q)
+  );
+}
+
+function updateChatEmptyState() {
+  if (!chatEmptyState) return;
+  const q = getChannelSearchQuery();
+  const filtered = filterChannels(state.channels, q);
+  const searchEmpty = !!q && filtered.length === 0;
+  const shouldShow = !!state.chatUsername && !state.activeChannelId && !searchEmpty;
+  chatEmptyState.classList.toggle("hidden", !shouldShow);
+}
+
+function setMessagesEmptyState(visible) {
+  if (!messagesEmptyState) return;
+  messagesEmptyState.classList.toggle("hidden", !visible);
+}
+
 function setMsg(el, text, ok = false) {
   el.textContent = text || "";
   el.className = "msg " + (ok ? "ok" : "err");
@@ -619,17 +650,20 @@ function showUserAuth() {
   userPill.textContent = "";
   userLabel.textContent = "";
   userAvatar.textContent = "";
+  if (chatEmptyState) chatEmptyState.classList.add("hidden");
+  setMessagesEmptyState(false);
 }
 
 function showMainUI(username) {
   sidebar.classList.remove("sidebar-locked");
   userAuthPanel.classList.add("hidden");
   chatUI.classList.remove("hidden");
-  mainChatUI.classList.remove("hidden");
+  mainChatUI.classList.toggle("hidden", !state.activeChannelId);
   userPill.classList.remove("pill-muted");
   userPill.textContent = `@${username}`;
   userLabel.textContent = `@${username}`;
   userAvatar.textContent = (username?.[0] || "?").toUpperCase();
+  updateChatEmptyState();
 }
 
 function stopPolling() {
@@ -657,6 +691,8 @@ function setActiveChannel(channel) {
     // Clear messages and hide the chat body so stale messages don't remain
     messagesEl.innerHTML = "";
     mainChatUI.classList.add("hidden");
+    setMessagesEmptyState(false);
+    updateChatEmptyState();
     stopPolling();
     return;
   }
@@ -668,6 +704,8 @@ function setActiveChannel(channel) {
   const descSpan = document.createElement("span");
   descSpan.textContent = desc;
   activeChannelSub.appendChild(descSpan);
+  setMessagesEmptyState(false);
+  updateChatEmptyState();
 
   const count = (typeof channel.user_count !== 'undefined' && channel.user_count !== null)
     ? Number(channel.user_count)
@@ -723,6 +761,7 @@ function renderGate() {
 
     // show tabs (chat + sql lab) only when connected to schema / database
     setTabsVisible(true);
+    updateChatEmptyState();
   } else {
     // show ONLY group db login
     chatPanel.classList.add("hidden");
@@ -739,6 +778,8 @@ function renderGate() {
     state.chatUsername = null;
     messagesEl.innerHTML = "";
     channelsEl.innerHTML = "";
+    updateChatEmptyState();
+    setMessagesEmptyState(false);
     // logoutBtn.click(); // TBD revise
   }
 }
@@ -749,10 +790,14 @@ function renderGate() {
 function renderMessages(messages) {
   // Make sure the chat body is visible when rendering messages
   mainChatUI.classList.remove("hidden");
-  const wasEmpty = messagesEl.childElementCount === 0;
-  const shouldStick = wasEmpty || isAtBottom(messagesEl);
+  const shouldStick = messagesEl.childElementCount === 0 || isAtBottom(messagesEl);
 
   messagesEl.innerHTML = "";
+  if (!messages || messages.length === 0) {
+    setMessagesEmptyState(true);
+    return;
+  }
+  setMessagesEmptyState(false);
   for (const m of messages) {
     const mine = state.chatUsername && m.username === state.chatUsername;
     const div = document.createElement("div");
@@ -829,25 +874,40 @@ function launchConfetti() {
 function renderChannels(list) {
   channelsEl.innerHTML = "";
 
-  const q = (channelSearchEl.value || "").trim().toLowerCase();
-  const filtered = q
-    ? list.filter(c =>
-      (c.name || "").toLowerCase().includes(q) ||
-      (c.description || "").toLowerCase().includes(q)
-    )
-    : list;
+  const q = getChannelSearchQuery();
+  const filtered = filterChannels(list, q);
+  const hasSearch = !!q;
 
   // If the server returned no channels (for example because the SQL template
   // was changed to return none), show a friendly empty state rather than an
   // empty sidebar.
   if (!filtered || filtered.length === 0) {
-    // No channels are visible in the sidebar (could be server returned
-    // none, or the current search filtered them out). Ensure the main
-    // chat area is cleared so stale messages aren't shown.
-    setActiveChannel(null); // clears messages and stops polling
+    // No channels are visible in the sidebar. If this is due to search
+    // filtering, keep the active channel state but hide the main UI so
+    // the empty guidance shows. If it's truly empty, clear the active
+    // channel to avoid stale messages.
+    if (!hasSearch || !(list && list.length)) {
+      setActiveChannel(null); // clears messages and stops polling
+    } else {
+      mainChatUI.classList.add("hidden");
+      setMessagesEmptyState(false);
+      updateChatEmptyState();
+    }
     const empty = document.createElement('div');
-    empty.className = 'mutedSmall channelEmpty';
-    empty.textContent = 'No channels available.';
+    empty.className = 'channelEmpty';
+
+    const title = document.createElement('div');
+    title.className = 'channelEmptyTitle';
+    title.textContent = q ? 'No channels match your search' : 'No channels yet';
+
+    const hint = document.createElement('div');
+    hint.className = 'mutedSmall';
+    hint.textContent = q
+      ? 'Clear the search to see all channels.'
+      : 'Try refreshing or create one. If you’re stuck, check SQL Lab → channels_list.';
+
+    empty.appendChild(title);
+    empty.appendChild(hint);
     channelsEl.appendChild(empty);
     return;
   }
@@ -944,6 +1004,9 @@ function renderChannels(list) {
 
     channelsEl.appendChild(item);
   }
+
+  if (state.activeChannelId) mainChatUI.classList.remove("hidden");
+  updateChatEmptyState();
 }
 
 // ----------------------------
@@ -961,6 +1024,7 @@ async function loadChannels() {
       latest_created_at: c.latest_created_at || null
     }));
     renderChannels(state.channels);
+    updateChatEmptyState();
     flagQueryStatus("channels_list", true);
   } catch (e) {
     // On error, clear any previously rendered channels so the sidebar
@@ -1001,6 +1065,7 @@ async function loadMessages(channelId, { silent = false } = {}) {
   try {
     if (!silent) {
       messagesEl.innerHTML = `<div class="mutedSmall">Loading…</div>`;
+      setMessagesEmptyState(false);
     }
     const data = await api(`/api/messages?channel_id=${encodeURIComponent(channelId)}`); // KEY: member_check, messages_list
     const messages = toChronological(data.messages || []);
@@ -1042,6 +1107,7 @@ async function loadMessages(channelId, { silent = false } = {}) {
     // Clear messages UI on error so stale messages from a previous
     // successful load aren't shown when the request fails.
     messagesEl.innerHTML = "";
+    setMessagesEmptyState(false);
     // Also hide the chat body so no stale UI remains visible
     mainChatUI.classList.add("hidden");
     setMsg(postMsg, e.message || String(e), false);

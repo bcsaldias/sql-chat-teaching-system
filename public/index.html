@@ -135,11 +135,34 @@
                 <span id="userPill" class="pill pill-muted">Not logged in</span>
               </div>
             </div>
+
+            <div id="chatEmptyState" class="emptyState hidden">
+              <div class="emptyCard">
+                <div class="emptyTitle">You’re connected. Next steps:</div>
+                <div class="emptySub">Start here to make the chat feel “alive.”</div>
+                <ol class="emptySteps">
+                  <li>Pick a channel on the left.</li>
+                  <li>Click <b>Join</b>.</li>
+                  <li>Send your first message.</li>
+                </ol>
+                <div class="emptyActions">
+                  <button id="emptyRefreshBtn" class="btn btn-ghost" type="button">Refresh channels</button>
+                  <button id="emptyCreateBtn" class="btn btn-ghost" type="button">Create a channel</button>
+                </div>
+                <div class="emptyHint mutedSmall">
+                  If you don’t see any channels, check SQL Lab → <code>Display channels</code> and <code>Check membership</code>.
+                </div>
+              </div>
+            </div>
           </section>
 
           <!-- Messages UI -->
           <section id="mainChatUI" class="chatBody hidden">
             <div id="messages" class="messages"></div>
+            <div id="messagesEmptyState" class="emptyInline hidden">
+              <div class="emptyTitle">No messages yet</div>
+              <div class="emptySub">Be the first to say hello.</div>
+            </div>
 
             <div class="composer">
               <div class="composerInner">
