@@ -10,7 +10,7 @@ const app = express();
 
 const IS_SUPERUSER = process.env.SUPERUSER_MODE === "true";
 function isSuperUserReq(req) {
-  // demo always uses solution SQL, or enable via env
+  // Superuser check. Superuser uses solution SQL.
   return IS_SUPERUSER || req.session?.dbUser === "demo";
 }
 
@@ -62,7 +62,7 @@ function qIdent(name) {
 
 
 // =====================================================
-// DB connection handlers
+// DB/Auth helpers
 // =====================================================
 
 
@@ -111,7 +111,7 @@ function requireChatUser(req, res, next) {
   next();
 }
 
-// Ensure schema info exists in-session
+// Schema cache
 async function ensureChatSchemaInfo(req) {
   if (req.session?.chatSchemaInfo?.channels_pk) return req.session.chatSchemaInfo;
 
@@ -127,10 +127,10 @@ async function ensureChatSchemaInfo(req) {
 
 
 // =====================================================
-// SQL LAB ENDPOINTS (ADDED) - only visible once group login works
+// SQL templates
 // =====================================================
 
-// Get template from session (if present) else default
+// Template merge
 function getMergedTemplates(req) {
   return { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
 }
@@ -143,7 +143,7 @@ function getSql(req, key) {
   return normalizeSingleStatement(base);
 }
 
-// Force a single statement
+// Single statement
 function normalizeSingleStatement(sql) {
   const s = String(sql || "").trim();
   const t = s.endsWith(";") ? s.slice(0, -1).trim() : s;
@@ -154,7 +154,7 @@ function normalizeSingleStatement(sql) {
 
 const ALLOWED_SQL_FIRST_WORDS = new Set(["select", "insert", "delete", "update", "with"]);
 const COUNT_STAR_RE = /\bcount\s*\(\s*\*\s*\)/i;
-const STAR_WITHOUT_COUNT_RE = /\*(?!\s*\))/; // any "*" not immediately followed by ")"
+const STAR_WITHOUT_COUNT_RE = /\*(?!\s*\))/; // bare star
 
 function validateSqlTemplate(key, normalized) {
   const firstWord = normalized.trim().split(/\s+/)[0].toLowerCase();
@@ -182,7 +182,7 @@ function validateSqlTemplate(key, normalized) {
 
 
 // =====================================================
-// API handlers
+// API routes
 // =====================================================
 
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
@@ -203,7 +203,6 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
     }
     const merged = getMergedTemplates(req);
     try {
-      // console.log('[sql_templates] saved keys ->', Object.keys(req.session.sqlTemplates || {}));
     } catch (e) { }
     res.json({ ok: true, templates: merged });
   } catch (e) {
@@ -222,7 +221,7 @@ app.post("/api/sql_templates/reset", requireGroupLogin, (req, res) => {
 // =====================================================
 
 // --------------------
-// Group DB login
+// Group login
 // --------------------
 
 async function testDbLogin(username, password) {
@@ -273,10 +272,10 @@ app.post("/api/logout", (req, res) => {
 });
 
 
-// Browser-friendly logout URL
+// Browser logout
 app.get("/logout", (req, res) => {
   req.session.destroy(() => {
-    // clear the default express-session cookie name
+    // Clear cookie
     res.clearCookie("connect.sid");
     res.redirect("/"); // or res.redirect("/index.html");
   });
@@ -284,7 +283,7 @@ app.get("/logout", (req, res) => {
 
 
 // --------------------
-// Chat user auth
+// User auth
 // --------------------
 app.post("/api/user/register", requireGroupLogin, async (req, res) => {
   const { username, password_hash } = req.body || {};
@@ -359,7 +358,7 @@ app.get("/api/channels", requireGroupLogin, requireChatUser, async (req, res) =>
   }
 });
 
-// Members list for a channel
+// Channel members
 app.get("/api/channels/members", requireGroupLogin, requireChatUser, async (req, res) => {
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
@@ -480,11 +479,10 @@ app.listen(port, () => {
 
 
 // =====================================================
-// Check that the tables are correct!
+// Schema check
 // =====================================================
 
 app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
-  // console.log("TESTING /api/test_schema");
   const { dbUser, dbPass } = req.session;
 
   const info = await ensureChatSchemaInfo(req);
@@ -518,7 +516,7 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
 
 
 // =====================================================
-// Reset password (requires ONLY group DB login, not chat-user session)
+// Password reset
 // =====================================================
 
 app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
@@ -544,7 +542,7 @@ app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
       return res.status(401).json({ error: "Invalid username or current password." });
     }
 
-    // Optional: if they were logged in as this user, keep them logged in
+    // Keep session
     if (req.session.chatUsername === u) req.session.chatUsername = u;
 
     res.json({ ok: true });
