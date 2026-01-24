@@ -41,6 +41,11 @@ app.use((req, _res, next) => {
   next();
 });
 
+
+// =====================================================
+// Parsers
+// =====================================================
+
 function parseChannelId(req, channel_id_raw) {
   const info = req.session?.chatSchemaInfo;
   const dtype = info?.channels_pk_type || info?.tables?.channels?.pk?.types?.[0] || "text";
@@ -54,51 +59,37 @@ function qIdent(name) {
   return `"${n.replace(/"/g, '""')}"`;
 }
 
-// Ensure schema info exists in-session
-async function ensureChatSchemaInfo(req) {
-  if (req.session?.chatSchemaInfo?.channels_pk) return req.session.chatSchemaInfo;
 
-  const { dbUser, dbPass } = req.session;
-  if (!dbUser || !dbPass) throw new Error("Not logged in.");
 
-  const info = await withDb(dbUser, dbPass, (client) => loadChatSchemaInfo(client));
+// =====================================================
+// DB connection handlers
+// =====================================================
 
-  req.session.chatSchemaInfo = info;
-  return info;
+
+const DB_CONFIG_BASE = {
+  host: process.env.PGHOST,
+  port: Number(process.env.PGPORT || 5432)
+};
+
+function resolveDbPassword(dbUser, dbPass) {
+  return dbUser === "demo" && dbPass === "demo" ? process.env.REAL_DEMO_PASSWORD : dbPass;
 }
 
-// Get template from session (if present) else default
-function getMergedTemplates(req) {
-  return { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
-}
-
-function getSql(req, key) {
-  if (isSuperUserReq(req)) return normalizeSingleStatement(SOLUTION_SQL[key] || "");
-  const custom = req.session?.sqlTemplates?.[key];
-  const base = custom ?? DEFAULT_SQL[key];
-  if (!base) throw new Error(`Unknown SQL template key: ${key}`);
-  return normalizeSingleStatement(base);
-}
-
-// TODO: remove schema param since not used
-async function withDb(dbUser, dbPass, fn) {
-  if (dbUser === "demo" && dbPass === "demo") {
-    dbPass = process.env.REAL_DEMO_PASSWORD;
-  }
-
-  const client = new Client({
-    host: process.env.PGHOST,
-    port: Number(process.env.PGPORT || 5432),
+function dbConfig(dbUser, dbPass) {
+  return {
+    ...DB_CONFIG_BASE,
     database: PGDATABASES_MAPPING[dbUser],
     user: dbUser,
-    password: dbPass
-  });
+    password: resolveDbPassword(dbUser, dbPass)
+  };
+}
+
+async function withDb(dbUser, dbPass, fn) {
+  const client = new Client(dbConfig(dbUser, dbPass));
 
   await client.connect();
 
   try {
-    // schema is validated to g01..g20
-    // await client.query(`SET LOCAL search_path TO ${schema}, public;`); // DEPRECATED: I had this when schemas were per-group.
     await client.query(`SET LOCAL search_path TO public;`);
     return await fn(client);
   } finally {
@@ -120,10 +111,37 @@ function requireChatUser(req, res, next) {
   next();
 }
 
+// Ensure schema info exists in-session
+async function ensureChatSchemaInfo(req) {
+  if (req.session?.chatSchemaInfo?.channels_pk) return req.session.chatSchemaInfo;
+
+  const { dbUser, dbPass } = req.session;
+  if (!dbUser || !dbPass) throw new Error("Not logged in.");
+
+  const info = await withDb(dbUser, dbPass, (client) => loadChatSchemaInfo(client));
+
+  req.session.chatSchemaInfo = info;
+  return info;
+}
+
+
 
 // =====================================================
 // SQL LAB ENDPOINTS (ADDED) - only visible once group login works
 // =====================================================
+
+// Get template from session (if present) else default
+function getMergedTemplates(req) {
+  return { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
+}
+
+function getSql(req, key) {
+  if (isSuperUserReq(req)) return normalizeSingleStatement(SOLUTION_SQL[key] || "");
+  const custom = req.session?.sqlTemplates?.[key];
+  const base = custom ?? DEFAULT_SQL[key];
+  if (!base) throw new Error(`Unknown SQL template key: ${key}`);
+  return normalizeSingleStatement(base);
+}
 
 // Force a single statement
 function normalizeSingleStatement(sql) {
@@ -163,6 +181,9 @@ function validateSqlTemplate(key, normalized) {
 }
 
 
+// =====================================================
+// API handlers
+// =====================================================
 
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
   res.json({ ok: true, templates: getMergedTemplates(req) });
