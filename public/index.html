@@ -21,7 +21,12 @@
       </div>
       <div class="topbarRight">
         <button id="tabChat" class="tab active">Chat</button>
-        <button id="tabSql" class="tab">SQL Backend Lab</button>
+        <div class="tabWrap">
+          <button id="tabSql" class="tab">SQL Backend Lab</button>
+          <div id="sqlTabTip" class="tabTip hidden" role="status">
+            Fix queries → return here to see features work.
+          </div>
+        </div>
         <span id="connPill" class="pill pill-muted">Not connected</span>
         <div id="connMenu" class="connMenu hidden">
           <button id="connMenuUserLogout" class="connMenuItem" type="button">Sign out chat user</button>

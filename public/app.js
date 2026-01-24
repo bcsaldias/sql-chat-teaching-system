@@ -42,6 +42,7 @@ const userPill = el("userPill");
 const userLabel = el("userLabel");
 const userAvatar = el("userAvatar");
 const brandSubEl = el("brandSub");
+const sqlTabTip = el("sqlTabTip");
 
 const sidebar = el("sidebar");
 const chatMain = el("chatMain");
@@ -244,8 +245,14 @@ function ensureSqlLabUI() {
   sqlProgressBar = el("sqlProgressBar");
 
   // Events
-  tabChatBtn.addEventListener("click", async () => { await setTab("chat"); });
-  tabSqlBtn.addEventListener("click", async () => { await setTab("sql"); });
+  tabChatBtn.addEventListener("click", async () => {
+    hideSqlTabTip();
+    await setTab("chat");
+  });
+  tabSqlBtn.addEventListener("click", async () => {
+    hideSqlTabTip();
+    await setTab("sql");
+  });
 
   sqlResetBtn.addEventListener("click", async () => {
     setMsg(sqlLabMsg, "");
@@ -320,6 +327,7 @@ async function setTab(which) {
     userAuthPanel.classList.add("hidden");
     mainChatUI.classList.add("hidden");
     chatUI.classList.add("hidden");
+    hideSqlTabTip();
 
     await loadSqlTemplates();
   } else {
@@ -513,6 +521,29 @@ function updateChatEmptyState() {
 function setMessagesEmptyState(visible) {
   if (!messagesEmptyState) return;
   messagesEmptyState.classList.toggle("hidden", !visible);
+}
+
+const SQL_TAB_TIP_KEY = "info330_seen_sql_tab_tip";
+
+function hasSeenSqlTabTip() {
+  try { return localStorage.getItem(SQL_TAB_TIP_KEY) === "1"; } catch { return false; }
+}
+
+function markSqlTabTipSeen() {
+  try { localStorage.setItem(SQL_TAB_TIP_KEY, "1"); } catch { }
+}
+
+function hideSqlTabTip() {
+  if (!sqlTabTip) return;
+  sqlTabTip.classList.add("hidden");
+}
+
+function maybeShowSqlTabTip() {
+  if (!sqlTabTip || hasSeenSqlTabTip()) return;
+  if (document.documentElement.classList.contains("sql-mode")) return;
+  sqlTabTip.classList.remove("hidden");
+  markSqlTabTipSeen();
+  window.setTimeout(() => hideSqlTabTip(), 7000);
 }
 
 function setMsg(el, text, ok = false) {
@@ -762,6 +793,7 @@ function renderGate() {
     // show tabs (chat + sql lab) only when connected to schema / database
     setTabsVisible(true);
     updateChatEmptyState();
+    maybeShowSqlTabTip();
   } else {
     // show ONLY group db login
     chatPanel.classList.add("hidden");
@@ -1636,7 +1668,10 @@ connPill.addEventListener("click", (e) => {
 });
 
 // Click outside closes it
-document.addEventListener("click", () => closeConnMenu());
+document.addEventListener("click", () => {
+  closeConnMenu();
+  hideSqlTabTip();
+});
 
 // 1) Sign out chat user only
 connMenuUserLogout.addEventListener("click", async () => {
