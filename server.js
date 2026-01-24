@@ -61,21 +61,10 @@ async function ensureChatSchemaInfo(req) {
   const { dbUser, dbPass } = req.session;
   if (!dbUser || !dbPass) throw new Error("Not logged in.");
 
-  const info = await withDb(dbUser, dbPass, async (client) => {
-    return await loadChatSchemaInfo(client);
-  });
+  const info = await withDb(dbUser, dbPass, (client) => loadChatSchemaInfo(client));
 
   req.session.chatSchemaInfo = info;
   return info;
-}
-
-// Force a single statement (no multi-statement injection via ;)
-function normalizeSingleStatement(sql) {
-  const s = String(sql || "").trim();
-  const t = s.endsWith(";") ? s.slice(0, -1).trim() : s;
-  if (!t) throw new Error("SQL cannot be empty.");
-  if (t.includes(";")) throw new Error("Only one SQL statement is allowed.");
-  return t;
 }
 
 // Get template from session (if present) else default
@@ -93,7 +82,6 @@ function getSql(req, key) {
 
 // TODO: remove schema param since not used
 async function withDb(dbUser, dbPass, fn) {
-
   if (dbUser === "demo" && dbPass === "demo") {
     dbPass = process.env.REAL_DEMO_PASSWORD;
   }
@@ -132,9 +120,50 @@ function requireChatUser(req, res, next) {
   next();
 }
 
+
 // =====================================================
 // SQL LAB ENDPOINTS (ADDED) - only visible once group login works
 // =====================================================
+
+// Force a single statement
+function normalizeSingleStatement(sql) {
+  const s = String(sql || "").trim();
+  const t = s.endsWith(";") ? s.slice(0, -1).trim() : s;
+  if (!t) throw new Error("SQL cannot be empty.");
+  if (t.includes(";")) throw new Error("Only one SQL statement is allowed.");
+  return t;
+}
+
+const ALLOWED_SQL_FIRST_WORDS = new Set(["select", "insert", "delete", "update", "with"]);
+const COUNT_STAR_RE = /\bcount\s*\(\s*\*\s*\)/i;
+const STAR_WITHOUT_COUNT_RE = /\*(?!\s*\))/; // any "*" not immediately followed by ")"
+
+function validateSqlTemplate(key, normalized) {
+  const firstWord = normalized.trim().split(/\s+/)[0].toLowerCase();
+  if (!ALLOWED_SQL_FIRST_WORDS.has(firstWord)) {
+    throw new Error(`Template "${key}" must start with SELECT/INSERT/DELETE/UPDATE/WITH.`);
+  }
+
+  if (normalized.includes("*") && !COUNT_STAR_RE.test(normalized)) {
+    throw new Error(`Template "${key}" can only use "*" inside COUNT(*). Please list explicit columns.`);
+  }
+
+  if (STAR_WITHOUT_COUNT_RE.test(normalized.replace(COUNT_STAR_RE, ""))) {
+    throw new Error(`Template "${key}" can only use "*" inside COUNT(*). Please list explicit columns.`);
+  }
+
+  if (normalized.includes("--")) {
+    throw new Error(`Template "${key}" cannot contain comments (--).`);
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.includes("drop ") || lower.includes("alter ") || lower.includes("create ")) {
+    throw new Error(`Template "${key}" cannot contain DROP/ALTER/CREATE statements.`);
+  }
+}
+
+
+
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
   res.json({ ok: true, templates: getMergedTemplates(req) });
 });
@@ -147,34 +176,7 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
     for (const [key, sql] of Object.entries(templates)) {
       if (!(key in DEFAULT_SQL)) continue; // ignore unknown keys
       const normalized = normalizeSingleStatement(sql);
-
-      const firstWord = normalized.trim().split(/\s+/)[0].toLowerCase();
-      const allowed = ["select", "insert", "delete", "update", "with"];
-      if (!allowed.includes(firstWord)) {
-        throw new Error(`Template "${key}" must start with SELECT/INSERT/DELETE/UPDATE/WITH.`);
-      }
-
-      // Allow COUNT(*) but disallow any other "*"
-      const starWithoutCount = /\*(?!\s*\))/; // any "*" not immediately followed by ")"
-      const countStar = /\bcount\s*\(\s*\*\s*\)/i;
-
-      if (normalized.includes("*") && !countStar.test(normalized)) {
-        throw new Error(`Template "${key}" can only use "*" inside COUNT(*). Please list explicit columns.`);
-      }
-
-      // (Optional extra-hardening) also reject any "*" that isn't part of COUNT(*)
-      if (starWithoutCount.test(normalized.replace(countStar, ""))) {
-        throw new Error(`Template "${key}" can only use "*" inside COUNT(*). Please list explicit columns.`);
-      }
-
-      if (normalized.includes("--")) {
-        throw new Error(`Template "${key}" cannot contain comments (--).`);
-      }
-
-      const lower = normalized.toLowerCase();
-      if (lower.includes("drop ") || lower.includes("alter ") || lower.includes("create ")) {
-        throw new Error(`Template "${key}" cannot contain DROP/ALTER/CREATE statements.`);
-      }
+      validateSqlTemplate(key, normalized);
 
       req.session.sqlTemplates[key] = normalized;
     }
