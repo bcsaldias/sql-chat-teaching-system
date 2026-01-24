@@ -3,7 +3,7 @@ const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const { Client } = require("pg");
+const { Pool } = require("pg");
 require("dotenv").config();
 
 const app = express();
@@ -49,7 +49,10 @@ app.use((req, _res, next) => {
 
 const DB_CONFIG_BASE = {
   host: process.env.PGHOST,
-  port: Number(process.env.PGPORT || 5432)
+  port: Number(process.env.PGPORT || 5432),
+  max: Number(process.env.PG_POOL_MAX || 3),
+  idleTimeoutMillis: Number(process.env.PG_POOL_IDLE_MS || 30000),
+  connectionTimeoutMillis: Number(process.env.PG_POOL_CONN_MS || 5000)
 };
 
 function resolveDbPassword(dbUser, dbPass) {
@@ -66,16 +69,36 @@ function dbConfig(dbUser, dbPass) {
 }
 
 async function withDb(dbUser, dbPass, fn) {
-  const client = new Client(dbConfig(dbUser, dbPass));
-
-  await client.connect();
+  const client = await getPool(dbUser, dbPass).connect();
 
   try {
     await client.query(`SET LOCAL search_path TO public;`);
     return await fn(client);
   } finally {
-    await client.end();
+    client.release();
   }
+}
+
+const poolCache = new Map();
+function getPool(dbUser, dbPass) {
+  const config = dbConfig(dbUser, dbPass);
+  const key = `${config.user}::${config.password || ""}`;
+  let pool = poolCache.get(key);
+  if (!pool) {
+    pool = new Pool(config);
+    poolCache.set(key, pool);
+  }
+  return pool;
+}
+
+async function dropPool(dbUser, dbPass) {
+  if (!dbUser) return;
+  const config = dbConfig(dbUser, dbPass);
+  const key = `${config.user}::${config.password || ""}`;
+  const pool = poolCache.get(key);
+  if (!pool) return;
+  poolCache.delete(key);
+  await pool.end();
 }
 
 function requireGroupLogin(req, res, next) {
@@ -245,7 +268,9 @@ app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
 
 
 
-app.post("/api/logout", (req, res) => {
+app.post("/api/logout", async (req, res) => {
+  const { dbUser, dbPass } = req.session || {};
+  try { await dropPool(dbUser, dbPass); } catch { }
   req.session.destroy(() => {
     res.clearCookie("connect.sid");
     res.json({ ok: true });
@@ -254,7 +279,9 @@ app.post("/api/logout", (req, res) => {
 
 
 // Browser logout
-app.get("/logout", (req, res) => {
+app.get("/logout", async (req, res) => {
+  const { dbUser, dbPass } = req.session || {};
+  try { await dropPool(dbUser, dbPass); } catch { }
   req.session.destroy(() => {
     // Clear cookie
     res.clearCookie("connect.sid");
