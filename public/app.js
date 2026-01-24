@@ -354,8 +354,8 @@ let _pollResume = false;
 
 async function setTab(which) {
 
-  if (!channels_pk) {
-    loadSchemaKeys();
+  if (state.isDbConnected && !channels_pk) {
+    await loadSchemaKeys();
   }
 
   ensureSqlLabUI();
@@ -483,11 +483,19 @@ async function loadSqlTemplates() {
   renderSqlLab(_lastSqlTemplates);
 }
 
-async function loadSchemaKeys() {
+async function loadSchemaKeys(force = false) {
+  if (!state.isDbConnected) return;
+  if (!force && channels_pk && chat_to_channels_fk) return;
   const data = await api("/api/channels_pk");
   channels_pk = data.keys.channels_pk;
   chat_to_channels_fk = data.keys.chat_to_channels_fk;
+  SQL_LAB_ITEMS = null; // clear cache
+  if (sqlPanel && !sqlPanel.classList.contains("hidden") && _lastSqlTemplates) {
+    renderSqlLab(_lastSqlTemplates);
+  }
 }
+
+
 
 // ----------------------------
 // State
@@ -1105,8 +1113,8 @@ loginBtn.addEventListener("click", async () => {
       password: passwordEl.value
     });
     setMsg(loginMsg, "Connected to your group database.", true);
-
     state.isDbConnected = true;
+    await loadSchemaKeys(true);
     renderGate();
     // DO I NEED THIS?
     // await setTab("chat");
@@ -1126,11 +1134,11 @@ async function tryDBCredentials() {
   loginBtn.disabled = true;
   try {
     await api("/api/credentials_login", "POST");
-    if (!channels_pk) {
-      loadSchemaKeys();
-    }
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
+    if (!channels_pk) {
+      await loadSchemaKeys(true);
+    }
     renderGate();
     showUserAuth();
     toast("Connected");
