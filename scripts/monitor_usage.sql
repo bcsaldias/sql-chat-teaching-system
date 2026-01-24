@@ -59,6 +59,25 @@ order by
 -- 5) Current connection limit
 show max_connections;
 
+-- 5) current connections
+select
+    datname,
+    count(*) as total_connections,
+    sum(
+        case
+            when state = 'idle' then 1
+            else 0
+        end
+    ) as idle_connections
+from
+    pg_stat_activity
+where
+    datname is not null
+group by
+    datname
+order by
+    total_connections desc;
+
 -- 
 -- 1) Reset a stuck/idle Postgres session (SQL‑level)
 select
