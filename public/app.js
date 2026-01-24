@@ -37,6 +37,7 @@ const messagesEl = el("messages");
 const userPill = el("userPill");
 const userLabel = el("userLabel");
 const userAvatar = el("userAvatar");
+const brandSubEl = el("brandSub");
 
 const sidebar = el("sidebar");
 const chatMain = el("chatMain");
@@ -585,6 +586,24 @@ function showLogin() {
   loginPanel.classList.remove("hidden");
 }
 
+const BRAND_SUB_DEFAULT = "INFO 330 • SQL-driven messaging";
+const DB_USER_KEY = "info330_db_user";
+
+function getDbUserFromSession() {
+  return sessionStorage.getItem(DB_USER_KEY);
+}
+
+function setBrandSubFromSession() {
+  if (!brandSubEl) return;
+  const dbUser = getDbUserFromSession();
+  brandSubEl.textContent = dbUser ? `INFO 330 – SQL chat for ${dbUser}` : BRAND_SUB_DEFAULT;
+}
+
+function setBrandSubDefault() {
+  if (!brandSubEl) return;
+  brandSubEl.textContent = BRAND_SUB_DEFAULT;
+}
+
 function showUserAuth() {
   sidebar.classList.remove("hidden");
   sidebar.classList.add("sidebar-locked");
@@ -695,6 +714,7 @@ function renderGate() {
     loginPanel.classList.add("hidden");
     chatPanel.classList.remove("hidden");
     setConnectedPill(true);
+    setBrandSubFromSession();
 
     // show tabs (chat + sql lab) only when connected to schema / database
     setTabsVisible(true);
@@ -703,6 +723,7 @@ function renderGate() {
     chatPanel.classList.add("hidden");
     loginPanel.classList.remove("hidden");
     setConnectedPill(false);
+    setBrandSubDefault();
 
     setTabsVisible(false);
 
@@ -1098,6 +1119,8 @@ loginBtn.addEventListener("click", async () => {
       username: usernameEl.value.trim(),
       password: passwordEl.value
     });
+    sessionStorage.setItem(DB_USER_KEY, usernameEl.value.trim());
+    setBrandSubFromSession();
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
     renderGate();
@@ -1107,6 +1130,8 @@ loginBtn.addEventListener("click", async () => {
     setMsg(loginMsg, e.message, false);
     state.isDbConnected = false;
     renderGate();
+    sessionStorage.removeItem(DB_USER_KEY);
+    setBrandSubDefault();
   } finally {
     loginBtn.disabled = false;
   }
@@ -1117,6 +1142,7 @@ async function tryDBCredentials() {
   loginBtn.disabled = true;
   try {
     await api("/api/credentials_login", "POST");
+    setBrandSubFromSession();
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
     renderGate();
@@ -1126,6 +1152,8 @@ async function tryDBCredentials() {
     setMsg(loginMsg, e.message, false);
     state.isDbConnected = false;
     renderGate();
+    sessionStorage.removeItem(DB_USER_KEY);
+    setBrandSubDefault();
   } finally {
     loginBtn.disabled = false;
   }
@@ -1522,7 +1550,9 @@ connMenuDbLogout.addEventListener("click", async () => {
   state.isDbConnected = false;
 
   setActiveChannel(null);
+  sessionStorage.removeItem(DB_USER_KEY);
   sessionStorage.removeItem(THEME_KEY);
+  setBrandSubFromSession();
   renderGate();           // shows only group login
   toast("Logged out (DB)");
 });
