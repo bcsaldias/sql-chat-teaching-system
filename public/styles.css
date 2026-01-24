@@ -1260,3 +1260,6 @@ li {
   color: var(--text);
   border-color: var(--border);
 }
+
+.sqlDesc div { margin: 4px 0; }
+.sqlDesc code { padding: 0 4px; border-radius: 6px; }

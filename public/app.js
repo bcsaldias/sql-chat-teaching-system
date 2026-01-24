@@ -85,90 +85,128 @@ let _lastSqlTemplates = null;
 
 var showAnswers = false;
 
-var SQL_LAB_ITEMS = null;
-
-
-function get_SQL_LAB_ITEMS() {
-
-  if (SQL_LAB_ITEMS) return SQL_LAB_ITEMS;
-
-  SQL_LAB_ITEMS = [
-    {
-      key: "user_login",
-      status: null,
-      title: "Log in button",
-      description: "When a user clicks 'Log in' you need to retrieve that user's stored password from your database for the app to verify credentials. Use $1 = username.",
-      required: "SELECT password FROM users WHERE username = $1;"
-    },
-    {
-      key: "user_register",
-      status: null,
-      title: "Sign up button",
-      description: "When a user clicks 'Register' you receive two parameters, $1 = username and $2 = password. Write an SQL query to INSERT a new user into the users table so the app can create an account a user can later log into.",
-    },
-    {
-      key: "update_password",
-      status: null,
-      title: "Reset password",
-      description: "When a user clicks 'Update Password' you receive two parameters, $1 = username and $2 = password. Write an SQL query to UPDATE the user's password in the users table.",
-    },
-    {
-      key: "channels_list",
-      status: null,
-      title: "Display channels + membership",
-      description: "Return the list of channels with membership info and a user count so the UI can show Join/Leave and how many users are in each channel. Parameter: $1 = username. Returns id, name, description, is_member (boolean), user_count (integer).",
-      textAreaHeight: "280px",
-    },
-    {
-      key: "channel_join",
-      status: null,
-      title: "Join channel",
-      description: "Add the user to a channel by inserting a membership row. Parameters: $1 = username, $2 = `channel_pk`. Use ON CONFLICT DO NOTHING to avoid duplicates.",
-    },
-    {
-      key: "channel_leave",
-      status: null,
-      title: "Leave channel",
-      description: "Remove the user's membership so they leave the channel. Parameters: $1 = username, $2 = `channel_pk`.",
-    },
-    {
-      key: "member_check",
-      status: null,
-      title: "Check membership before loading messages",
-      description: "Returns true row when the user is a member of the channel so the app can allow viewing. Parameters: $1 = username, $2 = `channel_pk`.",
-    },
-    {
-      key: "messages_list",
-      status: null,
-      title: "Display messages for a channel",
-      description: "Return recent messages for a channel so the UI can display the chat. Parameter: $1 = `channel_pk`. Return username, body, created_at (newest at the bottom). Limit to ~50 rows.",
-      textAreaHeight: "120px",
-    },
-    {
-      key: "message_post",
-      status: null,
-      title: "Send button: Post message",
-      description: "Post a new message using the server function. Parameters: $1 = `channel_pk`, $2 = username, $3 = body. Return the inserted message id.",
-    }
-    ,
-    {
-      key: "channel_members_list",
-      status: null,
-      title: "Channel members list",
-      description: "Return the list of member usernames for a channel (used by the members modal). Parameter: $1 = `channel_pk` . Return a single column containing the username (ordered).",
-    }
-    ,
-    {
-      key: "channel_create",
-      status: null,
-      title: "Create channel",
-      description: "Create a new channel. Parameters: $1 = name, $2 = description. Example: $1 = 'Sports', $2 = 'Discuss sports'. Return the new `channel_pk`.",
-    }
-  ];
-
-  return SQL_LAB_ITEMS;
-
-}
+var SQL_LAB_ITEMS = [
+  {
+    key: "user_login",
+    status: null,
+    title: "Log in button",
+    description: `
+      <div><b>What happens:</b> user clicks <code>Log in</code></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
+      <div><b>Must return:</b> <b>password</b></div>
+    `,
+    required: "SELECT password FROM users WHERE username = $1;"
+  },
+  {
+    key: "user_register",
+    status: null,
+    title: "Sign up button",
+    description: `
+      <div><b>What happens:</b> user clicks <code>Register</code></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>password_hash</b></div>
+      <div><b>Must do:</b> INSERT a new row into <code>users</code></div>
+      <div><b>Tip:</b> enforce uniqueness on <b>username</b> in your schema</div>
+    `,
+  },
+  {
+    key: "update_password",
+    status: null,
+    title: "Reset password",
+    description: `
+      <div><b>What happens:</b> user clicks <code>Reset password</code></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>new_password_hash</b></div>
+      <div><b>Must do:</b> UPDATE the user’s password in <code>users</code></div>
+    `,
+  },
+  {
+    key: "channels_list",
+    status: null,
+    title: "Display channels + membership",
+    description: `
+      <div><b>What happens:</b> load sidebar channel list + join/leave state</div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
+      <div><b>Must return columns:</b>
+        <b>id</b>, <b>name</b>, <b>description</b>, <b>is_member</b> (boolean), <b>user_count</b> (integer)
+      </div>
+    `,
+    textAreaHeight: "280px",
+  },
+  {
+    key: "channel_join",
+    status: null,
+    title: "Join channel",
+    description: `
+      <div><b>What happens:</b> user clicks <code>Join</code></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
+      <div><b>Must do:</b> INSERT a membership row</div>
+      <div><b>Required:</b> use <b>ON CONFLICT DO NOTHING</b> to prevent duplicates</div>
+    `,
+  },
+  {
+    key: "channel_leave",
+    status: null,
+    title: "Leave channel",
+    description: `
+      <div><b>What happens:</b> user clicks <code>Leave</code></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
+      <div><b>Must do:</b> DELETE the membership row</div>
+    `,
+  },
+  {
+    key: "member_check",
+    status: null,
+    title: "Check membership before loading messages",
+    description: `
+      <div><b>What happens:</b> app checks access before showing messages</div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
+      <div><b>Must return:</b> true (boolean) only if the user is a member (truthy existence check)</div>
+    `,
+  },
+  {
+    key: "messages_list",
+    status: null,
+    title: "Display messages for a channel",
+    description: `
+      <div><b>What happens:</b> load messages when a channel is opened</div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
+      <div><b>Must return columns:</b> <b>username</b>, <b>body</b>, <b>created_at</b></div>
+      <div><b>Ordering:</b> newest at the bottom (ASC by <b>created_at</b>)</div>
+      <div><b>Limit:</b> ~50 rows</div>
+    `,
+    textAreaHeight: "120px",
+  },
+  {
+    key: "message_post",
+    status: null,
+    title: "Send button: Post message",
+    description: `
+      <div><b>What happens:</b> user clicks <code>Send</code></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b>, <code>$2</code> = <b>username</b>, <code>$3</code> = <b>body</b></div>
+      <div><b>Must do:</b> insert a message</div>
+    `,
+    // <div><b>Must return:</b> inserted <b>message id</b></div>
+  },
+  {
+    key: "channel_members_list",
+    status: null,
+    title: "Channel members list",
+    description: `
+      <div><b>What happens:</b> members modal opens</div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
+      <div><b>Must return:</b> a single column: <b>username</b> (ordered)</div>
+    `,
+  },
+  {
+    key: "channel_create",
+    status: null,
+    title: "Create channel",
+    description: `
+      <div><b>What happens:</b> user creates a new channel</div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>name</b>, <code>$2</code> = <b>description</b></div>
+    `,
+    // <div><b>Must return:</b> new <b>channel_pk</b></div>
+  }
+];
 
 function setSidebarVisible(v) {
   sidebar.classList.toggle("hidden", !v); // hidden when v=false
@@ -403,7 +441,7 @@ function renderSqlLab(templates) {
   ensureSqlLabUI();
   sqlLabList.innerHTML = "";
 
-  for (const [index, item] of get_SQL_LAB_ITEMS().entries()) {
+  for (const [index, item] of SQL_LAB_ITEMS.entries()) {
     const outer = document.createElement("div");
     outer.className = "sqlItem";
 
@@ -428,7 +466,8 @@ function renderSqlLab(templates) {
 
     const desc = document.createElement("div");
     desc.className = "sqlDesc";
-    desc.textContent = item.description || "";
+    // desc.textContent = item.description || "";
+    desc.innerHTML = item.description || "";
 
     const req = document.createElement("pre");
     req.className = "sqlRequired";
@@ -782,7 +821,7 @@ function renderMessages(messages) {
 }
 
 function flagQueryStatus(query, status) {
-  for (var item of get_SQL_LAB_ITEMS()) {
+  for (var item of SQL_LAB_ITEMS) {
     if (item.key == query) {
       item.status = status
     }
