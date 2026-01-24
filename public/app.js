@@ -904,7 +904,7 @@ function renderChannels(list) {
     hint.className = 'mutedSmall';
     hint.textContent = q
       ? 'Clear the search to see all channels.'
-      : 'Try refreshing or create one. If you’re stuck, check SQL Lab → channels_list.';
+      : 'Try refreshing or create one. If you’re stuck, check SQL Lab → Display channel.';
 
     empty.appendChild(title);
     empty.appendChild(hint);
