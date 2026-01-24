@@ -471,28 +471,30 @@ app.listen(port, () => {
 // =====================================================
 
 app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
-  console.log("TESTING /api/test_schema");
+  // console.log("TESTING /api/test_schema");
   const { dbUser, dbPass, schema } = req.session;
 
   const info = await ensureChatSchemaInfo(req);
 
   const channelsPkCol = qIdent(info.channels_pk);
-  const chatFkCol = qIdent(info.chat_to_channels_fk);
+  const channelsFkCol = qIdent(info.membesrhip_channels_fk);
+  const usersPkCol = qIdent(info.users_pk);
+  const usersFkCol = qIdent(info.membesrhip_users_fk);
 
   const sanityChecks = [
-    "select * from channel_members limit 0;",
+    `select ${usersPkCol}, password from users limit 0;`,
     `select ${channelsPkCol}, name, description from channels limit 0;`,
-    `select username, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
-    "select username, password from users limit 0;"
+    `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
+    // `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
   ];
 
   for (const checkQuery of sanityChecks) {
+    console.log("Testing", checkQuery);
     try {
       const ok = await withDb(dbUser, dbPass, schema, async (client) => {
         const r = await client.query(checkQuery);
         return r.rowCount === 0;
       });
-      console.log("Testing", ok, checkQuery);
     } catch (e) {
       return res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
     }
