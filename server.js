@@ -7,7 +7,12 @@ const { Client } = require("pg");
 require("dotenv").config();
 
 const app = express();
-var isSuperUser = true; // set to true to execute the ground truth queries
+
+const IS_SUPERUSER = process.env.SUPERUSER_MODE === "true";
+function isSuperUserReq(req) {
+  // demo always uses solution SQL, or enable via env
+  return IS_SUPERUSER || req.session?.dbUser === "demo";
+}
 
 app.set("trust proxy", 1);
 app.use(express.json());
@@ -56,10 +61,10 @@ function qIdent(name) {
 async function ensureChatSchemaInfo(req) {
   if (req.session?.chatSchemaInfo?.channels_pk) return req.session.chatSchemaInfo;
 
-  const { dbUser, dbPass, schema } = req.session;
-  if (!dbUser || !dbPass || !schema) throw new Error("Not logged in.");
+  const { dbUser, dbPass } = req.session;
+  if (!dbUser || !dbPass) throw new Error("Not logged in.");
 
-  const info = await withDb(dbUser, dbPass, schema, async (client) => {
+  const info = await withDb(dbUser, dbPass, async (client) => {
     return await loadChatSchemaInfo(client);
   });
 
@@ -78,27 +83,15 @@ function normalizeSingleStatement(sql) {
 
 // Get template from session (if present) else default
 function getSql(req, key) {
-  if (isSuperUser) return normalizeSingleStatement(SOLUTION_SQL[key] || "");
+  if (isSuperUserReq(req)) return normalizeSingleStatement(SOLUTION_SQL[key] || "");
   const custom = req.session?.sqlTemplates?.[key];
   const base = custom ?? DEFAULT_SQL[key];
   if (!base) throw new Error(`Unknown SQL template key: ${key}`);
   return normalizeSingleStatement(base);
 }
 
-
-function parseGroupToSchema(username) {
-  if (username === "demo") return "demo";
-  return username
-  // const m = /^grp(\d{2})$/.exec(username);
-  // if (!m) return null;
-  // const n = Number(m[1]);
-  // if (n < 1 || n > 20) return null;
-  // return `g${m[1]}`;
-}
-
-
 // TODO: remove schema param since not used
-async function withDb(dbUser, dbPass, schema, fn) {
+async function withDb(dbUser, dbPass, fn) {
 
   if (dbUser === "demo" && dbPass == "demo") {
     dbPass = process.env.REAL_DEMO_PASSWORD;
@@ -113,10 +106,6 @@ async function withDb(dbUser, dbPass, schema, fn) {
   });
 
   await client.connect();
-
-  if (dbUser === "demo") {
-    isSuperUser = true;
-  }
 
   try {
     // schema is validated to g01..g20
@@ -204,24 +193,21 @@ app.post("/api/sql_templates/reset", requireGroupLogin, (req, res) => {
 // --------------------
 // Group DB login
 // --------------------
+
+async function testDbLogin(username, password) {
+  await withDb(username, password, (client) => client.query("select 1;"));
+}
+
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body || {};
-  const schema = parseGroupToSchema(username || "");
-  if (!schema) return res.status(400).json({ error: "Invalid group username (grp01..grp20)." });
 
   try {
-    await withDb(username, password, schema, async (client) => {
-      await client.query("select 1;");
-    });
-
+    await testDbLogin(username, password);
     req.session.dbUser = username;
     req.session.dbPass = password;
-    req.session.schema = schema;
-
     req.session.chatUsername = null;
     if (!req.session.sqlTemplates) req.session.sqlTemplates = {};
-
-    res.json({ ok: true, schema });
+    res.json({ ok: true });
   } catch (e) {
     res.status(401).json({
       error: "Login failed. Check username/password and connectivity.",
@@ -234,14 +220,10 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
   const username = req.session.dbUser;
   const password = req.session.dbPass;
-  const schema = req.session.schema;
 
   try {
-    await withDb(username, password, schema, async (client) => {
-      await client.query("select 1;");
-    });
-
-    res.json({ ok: true, schema });
+    await testDbLogin(username, password);
+    res.json({ ok: true });
   } catch (e) {
     res.status(401).json({
       error: "Login failed. Check username/password and connectivity.",
@@ -281,10 +263,10 @@ app.post("/api/user/register", requireGroupLogin, async (req, res) => {
   if (!u) return res.status(400).json({ error: "username is required." });
   if (h.length !== 128) return res.status(400).json({ error: "password_hash must be 128 characters." });
 
-  const { dbUser, dbPass, schema } = req.session;
+  const { dbUser, dbPass } = req.session;
 
   try {
-    await withDb(dbUser, dbPass, schema, async (client) => {
+    await withDb(dbUser, dbPass, async (client) => {
       await client.query(getSql(req, "user_register"), [u, h]);
     });
     res.json({ ok: true });
@@ -305,10 +287,10 @@ app.post("/api/user/login", requireGroupLogin, async (req, res) => {
   if (!u) return res.status(400).json({ error: "username is required." });
   if (h.length !== 128) return res.status(400).json({ error: "password_hash must be 128 characters." });
 
-  const { dbUser, dbPass, schema } = req.session;
+  const { dbUser, dbPass } = req.session;
 
   try {
-    const ok = await withDb(dbUser, dbPass, schema, async (client) => {
+    const ok = await withDb(dbUser, dbPass, async (client) => {
       const r = await client.query(getSql(req, "user_login"), [u]);
       if (r.rowCount === 0) return false;
       return r.rows[0].password === h;
@@ -332,10 +314,10 @@ app.post("/api/user/logout", requireGroupLogin, (req, res) => {
 // Channels
 // --------------------
 app.get("/api/channels", requireGroupLogin, requireChatUser, async (req, res) => {
-  const { dbUser, dbPass, schema, chatUsername } = req.session;
+  const { dbUser, dbPass, chatUsername } = req.session;
 
   try {
-    const channels = await withDb(dbUser, dbPass, schema, async (client) => {
+    const channels = await withDb(dbUser, dbPass, async (client) => {
       const r = await client.query(getSql(req, "channels_list"), [chatUsername]);
       return r.rows;
     });
@@ -351,9 +333,9 @@ app.get("/api/channels/members", requireGroupLogin, requireChatUser, async (req,
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
 
-  const { dbUser, dbPass, schema } = req.session;
+  const { dbUser, dbPass } = req.session;
   try {
-    const members = await withDb(dbUser, dbPass, schema, async (client) => {
+    const members = await withDb(dbUser, dbPass, async (client) => {
       const r = await client.query(getSql(req, "channel_members_list"), [cid]);
       return r.rows.map(row => Object.values(row || {})[0]).filter(v => v != null).map(String);
     });
@@ -371,9 +353,9 @@ app.post("/api/channels/create", requireGroupLogin, requireChatUser, async (req,
 
   if (!channel_name) return res.status(400).json({ error: "channel_name is required." });
   if (!channel_description) return res.status(400).json({ error: "channel_description is required." });
-  const { dbUser, dbPass, schema } = req.session;
+  const { dbUser, dbPass } = req.session;
   try {
-    await withDb(dbUser, dbPass, schema, async (client) => {
+    await withDb(dbUser, dbPass, async (client) => {
       await client.query(getSql(req, "channel_create"), [channel_name, channel_description]);
     });
     res.json({ ok: true });
@@ -386,9 +368,9 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, async (req, r
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, req.body?.channel_id);
 
-  const { dbUser, dbPass, schema, chatUsername } = req.session;
+  const { dbUser, dbPass, chatUsername } = req.session;
   try {
-    await withDb(dbUser, dbPass, schema, async (client) => {
+    await withDb(dbUser, dbPass, async (client) => {
       await client.query(getSql(req, "channel_join"), [chatUsername, cid]);
     });
     res.json({ ok: true });
@@ -403,10 +385,10 @@ app.post("/api/channels/leave", requireGroupLogin, requireChatUser, async (req, 
   await ensureChatSchemaInfo(req);
   var cid = parseChannelId(req, channel_id);
 
-  const { dbUser, dbPass, schema, chatUsername } = req.session;
+  const { dbUser, dbPass, chatUsername } = req.session;
 
   try {
-    await withDb(dbUser, dbPass, schema, async (client) => {
+    await withDb(dbUser, dbPass, async (client) => {
       await client.query(getSql(req, "channel_leave"), [chatUsername, cid]);
     });
     res.json({ ok: true });
@@ -422,9 +404,9 @@ app.get("/api/messages", requireGroupLogin, requireChatUser, async (req, res) =>
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
 
-  const { dbUser, dbPass, schema, chatUsername } = req.session;
+  const { dbUser, dbPass, chatUsername } = req.session;
   try {
-    const messages = await withDb(dbUser, dbPass, schema, async (client) => {
+    const messages = await withDb(dbUser, dbPass, async (client) => {
       const mem = await client.query(getSql(req, "member_check"), [chatUsername, cid]);
       if (mem.rowCount === 0) {
         throw new Error("You must join this channel to view messages.");
@@ -449,9 +431,9 @@ app.post("/api/message", requireGroupLogin, requireChatUser, async (req, res) =>
 
   if (!b) return res.status(400).json({ error: "body is required." });
 
-  const { dbUser, dbPass, schema, chatUsername } = req.session;
+  const { dbUser, dbPass, chatUsername } = req.session;
 
-  const result = await withDb(dbUser, dbPass, schema, async (client) => {
+  const result = await withDb(dbUser, dbPass, async (client) => {
     const r = await client.query(getSql(req, "message_post"), [chatUsername, cid, b]);
     return r.rows[0];
   });
@@ -472,14 +454,14 @@ app.listen(port, () => {
 
 app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
   // console.log("TESTING /api/test_schema");
-  const { dbUser, dbPass, schema } = req.session;
+  const { dbUser, dbPass } = req.session;
 
   const info = await ensureChatSchemaInfo(req);
 
   const channelsPkCol = qIdent(info.channels_pk);
-  const channelsFkCol = qIdent(info.membesrhip_channels_fk);
+  const channelsFkCol = qIdent(info.membership_channels_fk);
   const usersPkCol = qIdent(info.users_pk);
-  const usersFkCol = qIdent(info.membesrhip_users_fk);
+  const usersFkCol = qIdent(info.membership_users_fk);
 
   const sanityChecks = [
     `select ${usersPkCol}, password from users limit 0;`,
@@ -491,7 +473,7 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
   for (const checkQuery of sanityChecks) {
     console.log("Testing", checkQuery);
     try {
-      const ok = await withDb(dbUser, dbPass, schema, async (client) => {
+      const ok = await withDb(dbUser, dbPass, async (client) => {
         const r = await client.query(checkQuery);
         return r.rowCount === 0;
       });
@@ -520,10 +502,10 @@ app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
   if (newH.length !== 128) return res.status(400).json({ error: "new_password_hash must be 128 characters." });
   if (oldH === newH) return res.status(400).json({ error: "New password must be different." });
 
-  const { dbUser, dbPass, schema } = req.session;
+  const { dbUser, dbPass } = req.session;
 
   try {
-    const changed = await withDb(dbUser, dbPass, schema, async (client) => {
+    const changed = await withDb(dbUser, dbPass, async (client) => {
       const r = await client.query(getSql(req, "update_password"), [u, newH, oldH]);
       return r.rowCount;
     });

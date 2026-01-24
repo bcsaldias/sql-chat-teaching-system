@@ -276,25 +276,25 @@ async function loadChatSchemaInfo(client) {
     // Pick “the” channel PK + “the” chat->channels FK (single-column expected in this project)
     const channels_pk = tables.channels?.pk?.columns?.[0] || "channel_id";
     const channels_pk_type = tables.channels?.pk?.types?.[0] || "text";
-    const membesrhip_channels_fk = membersToChannels?.[0]?.fk_column || "channel_id";
-    const membesrhip_channels_fk_type = membersToChannels?.[0]?.fk_data_type || "text";
+    const membership_channels_fk = membersToChannels?.[0]?.fk_column || "channel_id";
+    const membership_channels_fk_type = membersToChannels?.[0]?.fk_data_type || "text";
 
     const users_pk = tables.users?.pk?.columns?.[0] || "user_id";
     const users_pk_type = tables.users?.pk?.types?.[0] || "text";
-    const membesrhip_users_fk = membersToUsers?.[0]?.fk_column || "user_id";
-    const membesrhip_users_fk_type = membersToUsers?.[0]?.fk_data_type || "text";
+    const membership_users_fk = membersToUsers?.[0]?.fk_column || "user_id";
+    const membership_users_fk_type = membersToUsers?.[0]?.fk_data_type || "text";
 
     return {
         loadedAt: Date.now(),
         tables,
         channels_pk,
         channels_pk_type,
-        membesrhip_channels_fk,
-        membesrhip_channels_fk_type,
+        membership_channels_fk,
+        membership_channels_fk_type,
         users_pk,
         users_pk_type,
-        membesrhip_users_fk,
-        membesrhip_users_fk_type
+        membership_users_fk,
+        membership_users_fk_type
     };
 }
 
