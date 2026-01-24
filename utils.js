@@ -244,7 +244,8 @@ async function loadForeignKey(client, fromTable, toTable) {
 }
 
 async function loadChatSchemaInfo(client) {
-    // Try to load everything; if tables don’t exist yet, keep defaults
+    // with this info, we can double check that students are using PK and FK properly.
+
     const tables = {};
     let chatInboxToChannels = null;
     let chatInboxToUsers = null;
