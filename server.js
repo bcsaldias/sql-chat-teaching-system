@@ -43,10 +43,7 @@ app.use((req, _res, next) => {
 
 function parseChannelId(req, channel_id_raw) {
   const info = req.session?.chatSchemaInfo;
-  const dtype =
-    info?.channels_pk_type ||
-    info?.tables?.channels?.pk?.types?.[0] ||
-    "text";
+  const dtype = info?.channels_pk_type || info?.tables?.channels?.pk?.types?.[0] || "text";
   return parseByDataType(dtype, channel_id_raw);
 }
 
@@ -82,6 +79,10 @@ function normalizeSingleStatement(sql) {
 }
 
 // Get template from session (if present) else default
+function getMergedTemplates(req) {
+  return { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
+}
+
 function getSql(req, key) {
   if (isSuperUserReq(req)) return normalizeSingleStatement(SOLUTION_SQL[key] || "");
   const custom = req.session?.sqlTemplates?.[key];
@@ -93,7 +94,7 @@ function getSql(req, key) {
 // TODO: remove schema param since not used
 async function withDb(dbUser, dbPass, fn) {
 
-  if (dbUser === "demo" && dbPass == "demo") {
+  if (dbUser === "demo" && dbPass === "demo") {
     dbPass = process.env.REAL_DEMO_PASSWORD;
   }
 
@@ -135,8 +136,7 @@ function requireChatUser(req, res, next) {
 // SQL LAB ENDPOINTS (ADDED) - only visible once group login works
 // =====================================================
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
-  const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
-  res.json({ ok: true, templates: merged });
+  res.json({ ok: true, templates: getMergedTemplates(req) });
 });
 
 app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
@@ -171,15 +171,14 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
         throw new Error(`Template "${key}" cannot contain comments (--).`);
       }
 
-      if (normalized.toLowerCase().includes("drop ") ||
-        normalized.toLowerCase().includes("alter ") ||
-        normalized.toLowerCase().includes("create ")) {
+      const lower = normalized.toLowerCase();
+      if (lower.includes("drop ") || lower.includes("alter ") || lower.includes("create ")) {
         throw new Error(`Template "${key}" cannot contain DROP/ALTER/CREATE statements.`);
       }
 
       req.session.sqlTemplates[key] = normalized;
     }
-    const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
+    const merged = getMergedTemplates(req);
     try {
       // console.log('[sql_templates] saved keys ->', Object.keys(req.session.sqlTemplates || {}));
     } catch (e) { }
@@ -191,7 +190,7 @@ app.post("/api/sql_templates", requireGroupLogin, (req, res) => {
 
 app.post("/api/sql_templates/reset", requireGroupLogin, (req, res) => {
   req.session.sqlTemplates = {};
-  const merged = { ...DEFAULT_SQL, ...(req.session.sqlTemplates || {}) };
+  const merged = getMergedTemplates(req);
   try {
     console.log('[sql_templates] reset to defaults');
   } catch (e) { }
@@ -392,7 +391,7 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, async (req, r
 app.post("/api/channels/leave", requireGroupLogin, requireChatUser, async (req, res) => {
   const { channel_id } = req.body || {};
   await ensureChatSchemaInfo(req);
-  var cid = parseChannelId(req, channel_id);
+  const cid = parseChannelId(req, channel_id);
 
   const { dbUser, dbPass, chatUsername } = req.session;
 
@@ -482,9 +481,8 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
   for (const checkQuery of sanityChecks) {
     console.log("Testing", checkQuery);
     try {
-      const ok = await withDb(dbUser, dbPass, async (client) => {
-        const r = await client.query(checkQuery);
-        return r.rowCount === 0;
+      await withDb(dbUser, dbPass, async (client) => {
+        await client.query(checkQuery);
       });
     } catch (e) {
       return res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
