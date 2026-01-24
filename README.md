@@ -28,7 +28,7 @@ Create a `.env` file in the repo root. Typical values:
 - `PGPORT=5433`
 - `SESSION_SECRET=...`
 - `PORT=3000`
-- `SUPERUSER_MODE=false`
+- `ALLOW_SUPERUSER_MODE=false`
 - `PG_POOL_MAX=3`
 - `PG_POOL_IDLE_MS=30000`
 - `PG_POOL_CONN_MS=5000`
@@ -49,7 +49,7 @@ Project description for students:
 ## Instructor quick start (my flow)
 
 ### 1) Configure `.env`
-I create a `.env` file in the repo root (already present on the server). Use the same values as in **Quick start (local)**. I only turn `SUPERUSER_MODE` on for specific demos/tests.
+I create a `.env` file in the repo root (already present on the server). Use the same values as in **Quick start (local)**. I only turn `ALLOW_SUPERUSER_MODE` on for specific demos/tests.
 
 > Students do **not** set `PGHOST`/`PGPORT` in their browser. They only enter their DB username/password on the login page.
 
@@ -88,7 +88,7 @@ I run this when I’m setting up or resetting demo behavior for the course (inst
 - **“Login works but nothing loads”**  
   Usually means students created tables in the wrong **database**, or they’re missing required constraints (FKs, PKs, CHECKs), or their column names don’t match what the app expects.
 
-- **`SUPERUSER_MODE`**
+- **`ALLOW_SUPERUSER_MODE`**
   I keep it `false` for normal operation. I only enable it when I explicitly want to test against the “solution/ground truth” behavior, and it only works with the db `demo`.
 
 ## Versions

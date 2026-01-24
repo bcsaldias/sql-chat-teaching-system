@@ -8,10 +8,10 @@ require("dotenv").config();
 
 const app = express();
 
-const IS_SUPERUSER = process.env.SUPERUSER_MODE === "true";
+const ALLOW_SUPERUSER_MODE = process.env.ALLOW_SUPERUSER_MODE === "true";
 function isSuperUserReq(req) {
   // Superuser check. Superuser uses solution SQL.
-  return IS_SUPERUSER && req.session?.dbUser === "demo";
+  return ALLOW_SUPERUSER_MODE && req.session?.dbUser === "demo";
 }
 
 app.set("trust proxy", 1);
