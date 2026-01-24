@@ -1,6 +1,6 @@
 -- Notes, some columns might have different names than those suggested in the milestone doc.
 -- For example, channel_id might be name in channels table.
-
+-- There is some flexibility in how the students model their channels (id vs name unique).
 
 -- SQL schema for user authentication system
 CREATE TABLE users (
