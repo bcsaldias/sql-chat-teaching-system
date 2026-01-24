@@ -132,6 +132,7 @@ const PGDATABASES_MAPPING = {
 // =====================================================
 
 // Parse an incoming id (from query/body) based on the DB column data_type
+// NOTE: this could be spared if we force the students to an ID, but I want to allow some flexibility.
 function parseByDataType(dataType, raw) {
     const t = String(dataType || "").toLowerCase();
 
@@ -165,6 +166,15 @@ function parseByDataType(dataType, raw) {
     // Fallback: keep as string
     return String(raw);
 }
+
+
+
+// ========================================================================
+// The code below allows to adapt to students schemas if needed.
+// Because it's the first time running this project, I'll keep it
+// in case I need it, but in a refined version, this shouldn't be needed.
+// ========================================================================
+
 
 async function loadPrimaryKey(client, tableName) {
     const r = await client.query(
