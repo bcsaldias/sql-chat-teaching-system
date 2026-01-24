@@ -1,4 +1,4 @@
-const { DEFAULT_SQL, SOLUTION_SQL, PGDATABASES_MAPPING, loadChatSchemaInfo, parseByDataType } = require('./utils.js');
+const { DEFAULT_SQL, SOLUTION_SQL, PGDATABASES_MAPPING, loadChatSchemaInfo, parseChannelId } = require('./utils.js');
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
@@ -40,25 +40,6 @@ app.use((req, _res, next) => {
   // console.log("sid", req.sessionID, "dbUser", req.session?.dbUser, "schema", req.session?.schema);
   next();
 });
-
-
-// =====================================================
-// Parsers
-// =====================================================
-
-function parseChannelId(req, channel_id_raw) {
-  const info = req.session?.chatSchemaInfo;
-  const dtype = info?.channels_pk_type || info?.tables?.channels?.pk?.types?.[0] || "text";
-  return parseByDataType(dtype, channel_id_raw);
-}
-
-const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
-function qIdent(name) {
-  const n = String(name || "").trim();
-  if (!IDENT_RE.test(n)) throw new Error(`Unsafe identifier: ${n}`);
-  return `"${n.replace(/"/g, '""')}"`;
-}
-
 
 
 // =====================================================
@@ -513,6 +494,12 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
   return res.json({ ok: true });
 });
 
+const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
+function qIdent(name) {
+  const n = String(name || "").trim();
+  if (!IDENT_RE.test(n)) throw new Error(`Unsafe identifier: ${n}`);
+  return `"${n.replace(/"/g, '""')}"`;
+}
 
 
 // =====================================================
