@@ -2321,7 +2321,8 @@ connMenuDbLogout.addEventListener("click", async () => {
   state.activeChannelId = null;
   state.channels = [];
   state.isDbConnected = false;
-  resetSqlMeta();
+  ensureSqlLabUI();
+  resetSqlStatus();
 
   setActiveChannel(null);
   sessionStorage.removeItem(DB_USER_KEY);
