@@ -43,9 +43,11 @@ const userLabel = el("userLabel");
 const userAvatar = el("userAvatar");
 const brandSubEl = el("brandSub");
 const sqlTabTip = el("sqlTabTip");
+const openSidebarBtn = el("openSidebarBtn");
 
 const sidebar = el("sidebar");
 const chatMain = el("chatMain");
+const sidebarOverlay = el("sidebarOverlay");
 
 // Member modal elements (present in index.html)
 const memberModal = el("memberModal");
@@ -250,9 +252,22 @@ const SQL_LAB_ITEMS = [
 
 function setSidebarVisible(v) {
   sidebar.classList.toggle("hidden", !v); // hidden when v=false
-  if (!v) sidebar.classList.remove("open"); // close drawer
+  if (!v) {
+    sidebar.classList.remove("open"); // close drawer
+    if (sidebarOverlay) sidebarOverlay.classList.add("hidden");
+  }
   chatMain.classList.toggle("hidden", !v);
   if (!v) chatMain.classList.remove("open"); // close drawer
+}
+
+function openSidebarDrawer() {
+  sidebar.classList.add("open");
+  if (sidebarOverlay) sidebarOverlay.classList.remove("hidden");
+}
+
+function closeSidebarDrawer() {
+  sidebar.classList.remove("open");
+  if (sidebarOverlay) sidebarOverlay.classList.add("hidden");
 }
 
 
@@ -925,6 +940,17 @@ function showMainUI(username) {
   updateChatEmptyState();
 }
 
+if (openSidebarBtn) {
+  openSidebarBtn.addEventListener("click", () => {
+    if (sidebar.classList.contains("open")) closeSidebarDrawer();
+    else openSidebarDrawer();
+  });
+}
+
+if (sidebarOverlay) {
+  sidebarOverlay.addEventListener("click", closeSidebarDrawer);
+}
+
 function stopPolling() {
   if (state.pollTimer) clearInterval(state.pollTimer);
   state.pollTimer = null;
@@ -1255,7 +1281,7 @@ function renderChannels(list) {
 
       await loadMessages(ch.id);
       startPolling();
-      sidebar.classList.remove("open");
+      closeSidebarDrawer();
     });
 
     right.appendChild(badge);

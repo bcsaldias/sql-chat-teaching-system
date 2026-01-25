@@ -525,6 +525,18 @@ textarea:focus {
   animation: riseIn 520ms ease-out both;
 }
 
+.sidebarOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 11;
+  display: none;
+}
+
+.sidebarOverlay.hidden {
+  display: none;
+}
+
 .sidebar.sidebar-locked > * {
   display: none;
 }
@@ -909,19 +921,29 @@ textarea:focus {
 
 /* Mobile sidebar overlay behavior (kept from prior version) */
 @media (max-width: 900px) {
+  .chatMain {
+    order: 1;
+  }
+
   .sidebar {
+    display: none;
     position: fixed;
     top: 64px;
     left: 12px;
     right: 12px;
     bottom: 12px;
-    z-index: 9;
+    z-index: 12;
     transform: translateY(110%);
     transition: transform .18s ease;
   }
 
   .sidebar.open {
+    display: flex;
     transform: translateY(0%);
+  }
+
+  .sidebarOverlay:not(.hidden) {
+    display: block;
   }
 }
 
