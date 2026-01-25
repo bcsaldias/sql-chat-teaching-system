@@ -1421,6 +1421,16 @@ textarea:focus {
   background: color-mix(in srgb, var(--bad) 8%, var(--soft));
 }
 
+#sqlLabList .sqlMeta.sqlMetaHint {
+  border-color: color-mix(in srgb, var(--good) 18%, var(--border));
+  background: color-mix(in srgb, var(--good) 8%, color-mix(in srgb, var(--soft) 75%, var(--muted2)));
+}
+
+#sqlLabList .sqlMeta.sqlMetaHint .sqlMetaText {
+  color: color-mix(in srgb, var(--good) 45%, var(--text));
+  font-weight: 600;
+}
+
 #sqlLabList .sqlRequired {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;

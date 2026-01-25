@@ -601,6 +601,19 @@ function renderSqlLab(templates) {
         errBlock.appendChild(errText);
         outer.appendChild(errBlock);
       }
+      if (meta.lastTip) {
+        const tipBlock = document.createElement("div");
+        tipBlock.className = "sqlMeta sqlMetaHint";
+        const tipLabel = document.createElement("div");
+        tipLabel.className = "sqlMetaLabel";
+        tipLabel.textContent = "Tip";
+        const tipText = document.createElement("div");
+        tipText.className = "sqlMetaText";
+        tipText.textContent = meta.lastTip;
+        tipBlock.appendChild(tipLabel);
+        tipBlock.appendChild(tipText);
+        outer.appendChild(tipBlock);
+      }
       if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
       outer.appendChild(ta);
       sqlLabList.appendChild(outer);
@@ -731,6 +744,19 @@ function updateSqlItemUI(key) {
     errBlock.appendChild(errLabel);
     errBlock.appendChild(errText);
     itemEl.insertBefore(errBlock, ta);
+  }
+  if (meta.lastTip) {
+    const tipBlock = document.createElement("div");
+    tipBlock.className = "sqlMeta sqlMetaHint";
+    const tipLabel = document.createElement("div");
+    tipLabel.className = "sqlMetaLabel";
+    tipLabel.textContent = "Tip";
+    const tipText = document.createElement("div");
+    tipText.className = "sqlMetaText";
+    tipText.textContent = meta.lastTip;
+    tipBlock.appendChild(tipLabel);
+    tipBlock.appendChild(tipText);
+    itemEl.insertBefore(tipBlock, ta);
   }
 }
 
@@ -922,10 +948,29 @@ function recordSqlError(key, message) {
   updateSqlItemUI(key);
 }
 
+function recordSqlTip(key, message) {
+  if (!key) return;
+  sqlMeta[key] = {
+    ...(sqlMeta[key] || {}),
+    lastTip: String(message || ""),
+    lastTipAt: new Date().toISOString()
+  };
+  saveLocal(SQL_META_KEY, sqlMeta);
+  updateSqlItemUI(key);
+}
+
 function clearSqlError(key) {
   if (!key || !sqlMeta[key]) return;
   delete sqlMeta[key].lastError;
   delete sqlMeta[key].lastErrorAt;
+  saveLocal(SQL_META_KEY, sqlMeta);
+  updateSqlItemUI(key);
+}
+
+function clearSqlTip(key) {
+  if (!key || !sqlMeta[key]) return;
+  delete sqlMeta[key].lastTip;
+  delete sqlMeta[key].lastTipAt;
   saveLocal(SQL_META_KEY, sqlMeta);
   updateSqlItemUI(key);
 }
@@ -1315,6 +1360,8 @@ function renderMessages(messages) {
   if (shouldStick) scrollToBottom(messagesEl);
 }
 
+const INSERT_SQL_KEYS = new Set(["user_register", "channel_join", "channel_create", "message_post"]);
+
 function flagQueryStatus(query, status) {
   for (const item of SQL_LAB_ITEMS) {
     if (item.key == query) {
@@ -1325,6 +1372,13 @@ function flagQueryStatus(query, status) {
   // console.log(query, status);
   updateSqlProgress();
   updateSqlItemUI(query);
+  if (INSERT_SQL_KEYS.has(query)) {
+    if (status === true) {
+      recordSqlTip(query, "Insert succeeded. Open pgAdmin and run a SELECT to verify.");
+    } else {
+      clearSqlTip(query);
+    }
+  }
 }
 
 function launchConfetti() {
