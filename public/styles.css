@@ -1499,6 +1499,32 @@ body.sql-mode #userAuthPanel {
   max-width: none !important;
 }
 
+@media print {
+  html.sql-mode body * {
+    visibility: hidden !important;
+  }
+
+  html.sql-mode #panelSql {
+    visibility: visible !important;
+    display: block !important;
+    position: static !important;
+  }
+
+  html.sql-mode #panelSql::before {
+    content: "Printing disabled in SQL Lab.";
+    visibility: visible !important;
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 24px;
+    color: #111;
+  }
+
+  html.sql-mode #panelSql > * {
+    display: none !important;
+  }
+}
+
 /* Small helpers moved from inline JS styles */
 .sqlPanelTitle {
   font-weight: 900;

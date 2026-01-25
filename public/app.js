@@ -101,6 +101,7 @@ let schemabMsg = null;
 let sqlProgressText = null;
 let sqlProgressBar = null;
 let confettiShown = false;
+let _printGuardReady = false;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
@@ -291,6 +292,7 @@ function ensureSqlLabUI() {
   schemabMsg = el("schemabMsg");
   sqlProgressText = el("sqlProgressText");
   sqlProgressBar = el("sqlProgressBar");
+  installPrintGuard();
 
   const blockSqlCopy = (e) => {
     if (!document.documentElement.classList.contains("sql-mode")) return;
@@ -332,6 +334,39 @@ function ensureSqlLabUI() {
     }
   });
 
+}
+
+function installPrintGuard() {
+  if (_printGuardReady) return;
+  _printGuardReady = true;
+
+  const warn = () => toast("Printing disabled in SQL Lab");
+  const isSqlMode = () => document.documentElement.classList.contains("sql-mode");
+
+  const origPrint = window.print;
+  if (typeof origPrint === "function" && !origPrint._sqlGuarded) {
+    const wrapped = function () {
+      if (isSqlMode()) {
+        warn();
+        return;
+      }
+      return origPrint();
+    };
+    wrapped._sqlGuarded = true;
+    window.print = wrapped;
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    if (String(e.key || "").toLowerCase() !== "p") return;
+    if (!isSqlMode()) return;
+    e.preventDefault();
+    warn();
+  });
+
+  window.addEventListener("beforeprint", () => {
+    if (isSqlMode()) warn();
+  });
 }
 
 function setTabsVisible(visible) {
