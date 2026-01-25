@@ -1179,6 +1179,8 @@ function launchConfetti() {
   confettiEl.innerHTML = "";
   confettiEl.classList.remove("hidden");
 
+  toast("Congrats! All queries passed!");
+
   const colors = ["var(--accent)", "var(--accent2)", "var(--accent3)", "var(--good)"];
   const count = 70;
   const maxDelay = 700;
