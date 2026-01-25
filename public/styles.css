@@ -1034,6 +1034,13 @@ textarea:focus {
   outline: none;
 }
 
+.aboutDock {
+  position: sticky;
+  top: 72px;
+  height: 0;
+  z-index: 6;
+}
+
 .aboutFloating {
   position: absolute;
   top: 0px;
