@@ -161,15 +161,23 @@ async function loadChatSchemaInfo(client) {
     const {
         channels_pk,
         channels_pk_type,
+        users_pk,
+        users_pk_type,
         membership_channels_fk,
         membership_channels_fk_type,
+        membership_users_fk,
+        membership_users_fk_type,
     } = await loadChannelMembershipKeys(client);
 
     return {
         channels_pk,
         channels_pk_type,
+        users_pk,
+        users_pk_type,
         membership_channels_fk,
         membership_channels_fk_type,
+        membership_users_fk,
+        membership_users_fk_type,
     }
 }
 
@@ -178,8 +186,12 @@ async function loadChannelMembershipKeys(client) {
     SELECT
       COALESCE(ch_pk.col,  'channel_id') AS channels_pk,
       COALESCE(ch_pk.typ,  'text')       AS channels_pk_type,
+      COALESCE(u_pk.col,   'username')   AS users_pk,
+      COALESCE(u_pk.typ,   'text')       AS users_pk_type,
       COALESCE(mem_fk.col, 'channel_id') AS membership_channels_fk,
-      COALESCE(mem_fk.typ, 'text')       AS membership_channels_fk_type
+      COALESCE(mem_fk.typ, 'text')       AS membership_channels_fk_type,
+      COALESCE(mem_user_fk.col, 'username') AS membership_users_fk,
+      COALESCE(mem_user_fk.typ, 'text')     AS membership_users_fk_type
     FROM (SELECT 1) base
     LEFT JOIN LATERAL (
       SELECT a.attname AS col, a.atttypid::regtype::text AS typ
@@ -197,6 +209,17 @@ async function loadChannelMembershipKeys(client) {
       FROM pg_constraint c
       JOIN pg_class t      ON t.oid = c.conrelid
       JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum, ord) ON true
+      JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = k.attnum
+      WHERE n.nspname = 'public' AND t.relname = 'users' AND c.contype = 'p'
+      ORDER BY k.ord
+      LIMIT 1
+    ) u_pk ON true
+    LEFT JOIN LATERAL (
+      SELECT a.attname AS col, a.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
       JOIN pg_class rt     ON rt.oid = c.confrelid
       JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum, ord) ON true
       JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = k.attnum
@@ -206,7 +229,22 @@ async function loadChannelMembershipKeys(client) {
         AND c.contype = 'f'
       ORDER BY k.ord
       LIMIT 1
-    ) mem_fk ON true;
+    ) mem_fk ON true
+    LEFT JOIN LATERAL (
+      SELECT a.attname AS col, a.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN pg_class rt     ON rt.oid = c.confrelid
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum, ord) ON true
+      JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = k.attnum
+      WHERE n.nspname = 'public'
+        AND t.relname = 'channel_members'
+        AND rt.relname = 'users'
+        AND c.contype = 'f'
+      ORDER BY k.ord
+      LIMIT 1
+    ) mem_user_fk ON true;
   `);
 
     return rows[0]; // always exactly 1 row

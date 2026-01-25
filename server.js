@@ -117,7 +117,10 @@ function requireChatUser(req, res, next) {
 
 // Schema cache
 async function ensureChatSchemaInfo(req) {
-  if (req.session?.chatSchemaInfo?.channels_pk) return req.session.chatSchemaInfo;
+  const cached = req.session?.chatSchemaInfo;
+  if (cached?.channels_pk && cached?.membership_channels_fk && cached?.users_pk && cached?.membership_users_fk) {
+    return cached;
+  }
 
   const { dbUser, dbPass } = req.session;
   if (!dbUser || !dbPass) throw new Error("Not logged in.");
@@ -554,6 +557,7 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
   return res.json({ ok: true });
 });
 
+// prevents sql injection
 const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
 function qIdent(name) {
   const n = String(name || "").trim();
