@@ -2,6 +2,7 @@ const { DEFAULT_SQL, SOLUTION_SQL, PGDATABASES_MAPPING, loadChatSchemaInfo, pars
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
+const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
 require("dotenv").config();
@@ -9,9 +10,26 @@ require("dotenv").config();
 const app = express();
 
 const ALLOW_SUPERUSER_MODE = process.env.ALLOW_SUPERUSER_MODE === "true";
+const HEALTHCHECK_DB_USER = process.env.HEALTHCHECK_DB_USER || "demo";
+const HEALTHCHECK_DB_PASS = process.env.HEALTHCHECK_DB_PASS || "demo";
+const GIT_SHA = process.env.GIT_SHA || readGitSha() || "unknown";
 function isSuperUserReq(req) {
   // Superuser check. Superuser uses solution SQL.
   return ALLOW_SUPERUSER_MODE && req.session?.dbUser === "demo";
+}
+
+function readGitSha() {
+  try {
+    const headPath = path.join(__dirname, "..", ".git", "HEAD");
+    const head = fs.readFileSync(headPath, "utf8").trim();
+    if (head.startsWith("ref: ")) {
+      const refPath = path.join(__dirname, "..", ".git", head.slice(5));
+      return fs.readFileSync(refPath, "utf8").trim();
+    }
+    return head;
+  } catch (_err) {
+    return null;
+  }
 }
 
 app.set("trust proxy", 1);
@@ -194,6 +212,18 @@ function validateSqlTemplate(key, normalized) {
 // =====================================================
 // API routes
 // =====================================================
+
+app.get("/health", async (_req, res) => {
+  try {
+    if (!PGDATABASES_MAPPING[HEALTHCHECK_DB_USER]) {
+      throw new Error("Healthcheck database user is not mapped.");
+    }
+    await withDb(HEALTHCHECK_DB_USER, HEALTHCHECK_DB_PASS, (client) => client.query("SELECT 1"));
+    res.status(200).json({ ok: true, gitSha: GIT_SHA });
+  } catch (_err) {
+    res.status(503).json({ ok: false, gitSha: GIT_SHA });
+  }
+});
 
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
   res.json({ ok: true, templates: getMergedTemplates(req) });

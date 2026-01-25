@@ -51,6 +51,25 @@ pm2 startup
 pm2 restart info330
 ```
 
+## Verify
+
+```bash
+curl -s http://localhost:3000/health
+```
+
+Expected:
+
+```json
+{"ok":true,"gitSha":"<commit>"}
+```
+
+This endpoint runs a `SELECT 1` against the database. If it returns `{"ok":false}`, the DB check failed.
+You can override the healthcheck credentials via `HEALTHCHECK_DB_USER` and `HEALTHCHECK_DB_PASS`
+(defaults to `demo` / `demo`).
+
+If available, the response includes `gitSha`. You can also set `GIT_SHA` in the environment
+to override it.
+
 ## Notes
 
 - If you move the server entry file, update the PM2 start command accordingly.
