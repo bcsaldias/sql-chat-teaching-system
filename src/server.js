@@ -361,6 +361,10 @@ function validateSqlTemplate(key, normalized) {
 }
 
 
+-// =====================================================
+-// API routes
+-// =====================================================
+
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
   res.json({ ok: true, templates: getMergedTemplates(req) });
 });
