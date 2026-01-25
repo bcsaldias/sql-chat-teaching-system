@@ -95,11 +95,13 @@ let tabSqlBtn = null;
 let sqlPanel = null;
 let sqlLabList = null;
 let sqlResetBtn = null;
+let sqlResetStatusBtn = null;
 let testSchemaBtn = null; // The idea of using schema got updated to database but keeping the variable name.
 let sqlLabMsg = null;
 let schemabMsg = null;
 let sqlProgressText = null;
 let sqlProgressBar = null;
+let sqlLastSavedEl = null;
 let confettiShown = false;
 let _printGuardReady = false;
 // keep the last templates we loaded from the server so we can avoid
@@ -287,12 +289,15 @@ function ensureSqlLabUI() {
   sqlPanel = el("panelSql");
   sqlLabList = el("sqlLabList");
   sqlResetBtn = el("sqlResetBtn");
+  sqlResetStatusBtn = el("sqlResetStatusBtn");
   testSchemaBtn = el("testSchemaBtn");
   sqlLabMsg = el("sqlLabMsg");
   schemabMsg = el("schemabMsg");
   sqlProgressText = el("sqlProgressText");
   sqlProgressBar = el("sqlProgressBar");
+  sqlLastSavedEl = el("sqlLastSaved");
   installPrintGuard();
+  updateSqlLastSaved(getSqlLastSaved());
 
   const blockSqlCopy = (e) => {
     if (!document.documentElement.classList.contains("sql-mode")) return;
@@ -319,9 +324,16 @@ function ensureSqlLabUI() {
       await api("/api/sql_templates/reset", "POST");
       await loadSqlTemplates();
       setMsg(sqlLabMsg, "Reset to defaults.", true);
+      setSqlLastSaved(new Date().toISOString());
     } catch (e) {
       setMsg(sqlLabMsg, e.message, false);
     }
+  });
+
+  sqlResetStatusBtn.addEventListener("click", () => {
+    setMsg(sqlLabMsg, "");
+    resetSqlStatus();
+    setMsg(sqlLabMsg, "SQL status cleared.", true);
   });
 
   testSchemaBtn.addEventListener("click", async () => {
@@ -698,6 +710,7 @@ async function saveSqlTemplatesIfChanged() {
 
   await api("/api/sql_templates", "POST", { templates });
   _lastSqlTemplates = templates;
+  setSqlLastSaved(new Date().toISOString());
   return true;
 }
 
@@ -719,6 +732,7 @@ state.messagesByChannel = {};
 
 const SQL_META_KEY = "info330_sql_meta";
 const sqlMeta = loadLocal(SQL_META_KEY, {});
+const SQL_LAST_SAVED_KEY = "info330_sql_last_saved";
 
 // ----------------------------
 // Helpers
@@ -795,6 +809,12 @@ function toast(text, ms = 2200) {
   toastEl._t = window.setTimeout(() => toastEl.classList.add("hidden"), ms);
 }
 
+function clearToast() {
+  toastEl.textContent = "";
+  toastEl.classList.add("hidden");
+  window.clearTimeout(toastEl._t);
+}
+
 function loadLocal(key, fallback) {
   try {
     const v = localStorage.getItem(key);
@@ -848,6 +868,46 @@ function clearSqlError(key) {
 function resetSqlMeta() {
   Object.keys(sqlMeta).forEach((k) => delete sqlMeta[k]);
   try { localStorage.removeItem(SQL_META_KEY); } catch { }
+}
+
+function getSqlLastSaved() {
+  try { return localStorage.getItem(SQL_LAST_SAVED_KEY); } catch { return null; }
+}
+
+function setSqlLastSaved(iso) {
+  if (!iso) return;
+  try { localStorage.setItem(SQL_LAST_SAVED_KEY, iso); } catch { }
+  updateSqlLastSaved(iso);
+}
+
+function updateSqlLastSaved(iso) {
+  if (!sqlLastSavedEl) return;
+  if (!iso) {
+    sqlLastSavedEl.textContent = "Last saved: —";
+    return;
+  }
+  const d = new Date(iso);
+  sqlLastSavedEl.textContent = isNaN(d)
+    ? "Last saved: —"
+    : `Last saved: ${d.toLocaleString()}`;
+}
+
+function clearSqlLastSaved() {
+  try { localStorage.removeItem(SQL_LAST_SAVED_KEY); } catch { }
+  updateSqlLastSaved(null);
+}
+
+function resetSqlStatus() {
+  resetSqlMeta();
+  clearSqlLastSaved();
+  clearToast();
+  setMsg(schemabMsg, "");
+  SQL_LAB_ITEMS.forEach((item) => {
+    item.status = null;
+    updateSqlItemUI(item.key);
+  });
+  confettiShown = false;
+  updateSqlProgress();
 }
 
 function formatSqlValue(v) {
