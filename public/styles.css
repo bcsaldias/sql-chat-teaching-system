@@ -1232,6 +1232,30 @@ textarea:focus {
   line-height: 1.55;
 }
 
+#panelSql .sqlIntegrity {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+  color: var(--muted2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.sqlIntegrity,
+#panelSql .description,
+#sqlLabList .sqlSectionTitle,
+#sqlLabList .sqlTitle,
+#sqlLabList .sqlReqLabel,
+#sqlLabList .sqlDesc,
+#sqlLabList .sqlChips,
+#sqlLabList .sqlRequired,
+#sqlLabList .sqlMeta {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .sqlProgress {
   margin: 10px 0 8px;
 }

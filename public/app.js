@@ -285,6 +285,15 @@ function ensureSqlLabUI() {
   sqlProgressText = el("sqlProgressText");
   sqlProgressBar = el("sqlProgressBar");
 
+  const blockSqlCopy = (e) => {
+    if (!document.documentElement.classList.contains("sql-mode")) return;
+    e.preventDefault();
+  };
+
+  sqlPanel.addEventListener("copy", blockSqlCopy);
+  sqlPanel.addEventListener("cut", blockSqlCopy);
+  sqlPanel.addEventListener("contextmenu", blockSqlCopy);
+
   // Events
   tabChatBtn.addEventListener("click", async () => {
     hideSqlTabTip();
