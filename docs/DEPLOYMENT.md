@@ -32,7 +32,7 @@ Restart PM2 after code or env changes.
 ## Verify
 
 ```bash
-curl -s http://localhost:3000/health
+curl -s http://localhost:3000/status
 ```
 
 Example:
@@ -41,11 +41,24 @@ Example:
 {"ok":true,"gitSha":"<commit>","deployedBy":"<alias>","deployedAt":"<iso_timestamp>","deployedAtPt":"<pt_timestamp>","statsDbSource":"session|healthcheck",...}
 ```
 
+Lightweight check:
+
+```bash
+curl -s http://localhost:3000/health
+```
+
+Example:
+
+```json
+{"ok":true}
+```
+
 Notes:
 - Uses session DB if the request includes the session cookie; otherwise uses the healthcheck user (`HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`).
 - `GIT_SHA` overrides `gitSha`.
+- `/health` is a lightweight alias that returns only `{"ok": true|false}`.
 
-### Health fields (summary)
+### Status fields (summary)
 - Identity: `gitSha` (commit hash), `deployedBy` (deployer alias), `deployedAt` (process start ISO), `deployedAtPt` (same time in PT)
 - DB selection: `statsDbSource` (session vs healthcheck), `statsDbUser`/`statsDatabase` (credentials + DB used for stats),
   `sessionDbUser`/`sessionDatabase` (logged-in user/DB), `currentDatabase` (what the stats connection is actually on)

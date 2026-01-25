@@ -214,6 +214,98 @@ async function readDbStats(client) {
   return stats;
 }
 
+
+function getStatusContext(req) {
+  const sessionDbUser = req.session?.dbUser || null;
+  const sessionDbPass = req.session?.dbPass || null;
+  const sessionDatabase = sessionDbUser ? PGDATABASES_MAPPING[sessionDbUser] || null : null;
+  const useSessionDb = Boolean(sessionDbUser && sessionDbPass && sessionDatabase);
+  const statsDbUser = useSessionDb ? sessionDbUser : HEALTHCHECK_DB_USER;
+  const statsDbPass = useSessionDb ? sessionDbPass : HEALTHCHECK_DB_PASS;
+  const statsDbSource = useSessionDb ? "session" : "healthcheck";
+  const statsDatabase = PGDATABASES_MAPPING[statsDbUser] || null;
+
+  return {
+    sessionDbUser,
+    sessionDbPass,
+    sessionDatabase,
+    statsDbUser,
+    statsDbPass,
+    statsDbSource,
+    statsDatabase
+  };
+}
+
+async function getStatusResponse(req, includeDetails) {
+  const {
+    sessionDbUser,
+    sessionDatabase,
+    statsDbUser,
+    statsDbPass,
+    statsDbSource,
+    statsDatabase
+  } = getStatusContext(req);
+
+  const base = includeDetails
+    ? {
+        gitSha: GIT_SHA,
+        deployedBy: DEPLOYED_BY,
+        deployedAt: DEPLOYED_AT,
+        deployedAtPt: formatPt(DEPLOYED_AT),
+        statsDbSource,
+        statsDbUser,
+        statsDatabase,
+        sessionDbUser,
+        sessionDatabase
+      }
+    : null;
+  let poolStats = {};
+
+  try {
+    if (!statsDatabase) {
+      throw new Error("Stats database user is not mapped.");
+    }
+    if (includeDetails) {
+      const pool = getPool(statsDbUser, statsDbPass);
+      poolStats = {
+        poolTotalCount: pool.totalCount,
+        poolIdleCount: pool.idleCount,
+        poolWaitingCount: pool.waitingCount
+      };
+    }
+    let dbStats = {};
+    await withDb(statsDbUser, statsDbPass, async (client) => {
+      await client.query("SELECT 1");
+      if (!includeDetails) return;
+      try {
+        dbStats = await readDbStats(client);
+      } catch (err) {
+        dbStats = { dbStatsError: String(err?.message || err) };
+      }
+    });
+    const body = includeDetails ? { ok: true, ...base, ...dbStats, ...poolStats } : { ok: true };
+    return { status: 200, body };
+  } catch (_err) {
+    const body = includeDetails ? { ok: false, ...base, ...poolStats } : { ok: false };
+    return { status: 503, body };
+  }
+}
+
+async function handleStatus(req, res) {
+  const { status, body } = await getStatusResponse(req, true);
+  res.status(status).json(body);
+}
+
+async function handleHealth(req, res) {
+  const { status, body } = await getStatusResponse(req, false);
+  res.status(status).json(body);
+}
+
+app.get("/status", handleStatus);
+app.get("/health", handleHealth);
+
+
+
 // =====================================================
 // SQL templates
 // =====================================================
@@ -268,58 +360,6 @@ function validateSqlTemplate(key, normalized) {
   }
 }
 
-
-// =====================================================
-// API routes
-// =====================================================
-
-app.get("/health", async (req, res) => {
-  const sessionDbUser = req.session?.dbUser || null;
-  const sessionDbPass = req.session?.dbPass || null;
-  const sessionDatabase = sessionDbUser ? PGDATABASES_MAPPING[sessionDbUser] || null : null;
-  const useSessionDb = Boolean(sessionDbUser && sessionDbPass && sessionDatabase);
-  const statsDbUser = useSessionDb ? sessionDbUser : HEALTHCHECK_DB_USER;
-  const statsDbPass = useSessionDb ? sessionDbPass : HEALTHCHECK_DB_PASS;
-  const statsDbSource = useSessionDb ? "session" : "healthcheck";
-  const statsDatabase = PGDATABASES_MAPPING[statsDbUser] || null;
-
-  const base = {
-    gitSha: GIT_SHA,
-    deployedBy: DEPLOYED_BY,
-    deployedAt: DEPLOYED_AT,
-    deployedAtPt: formatPt(DEPLOYED_AT),
-    statsDbSource,
-    statsDbUser,
-    statsDatabase,
-    sessionDbUser,
-    sessionDatabase
-  };
-  let poolStats = {};
-
-  try {
-    if (!statsDatabase) {
-      throw new Error("Stats database user is not mapped.");
-    }
-    const pool = getPool(statsDbUser, statsDbPass);
-    poolStats = {
-      poolTotalCount: pool.totalCount,
-      poolIdleCount: pool.idleCount,
-      poolWaitingCount: pool.waitingCount
-    };
-    let dbStats = {};
-    await withDb(statsDbUser, statsDbPass, async (client) => {
-      await client.query("SELECT 1");
-      try {
-        dbStats = await readDbStats(client);
-      } catch (err) {
-        dbStats = { dbStatsError: String(err?.message || err) };
-      }
-    });
-    res.status(200).json({ ok: true, ...base, ...dbStats, ...poolStats });
-  } catch (_err) {
-    res.status(503).json({ ok: false, ...base, ...poolStats });
-  }
-});
 
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
   res.json({ ok: true, templates: getMergedTemplates(req) });
