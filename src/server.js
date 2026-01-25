@@ -159,7 +159,60 @@ async function ensureChatSchemaInfo(req) {
   return info;
 }
 
+// =====================================================
+// Health
+// =====================================================
 
+
+async function readDbStats(client) {
+  const dbNameRes = await client.query("SELECT current_database() AS current_database;");
+  const currentDbRes = await client.query(
+    "SELECT numbackends::int AS current_db_connections FROM pg_stat_database WHERE datname = current_database();"
+  );
+  const totalRes = await client.query(
+    "SELECT sum(numbackends)::int AS total_connections FROM pg_stat_database;"
+  );
+  const maxRes = await client.query(
+    "SELECT setting::int AS max_connections FROM pg_settings WHERE name = 'max_connections';"
+  );
+
+  const currentDatabase = dbNameRes.rows[0]?.current_database ?? null;
+  const currentDbConnections = currentDbRes.rows[0]?.current_db_connections ?? null;
+  const totalConnections = totalRes.rows[0]?.total_connections ?? null;
+  const maxConnections = maxRes.rows[0]?.max_connections ?? null;
+  const totalConnPct =
+    typeof totalConnections === "number" && typeof maxConnections === "number" && maxConnections > 0
+      ? Math.round((totalConnections / maxConnections) * 1000) / 10
+      : null;
+
+  const stats = {
+    currentDatabase,
+    dbConnectionsCurrentDb: currentDbConnections,
+    dbConnectionsTotal: totalConnections,
+    dbConnectionsMax: maxConnections,
+    dbConnectionsPct: totalConnPct ? String(totalConnPct) + "%" : totalConnPct
+  };
+
+  try {
+    const activityRes = await client.query(
+      "SELECT state, count(*)::int AS count FROM pg_stat_activity WHERE datname = current_database() GROUP BY state;"
+    );
+    const dbSessionsByState = {};
+    let dbSessionsCurrentDb = 0;
+    for (const row of activityRes.rows) {
+      const state = row.state ?? "unknown";
+      const count = row.count ?? 0;
+      dbSessionsByState[state] = count;
+      dbSessionsCurrentDb += count;
+    }
+    stats.dbSessionsCurrentDb = dbSessionsCurrentDb;
+    stats.dbSessionsByState = dbSessionsByState;
+  } catch (err) {
+    stats.dbActivityError = String(err?.message || err);
+  }
+
+  return stats;
+}
 
 // =====================================================
 // SQL templates
@@ -220,25 +273,51 @@ function validateSqlTemplate(key, normalized) {
 // API routes
 // =====================================================
 
-app.get("/health", async (_req, res) => {
+app.get("/health", async (req, res) => {
+  const sessionDbUser = req.session?.dbUser || null;
+  const sessionDbPass = req.session?.dbPass || null;
+  const sessionDatabase = sessionDbUser ? PGDATABASES_MAPPING[sessionDbUser] || null : null;
+  const useSessionDb = Boolean(sessionDbUser && sessionDbPass && sessionDatabase);
+  const statsDbUser = useSessionDb ? sessionDbUser : HEALTHCHECK_DB_USER;
+  const statsDbPass = useSessionDb ? sessionDbPass : HEALTHCHECK_DB_PASS;
+  const statsDbSource = useSessionDb ? "session" : "healthcheck";
+  const statsDatabase = PGDATABASES_MAPPING[statsDbUser] || null;
+
+  const base = {
+    gitSha: GIT_SHA,
+    deployedBy: DEPLOYED_BY,
+    deployedAt: DEPLOYED_AT,
+    deployedAtPt: formatPt(DEPLOYED_AT),
+    statsDbSource,
+    statsDbUser,
+    statsDatabase,
+    sessionDbUser,
+    sessionDatabase
+  };
+  let poolStats = {};
+
   try {
-    if (!PGDATABASES_MAPPING[HEALTHCHECK_DB_USER]) {
-      throw new Error("Healthcheck database user is not mapped.");
+    if (!statsDatabase) {
+      throw new Error("Stats database user is not mapped.");
     }
-    await withDb(HEALTHCHECK_DB_USER, HEALTHCHECK_DB_PASS, (client) => client.query("SELECT 1"));
-    res.status(200).json({
-      ok: true,
-      gitSha: GIT_SHA,
-      deployedBy: DEPLOYED_BY,
-      deployedAtPt: formatPt(DEPLOYED_AT)
+    const pool = getPool(statsDbUser, statsDbPass);
+    poolStats = {
+      poolTotalCount: pool.totalCount,
+      poolIdleCount: pool.idleCount,
+      poolWaitingCount: pool.waitingCount
+    };
+    let dbStats = {};
+    await withDb(statsDbUser, statsDbPass, async (client) => {
+      await client.query("SELECT 1");
+      try {
+        dbStats = await readDbStats(client);
+      } catch (err) {
+        dbStats = { dbStatsError: String(err?.message || err) };
+      }
     });
+    res.status(200).json({ ok: true, ...base, ...dbStats, ...poolStats });
   } catch (_err) {
-    res.status(503).json({
-      ok: false,
-      gitSha: GIT_SHA,
-      deployedBy: DEPLOYED_BY,
-      deployedAtPt: formatPt(DEPLOYED_AT)
-    });
+    res.status(503).json({ ok: false, ...base, ...poolStats });
   }
 });
 
