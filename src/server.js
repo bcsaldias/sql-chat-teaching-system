@@ -34,7 +34,7 @@ app.use(
   })
 );
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.use((req, _res, next) => {
   // console.log("sid", req.sessionID, "dbUser", req.session?.dbUser, "schema", req.session?.schema);

@@ -11,13 +11,15 @@ If you run this at larger scale, watch your Postgres `max_connections` and use s
 
 ## Repo map
 
-- `server.js` — Express server + API routes
-- `utils.js` — helpers (SQL lab items, schema introspection, etc.)
+- `src/server.js` — Express server + API routes
+- `src/utils.js` — helpers (SQL lab items, schema introspection, etc.)
 - `public/` — front-end (`index.html`, `app.js`, `styles.css`)
 - `scripts/`
   - `db_setup.sql` — initial DB/role/database setup (instructor/admin use)
   - `setting_demo.sql` — demo-mode configuration (instructor/admin use)
   - `lock_schemas.sh` — locking/protecting schemas (instructor/admin use)
+- `config/pm2/ecosystem.config.js` — PM2 process config
+- `docs/DEPLOYMENT.md` — deployment notes (PM2, env)
 
 ## Client-side constraints (deterrents)
 These are UI-level deterrents (not security guarantees):
@@ -46,7 +48,7 @@ Create a `.env` file in the repo root. Typical values:
 From the repo root:
 
 - `npm install`
-- `npm start` (or `node server.js`)
+- `npm start` (or `node src/server.js`)
 
 Then open:
 - `http://localhost:3000`
@@ -66,7 +68,7 @@ I create a `.env` file in the repo root (already present on the server). Use the
 From the repo root:
 
 - `npm install`
-- `pm2 start server.js --name info330`
+- `pm2 start src/server.js --name info330`
 - `pm2 logs info330`
 
 If I change code and want a clean restart:
@@ -122,7 +124,7 @@ Tip: the SQL Lab “Last input” box shows the exact parameter values used ($1,
 
 ## Feature flags and env toggles
 
-- **`ALLOW_SUPERUSER_MODE`**: When `true`, logging into the DB as `demo` causes the server to run **solution SQL** (from `utils.js`) instead of student templates. Useful for demos.
+- **`ALLOW_SUPERUSER_MODE`**: When `true`, logging into the DB as `demo` causes the server to run **solution SQL** (from `src/utils.js`) instead of student templates. Useful for demos.
 
 
 ## Running instructor scripts
