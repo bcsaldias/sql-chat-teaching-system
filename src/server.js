@@ -13,6 +13,13 @@ const ALLOW_SUPERUSER_MODE = process.env.ALLOW_SUPERUSER_MODE === "true";
 const HEALTHCHECK_DB_USER = process.env.HEALTHCHECK_DB_USER || "demo";
 const HEALTHCHECK_DB_PASS = process.env.HEALTHCHECK_DB_PASS || "demo";
 const GIT_SHA = process.env.GIT_SHA || readGitSha() || "unknown";
+const DEPLOYED_BY = process.env.DEPLOYED_BY || "unknown";
+const DEPLOYED_AT = new Date().toISOString();
+const PT_TZ = "America/Los_Angeles";
+function formatPt(iso) {
+  const base = new Date(iso).toLocaleString("sv-SE", { timeZone: PT_TZ, hour12: false });
+  return `${base.replace(" ", "T")} PT`;
+}
 function isSuperUserReq(req) {
   // Superuser check. Superuser uses solution SQL.
   return ALLOW_SUPERUSER_MODE && req.session?.dbUser === "demo";
@@ -219,9 +226,19 @@ app.get("/health", async (_req, res) => {
       throw new Error("Healthcheck database user is not mapped.");
     }
     await withDb(HEALTHCHECK_DB_USER, HEALTHCHECK_DB_PASS, (client) => client.query("SELECT 1"));
-    res.status(200).json({ ok: true, gitSha: GIT_SHA });
+    res.status(200).json({
+      ok: true,
+      gitSha: GIT_SHA,
+      deployedBy: DEPLOYED_BY,
+      deployedAtPt: formatPt(DEPLOYED_AT)
+    });
   } catch (_err) {
-    res.status(503).json({ ok: false, gitSha: GIT_SHA });
+    res.status(503).json({
+      ok: false,
+      gitSha: GIT_SHA,
+      deployedBy: DEPLOYED_BY,
+      deployedAtPt: formatPt(DEPLOYED_AT)
+    });
   }
 });
 

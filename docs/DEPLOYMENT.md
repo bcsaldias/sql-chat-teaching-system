@@ -60,7 +60,7 @@ curl -s http://localhost:3000/health
 Expected:
 
 ```json
-{"ok":true,"gitSha":"<commit>"}
+{"ok":true,"gitSha":"<commit>","deployedBy":"<alias>","deployedAt":"<iso_timestamp>","deployedAtPt":"<pt_timestamp>"}
 ```
 
 This endpoint runs a `SELECT 1` against the database. If it returns `{"ok":false}`, the DB check failed.
@@ -68,7 +68,9 @@ You can override the healthcheck credentials via `HEALTHCHECK_DB_USER` and `HEAL
 (defaults to `demo` / `demo`).
 
 If available, the response includes `gitSha`. You can also set `GIT_SHA` in the environment
-to override it.
+to override it. The `deployedBy` field comes from `DEPLOYED_BY`, and `deployedAt` is captured
+when the server process starts (pm2 start/restart). `deployedAtPt` is the same timestamp
+formatted in Pacific Time.
 
 ## Notes
 
