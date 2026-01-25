@@ -47,10 +47,12 @@ app.use((req, _res, next) => {
 // =====================================================
 
 
+const DEMO_POOL_MAX = Number(process.env.PG_POOL_MAX || 3);
+const DEFAULT_POOL_MAX = Number(process.env.PG_POOL_MAX_DEFAULT || 3);
+
 const DB_CONFIG_BASE = {
   host: process.env.PGHOST,
   port: Number(process.env.PGPORT || 5432),
-  max: Number(process.env.PG_POOL_MAX || 3),
   idleTimeoutMillis: Number(process.env.PG_POOL_IDLE_MS || 30000),
   connectionTimeoutMillis: Number(process.env.PG_POOL_CONN_MS || 5000)
 };
@@ -62,6 +64,7 @@ function resolveDbPassword(dbUser, dbPass) {
 function dbConfig(dbUser, dbPass) {
   return {
     ...DB_CONFIG_BASE,
+    max: dbUser === "demo" ? DEMO_POOL_MAX : DEFAULT_POOL_MAX,
     database: PGDATABASES_MAPPING[dbUser],
     user: dbUser,
     password: resolveDbPassword(dbUser, dbPass)
