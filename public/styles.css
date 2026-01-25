@@ -281,7 +281,20 @@ code {
   gap: 10px;
 }
 
+.footer {
+  margin-top: auto;
+  padding: 14px 16px 18px;
+  text-align: center;
+}
+
+.footer .aboutTip {
+  display: inline-block;
+}
+
 .themeSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 8px 12px;
@@ -290,6 +303,10 @@ code {
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
+}
+
+.themeSelect::-ms-expand {
+  display: none;
 }
 
 .themeSelect:focus {
