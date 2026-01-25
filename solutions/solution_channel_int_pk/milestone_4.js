@@ -24,6 +24,6 @@ WHERE chan_id = $1
 ORDER BY created_at ASC
 LIMIT 50;`,
     "message_post": "INSERT INTO chat_inbox(user_id, chan_id, body) VALUES ($1, $2, $3);",
-    "channel_members_list": "SELECT uid FROM channel_members WHERE cid = $1 ORDER BY uid;",
+    "channel_members_list": "SELECT uid as username FROM channel_members WHERE cid = $1 ORDER BY uid;",
     "channel_create": "INSERT INTO channels(name, description) VALUES ($1, $2);"
 };
