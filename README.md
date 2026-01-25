@@ -19,6 +19,15 @@ If you run this at larger scale, watch your Postgres `max_connections` and use s
   - `setting_demo.sql` — demo-mode configuration (instructor/admin use)
   - `lock_schemas.sh` — locking/protecting schemas (instructor/admin use)
 
+## Client-side constraints (deterrents)
+These are UI-level deterrents (not security guarantees):
+
+- SQL Lab: copy/cut blocked inside the panel.
+- SQL Lab: right-click/context menu disabled.
+- SQL Lab: static instructions/chips/required/meta text are non-selectable (textareas remain editable).
+- SQL Lab: printing disabled (Ctrl/Cmd+P blocked; File → Print shows a “Printing disabled in SQL Lab” page).
+- Chat tab: right-click/context menu disabled.
+
 ## Quick start (local)
 
 ### 1) Configure `.env`
