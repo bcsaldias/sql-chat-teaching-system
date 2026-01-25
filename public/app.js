@@ -49,6 +49,13 @@ const sidebar = el("sidebar");
 const chatMain = el("chatMain");
 const sidebarOverlay = el("sidebarOverlay");
 
+const blockChatContext = (e) => {
+  if (document.documentElement.classList.contains("sql-mode")) return;
+  e.preventDefault();
+};
+
+chatPanel?.addEventListener("contextmenu", blockChatContext);
+
 // Member modal elements (present in index.html)
 const memberModal = el("memberModal");
 const memberModalOverlay = el("memberModalOverlay");
