@@ -1940,6 +1940,7 @@ function openResetModal() {
 resetPwdBtn.addEventListener("click", () => {
   // Only allow if DB connected (you already have state.isDbConnected)
   if (!state.isDbConnected) return toast("Connect to group DB first");
+  if (chatPasswordEl) chatPasswordEl.value = "";
   openResetModal();
 });
 
