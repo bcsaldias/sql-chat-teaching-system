@@ -20,7 +20,7 @@ ORDER BY c.name;`,
 username, body, created_at
 FROM chat_inbox
 WHERE channel_id = $1
-ORDER BY created_at DESC
+ORDER BY created_at ASC
 LIMIT 50;`,
     "message_post": "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);",
     "channel_members_list": "SELECT username FROM channel_members WHERE channel = $1 ORDER BY username;",

@@ -444,19 +444,43 @@ app.get("/api/messages", requireGroupLogin, requireChatUser, async (req, res) =>
 
   const { dbUser, dbPass, chatUsername } = req.session;
   try {
+    const trace = [];
     const messages = await withDb(dbUser, dbPass, async (client) => {
-      const mem = await client.query(getSql(req, "member_check"), [chatUsername, cid]);
+      const run = async (key, params) => {
+        const entry = { key, paramsCount: Array.isArray(params) ? params.length : 0, status: "running" };
+        trace.push(entry);
+        try {
+          const r = await client.query(getSql(req, key), params);
+          entry.status = "ok";
+          return r;
+        } catch (e) {
+          entry.status = "error";
+          e.sqlKey = key;
+          e.sqlTrace = trace;
+          throw e;
+        }
+      };
+
+      const mem = await run("member_check", [chatUsername, cid]);
       if (mem.rowCount === 0) {
-        throw new Error("You must join this channel to view messages.");
+        const err = new Error("You must join this channel to view messages.");
+        err.sqlKey = "member_check";
+        err.sqlTrace = trace;
+        throw err;
       }
 
-      const r = await client.query(getSql(req, "messages_list"), [cid]);
+      const r = await run("messages_list", [cid]);
       return r.rows;
     });
 
     res.json({ ok: true, messages });
   } catch (e) {
-    res.status(400).json({ error: "Failed to load messages.", detail: String(e.message || e) });
+    res.status(400).json({
+      error: "Failed to load messages.",
+      detail: String(e.message || e),
+      sqlKey: e.sqlKey || null,
+      sqlTrace: e.sqlTrace || null
+    });
   }
 });
 
@@ -471,12 +495,20 @@ app.post("/api/message", requireGroupLogin, requireChatUser, async (req, res) =>
 
   const { dbUser, dbPass, chatUsername } = req.session;
 
-  const result = await withDb(dbUser, dbPass, async (client) => {
-    const r = await client.query(getSql(req, "message_post"), [chatUsername, cid, b]);
-    return r.rows[0];
-  });
+  try {
+    const result = await withDb(dbUser, dbPass, async (client) => {
+      const r = await client.query(getSql(req, "message_post"), [chatUsername, cid, b]);
+      return r.rows[0];
+    });
 
-  res.json({ ok: true, ...result });
+    res.json({ ok: true, ...result });
+  } catch (e) {
+    res.status(400).json({
+      error: "Failed to post message.",
+      detail: String(e.message || e),
+      sqlKey: "message_post"
+    });
+  }
 });
 
 const port = Number(process.env.PORT || 3000);

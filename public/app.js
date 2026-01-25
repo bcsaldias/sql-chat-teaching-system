@@ -53,6 +53,7 @@ const memberModalOverlay = el("memberModalOverlay");
 const memberModalList = el("memberModalList");
 const memberModalTitle = el("memberModalTitle");
 const memberModalClose = el("memberModalClose");
+const memberModalMsg = el("memberModalMsg");
 
 const toastEl = el("toast");
 const confettiEl = el("confetti");
@@ -187,7 +188,7 @@ const SQL_LAB_ITEMS = [
     description: `
       <div><b>What happens:</b> load messages when a channel is opened</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
-      <div><b>Ordering:</b> newest at the bottom (ASC by <b>created_at</b>)</div>
+      <div><b>Ordering:</b> newest at the bottom</div>
       <div><b>Limit:</b> ~50 rows</div>
     `,
     textAreaHeight: "140px",
@@ -374,6 +375,7 @@ function renderSqlLab(templates) {
   for (const [index, item] of SQL_LAB_ITEMS.entries()) {
     const outer = document.createElement("div");
     outer.className = "sqlItem";
+    outer.dataset.sqlkey = item.key;
 
     const title = document.createElement("div");
     title.className = "sqlTitle";
@@ -452,6 +454,34 @@ function renderSqlLab(templates) {
       outer.appendChild(chips);
     }
     if (item.required) outer.appendChild(req);
+    const meta = sqlMeta[item.key] || {};
+    if (meta.lastInput) {
+      const metaBlock = document.createElement("div");
+      metaBlock.className = "sqlMeta";
+      const metaLabel = document.createElement("div");
+      metaLabel.className = "sqlMetaLabel";
+      metaLabel.textContent = "Last input";
+      const metaCode = document.createElement("pre");
+      metaCode.className = "sqlMetaCode";
+      const inputArr = Array.isArray(meta.lastInput) ? meta.lastInput : [meta.lastInput];
+      metaCode.textContent = formatSqlInputs(inputArr);
+      metaBlock.appendChild(metaLabel);
+      metaBlock.appendChild(metaCode);
+      outer.appendChild(metaBlock);
+    }
+    if (meta.lastError) {
+      const errBlock = document.createElement("div");
+      errBlock.className = "sqlMeta sqlMetaError";
+      const errLabel = document.createElement("div");
+      errLabel.className = "sqlMetaLabel";
+      errLabel.textContent = "Last error";
+      const errText = document.createElement("div");
+      errText.className = "sqlMetaText";
+      errText.textContent = meta.lastError;
+      errBlock.appendChild(errLabel);
+      errBlock.appendChild(errText);
+      outer.appendChild(errBlock);
+    }
     if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
     outer.appendChild(ta);
 
@@ -478,6 +508,59 @@ function updateSqlProgress() {
     }
   } else {
     confettiShown = false;
+  }
+}
+
+function getSqlItemStatus(key) {
+  return SQL_LAB_ITEMS.find((i) => i.key === key)?.status;
+}
+
+function updateSqlItemUI(key) {
+  if (!sqlLabList || !sqlPanel || sqlPanel.classList.contains("hidden")) return;
+  const itemEl = sqlLabList.querySelector(`.sqlItem[data-sqlkey="${key}"]`);
+  if (!itemEl) return;
+
+  const statusEl = itemEl.querySelector(".queryStatus");
+  if (statusEl) {
+    statusEl.classList.remove("is-pass", "is-fail");
+    const status = getSqlItemStatus(key);
+    if (status === true) statusEl.classList.add("is-pass");
+    else if (status === false) statusEl.classList.add("is-fail");
+    statusEl.dataset.tip = status ? "Query runs." :
+      status === false ? "Try again." :
+        "Not tested";
+  }
+
+  itemEl.querySelectorAll(".sqlMeta").forEach((el) => el.remove());
+  const ta = itemEl.querySelector("textarea.sqlInput");
+  if (!ta) return;
+  const meta = sqlMeta[key] || {};
+  if (meta.lastInput) {
+    const metaBlock = document.createElement("div");
+    metaBlock.className = "sqlMeta";
+    const metaLabel = document.createElement("div");
+    metaLabel.className = "sqlMetaLabel";
+    metaLabel.textContent = "Last input";
+    const metaCode = document.createElement("pre");
+    metaCode.className = "sqlMetaCode";
+    const inputArr = Array.isArray(meta.lastInput) ? meta.lastInput : [meta.lastInput];
+    metaCode.textContent = formatSqlInputs(inputArr);
+    metaBlock.appendChild(metaLabel);
+    metaBlock.appendChild(metaCode);
+    itemEl.insertBefore(metaBlock, ta);
+  }
+  if (meta.lastError) {
+    const errBlock = document.createElement("div");
+    errBlock.className = "sqlMeta sqlMetaError";
+    const errLabel = document.createElement("div");
+    errLabel.className = "sqlMetaLabel";
+    errLabel.textContent = "Last error";
+    const errText = document.createElement("div");
+    errText.className = "sqlMetaText";
+    errText.textContent = meta.lastError;
+    errBlock.appendChild(errLabel);
+    errBlock.appendChild(errText);
+    itemEl.insertBefore(errBlock, ta);
   }
 }
 
@@ -534,6 +617,9 @@ const state = {
 // cache recent messages per-channel so we can detect changes and only
 // re-render the messages list when the server response actually differs.
 state.messagesByChannel = {};
+
+const SQL_META_KEY = "info330_sql_meta";
+const sqlMeta = loadLocal(SQL_META_KEY, {});
 
 // ----------------------------
 // Helpers
@@ -619,12 +705,74 @@ function loadLocal(key, fallback) {
   }
 }
 
-function toChronological(messages) {
-  return messages.reverse();
-}
+// function toChronological(messages) {
+//   return messages.reverse();
+// }
 
 function saveLocal(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { }
+}
+
+function recordSqlInput(key, params) {
+  if (!key) return;
+  const next = Array.isArray(params) ? params : [params];
+  const prev = sqlMeta[key]?.lastInput;
+  if (prev && JSON.stringify(prev) === JSON.stringify(next)) return;
+  sqlMeta[key] = {
+    ...(sqlMeta[key] || {}),
+    lastInput: next,
+    lastInputAt: new Date().toISOString()
+  };
+  saveLocal(SQL_META_KEY, sqlMeta);
+  updateSqlItemUI(key);
+}
+
+function recordSqlError(key, message) {
+  if (!key) return;
+  sqlMeta[key] = {
+    ...(sqlMeta[key] || {}),
+    lastError: String(message || ""),
+    lastErrorAt: new Date().toISOString()
+  };
+  saveLocal(SQL_META_KEY, sqlMeta);
+  updateSqlItemUI(key);
+}
+
+function clearSqlError(key) {
+  if (!key || !sqlMeta[key]) return;
+  delete sqlMeta[key].lastError;
+  delete sqlMeta[key].lastErrorAt;
+  saveLocal(SQL_META_KEY, sqlMeta);
+  updateSqlItemUI(key);
+}
+
+function resetSqlMeta() {
+  Object.keys(sqlMeta).forEach((k) => delete sqlMeta[k]);
+  try { localStorage.removeItem(SQL_META_KEY); } catch { }
+}
+
+function formatSqlValue(v) {
+  if (v === null) return "NULL";
+  if (v === undefined) return "undefined";
+  if (typeof v === "string") return `'${v.replace(/'/g, "''")}'`;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  try { return JSON.stringify(v); } catch { return String(v); }
+}
+
+function formatSqlInputs(params) {
+  if (!Array.isArray(params) || params.length === 0) return "";
+  return params.map((v, i) => `$${i + 1} = ${formatSqlValue(v)}`).join("\n");
+}
+
+function inferMessagesSqlKey(errMsg) {
+  const lower = String(errMsg || "").toLowerCase();
+  const m = lower.match(/supplies\s+(\d+)\s+parameters/);
+  if (m) {
+    const n = Number(m[1]);
+    if (n === 2) return "member_check";
+    if (n === 1) return "messages_list";
+  }
+  return null;
 }
 
 function expandTo128(s) {
@@ -681,7 +829,12 @@ async function api(path, method = "GET", body = null) {
     }
   }
 
-  if (!r.ok) throw new Error(data.detail || data.error || `Request failed (${r.status})`);
+  if (!r.ok) {
+    const err = new Error(data.detail || data.error || `Request failed (${r.status})`);
+    if (data && data.sqlKey) err.sqlKey = data.sqlKey;
+    if (data && data.sqlTrace) err.sqlTrace = data.sqlTrace;
+    throw err;
+  }
   return data;
 }
 
@@ -905,8 +1058,10 @@ function flagQueryStatus(query, status) {
       item.status = status
     }
   }
+  if (status === true) clearSqlError(query);
   // console.log(query, status);
   updateSqlProgress();
+  updateSqlItemUI(query);
 }
 
 function launchConfetti() {
@@ -1024,11 +1179,13 @@ function renderChannels(list) {
       try {
         btn.disabled = true;
         if (ch.is_member) {
+          recordSqlInput("channel_leave", [state.chatUsername, ch.id]);
           await api("/api/channels/leave", "POST", { channel_id: ch.id }); // KEY: "channel_leave"
           toast(`Left #${ch.name}`);
           flagQueryStatus("channel_leave", true);
           if (state.activeChannelId === ch.id) setActiveChannel(null);
         } else {
+          recordSqlInput("channel_join", [state.chatUsername, ch.id]);
           await api("/api/channels/join", "POST", { channel_id: ch.id }); // KEY: "channel_join"
           flagQueryStatus("channel_join", true);
           toast(`Joined #${ch.name}`);
@@ -1038,8 +1195,10 @@ function renderChannels(list) {
         setMsg(channelMsg, err.message, false);
         if (ch.is_member) {
           flagQueryStatus("channel_leave", false);
+          recordSqlError("channel_leave", err.message || String(err));
         } else {
           flagQueryStatus("channel_join", false);
+          recordSqlError("channel_join", err.message || String(err));
         }
       } finally {
         btn.disabled = false;
@@ -1088,6 +1247,7 @@ function renderChannels(list) {
 // ----------------------------
 async function loadChannels() {
   setMsg(channelMsg, "");
+  if (state.chatUsername) recordSqlInput("channels_list", [state.chatUsername]);
   try {
     const data = await api("/api/channels"); // KEY: channels_list
     // Debug: log the raw response so we can confirm the server returned the
@@ -1112,6 +1272,7 @@ async function loadChannels() {
     // Stop polling since we don't have a valid channel context
     stopPolling();
     flagQueryStatus("channels_list", false);
+    recordSqlError("channels_list", e.message || String(e));
     throw e; // rethrow so callers can handle additional UI changes if needed
   }
 
@@ -1141,8 +1302,10 @@ async function loadMessages(channelId, { silent = false } = {}) {
       messagesEl.innerHTML = `<div class="mutedSmall">Loading…</div>`;
       setMessagesEmptyState(false);
     }
+    recordSqlInput("member_check", [state.chatUsername, channelId]);
+    recordSqlInput("messages_list", [channelId]);
     const data = await api(`/api/messages?channel_id=${encodeURIComponent(channelId)}`); // KEY: member_check, messages_list
-    const messages = toChronological(data.messages || []);
+    const messages = data.messages;
 
     // Serialize to a compact string to detect changes. Avoids re-rendering
     // identical message lists and ensures the UI updates when the server
@@ -1184,9 +1347,74 @@ async function loadMessages(channelId, { silent = false } = {}) {
     setMessagesEmptyState(false);
     // Also hide the chat body so no stale UI remains visible
     mainChatUI.classList.add("hidden");
-    setMsg(postMsg, e.message || String(e), false);
-    flagQueryStatus("member_check", false);
-    flagQueryStatus("messages_list", false);
+    const errMsg = e.message || String(e);
+    setMsg(postMsg, errMsg, false);
+
+    const trace = Array.isArray(e.sqlTrace) ? e.sqlTrace : null;
+    if (trace) {
+      const keys = new Set(["member_check", "messages_list"]);
+      const seen = new Set();
+      for (const entry of trace) {
+        if (!entry?.key) continue;
+        seen.add(entry.key);
+        if (entry.status === "ok") {
+          flagQueryStatus(entry.key, true);
+          clearSqlError(entry.key);
+        } else if (entry.status === "error") {
+          flagQueryStatus(entry.key, false);
+          recordSqlError(entry.key, errMsg);
+        }
+      }
+      for (const key of keys) {
+        if (!seen.has(key)) {
+          flagQueryStatus(key, null);
+          clearSqlError(key);
+        }
+      }
+    }
+
+    let sqlKey = e.sqlKey;
+    if (!sqlKey && trace) {
+      const lastErr = trace.slice().reverse().find((t) => t && t.status === "error");
+      if (lastErr?.key) sqlKey = lastErr.key;
+    }
+    if (!sqlKey) sqlKey = inferMessagesSqlKey(errMsg);
+
+    if (sqlKey === "member_check") {
+      setMsg(channelMsg, errMsg, false); // surface membership error in chat tab
+      if (!trace) {
+        flagQueryStatus("member_check", false);
+        recordSqlError("member_check", errMsg);
+        flagQueryStatus("messages_list", null);
+        clearSqlError("messages_list");
+      }
+    } else if (sqlKey === "messages_list") {
+      if (!trace) {
+        flagQueryStatus("messages_list", false);
+        recordSqlError("messages_list", errMsg);
+        flagQueryStatus("member_check", true);
+        clearSqlError("member_check");
+      }
+    } else {
+      const lower = errMsg.toLowerCase();
+      const isMemberErr =
+        lower.includes("join this channel") ||
+        lower.includes("must join") ||
+        lower.includes("not a member");
+
+      if (isMemberErr) {
+        setMsg(channelMsg, errMsg, false);
+        if (!trace) {
+          flagQueryStatus("member_check", false);
+          recordSqlError("member_check", errMsg);
+          flagQueryStatus("messages_list", null);
+          clearSqlError("messages_list");
+        }
+      } else if (!trace) {
+        flagQueryStatus("messages_list", false);
+        recordSqlError("messages_list", errMsg);
+      }
+    }
     stopPolling();
   }
 }
@@ -1195,10 +1423,12 @@ async function loadMessages(channelId, { silent = false } = {}) {
 async function loadChannelMembers(channelId, channelName) {
   if (!memberModal || !memberModalList) return;
   memberModalList.innerHTML = `<div class="mutedSmall">Loading…</div>`;
+  if (memberModalMsg) setMsg(memberModalMsg, "");
   memberModalTitle.textContent = `Members • # ${channelName}`;
   memberModal.classList.remove("hidden");
 
   try {
+    recordSqlInput("channel_members_list", [channelId]);
     const data = await api(`/api/channels/members?channel_id=${encodeURIComponent(channelId)}`); // KEY: channel_members_list
     const members = data.members || [];
     if (!members || members.length === 0) {
@@ -1215,14 +1445,18 @@ async function loadChannelMembers(channelId, channelName) {
     flagQueryStatus("channel_members_list", true);
   } catch (err) {
     memberModalList.innerHTML = "";
-    setMsg(channelMsg, err.message || String(err), false);
+    const msg = err.message || String(err);
+    if (memberModalMsg) setMsg(memberModalMsg, msg, false);
+    else setMsg(channelMsg, msg, false);
     flagQueryStatus("channel_members_list", false);
+    recordSqlError("channel_members_list", msg);
   }
 }
 
 function hideMemberModal() {
   if (!memberModal) return;
   memberModal.classList.add("hidden");
+  if (memberModalMsg) setMsg(memberModalMsg, "");
 }
 
 // hook up modal close events
@@ -1365,11 +1599,16 @@ registerBtn.addEventListener("click", async () => {
     return;
   }
 
+  let step = "user_register";
   try {
     const hash = await sha512Hex(p);
+    recordSqlInput("user_register", [u, hash]);
     await api("/api/user/register", "POST", { username: u, password_hash: hash }); // KEY: user_register
     flagQueryStatus("user_register", true);
     setMsg(userAuthMsg, "Registered. Logging you in…", true);
+
+    step = "user_login";
+    recordSqlInput("user_login", [u]);
     await api("/api/user/login", "POST", { username: u, password_hash: hash }); // KEY: user_login
     flagQueryStatus("user_login", true);
 
@@ -1378,7 +1617,10 @@ registerBtn.addEventListener("click", async () => {
     await loadChannels();
     toast(`Welcome @${u}`);
   } catch (e) {
-    setMsg(userAuthMsg, e.message, false);
+    const msg = e.message || String(e);
+    setMsg(userAuthMsg, msg, false);
+    flagQueryStatus(step, false);
+    recordSqlError(step, msg);
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
@@ -1402,6 +1644,7 @@ userLoginBtn.addEventListener("click", async () => {
 
   try {
     const hash = await sha512Hex(p);
+    recordSqlInput("user_login", [u]);
     await api("/api/user/login", "POST", { username: u, password_hash: hash }); // KEY: user_login
     flagQueryStatus("user_login", true);
 
@@ -1417,6 +1660,7 @@ userLoginBtn.addEventListener("click", async () => {
       setMsg(userAuthMsg, m, false);
     }
     flagQueryStatus("user_login", false);
+    recordSqlError("user_login", e.message || String(e));
     state.chatUsername = null;
     state.activeChannelId = null;
     state.channels = [];
@@ -1477,6 +1721,7 @@ postNewChannelBtn.addEventListener("click", async () => {
 
   try {
     // console.log("Creating channel:", n, d);
+    recordSqlInput("channel_create", [n, d]);
     await api("/api/channels/create", "POST", { name: n, description: d }); // KEY: channel_create
     if (newChannelMsg) {
       setMsg(newChannelMsg, `Channel #${n} created.`, true);
@@ -1494,6 +1739,7 @@ postNewChannelBtn.addEventListener("click", async () => {
       setMsg(userAuthMsg, e.message, false);
     }
     flagQueryStatus("channel_create", false);
+    recordSqlError("channel_create", e.message || String(e));
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
@@ -1534,39 +1780,47 @@ sendBtn.addEventListener("click", async () => {
   };
 
   const stick = isAtBottom(messagesEl);
-  const currentMessages = Array.from(messagesEl.querySelectorAll(".msgRow")).length;
+  let optimisticRow = null;
 
   try {
-    if (currentMessages === 0) {
-      renderMessages([optimistic]);
-    } else {
-      const row = document.createElement("div");
-      row.className = "msgRow me";
-      const bubble = document.createElement("div");
-      bubble.className = "bubble me";
-      bubble.innerHTML = `
-        <div class="metaLine">
-          <span class="metaUser">${escapeHtml(optimistic.username)}</span>
-          <span class="metaTime">${escapeHtml(formatTime(optimistic.created_at))}</span>
-        </div>
-        <div class="msgText">${escapeHtml(optimistic.body)}</div>
-      `;
-      row.appendChild(bubble);
-      messagesEl.appendChild(row);
-      if (stick) scrollToBottom(messagesEl);
-    }
+    const row = document.createElement("div");
+    row.className = "msgRow me";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble me";
+    bubble.innerHTML = `
+      <div class="metaLine">
+        <span class="metaUser">${escapeHtml(optimistic.username)}</span>
+        <span class="metaTime">${escapeHtml(formatTime(optimistic.created_at))}</span>
+      </div>
+      <div class="msgText">${escapeHtml(optimistic.body)}</div>
+    `;
+    row.appendChild(bubble);
+    messagesEl.appendChild(row);
+    optimisticRow = row;
+    if (stick) scrollToBottom(messagesEl);
 
+    recordSqlInput("message_post", [state.chatUsername, state.activeChannelId, body]);
     await api("/api/message", "POST", { channel_id: state.activeChannelId, body }); // KEY: message_post
     composerInput.value = "";
     autosizeTextarea(composerInput);
     setMsg(postMsg, "Sent", true);
     flagQueryStatus("message_post", true);
 
-    await loadMessages(state.activeChannelId, { silent: true });
+    try {
+      await loadMessages(state.activeChannelId, { silent: true });
+    } catch (e) {
+      // loadMessages already handles its own status/errors
+    }
   } catch (e) {
-    setMsg(postMsg, e.message, false);
+    const errMsg = e.message || String(e);
+    setMsg(postMsg, errMsg, false);
     toast("Send failed");
     flagQueryStatus("message_post", false);
+    recordSqlError("message_post", errMsg);
+    if (optimisticRow && optimisticRow.parentElement) {
+      optimisticRow.remove();
+      if (messagesEl.childElementCount === 0) setMessagesEmptyState(true);
+    }
   } finally {
     sendBtn.disabled = false;
   }
@@ -1654,6 +1908,7 @@ function ensureResetModal() {
       const oldH = await sha512Hex(oldP);
       const newH = await sha512Hex(n1);
 
+      recordSqlInput("update_password", [u, newH, oldH]);
       await api("/api/user/reset_password", "POST", {
         username: u,
         old_password_hash: oldH,
@@ -1666,6 +1921,7 @@ function ensureResetModal() {
     } catch (err) {
       setMsg(resetMsgEl, err.message, false);
       flagQueryStatus("update_password", false);
+      recordSqlError("update_password", err.message || String(err));
     } finally {
       resetSaveBtn.disabled = false;
     }
@@ -1745,6 +2001,7 @@ connMenuDbLogout.addEventListener("click", async () => {
   state.activeChannelId = null;
   state.channels = [];
   state.isDbConnected = false;
+  resetSqlMeta();
 
   setActiveChannel(null);
   sessionStorage.removeItem(DB_USER_KEY);
