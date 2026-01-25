@@ -1104,6 +1104,39 @@ textarea:focus {
   transform: translateY(0);
 }
 
+@media (max-width: 1140px) {
+  .aboutFloating {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    z-index: 11;
+  }
+
+  .aboutFloating::after {
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -4px);
+  }
+
+  .aboutFloating::before {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .aboutFloating:hover::after,
+  .aboutFloating:focus::after {
+    transform: translate(-50%, 0);
+  }
+
+  .aboutFloating:hover::before,
+  .aboutFloating:focus::before {
+    transform: translateX(-50%) rotate(45deg);
+  }
+}
+
 .tabWrap {
   position: relative;
   display: inline-flex;
