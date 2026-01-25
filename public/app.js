@@ -323,7 +323,7 @@ function ensureSqlLabUI() {
     try {
       await api("/api/sql_templates/reset", "POST");
       await loadSqlTemplates();
-      setMsg(sqlLabMsg, "Reset to defaults.", true);
+      setMsg(sqlLabMsg, "Reset to SQL defaults.", true);
       setSqlLastSaved(new Date().toISOString());
     } catch (e) {
       setMsg(sqlLabMsg, e.message, false);
