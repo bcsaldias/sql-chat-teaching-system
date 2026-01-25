@@ -107,6 +107,7 @@ let _printGuardReady = false;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
+const sqlEditors = new Map();
 
 const SQL_LAB_GROUPS = [
   { id: "auth", title: "Auth & Users" },
@@ -301,6 +302,9 @@ function ensureSqlLabUI() {
 
   const blockSqlCopy = (e) => {
     if (!document.documentElement.classList.contains("sql-mode")) return;
+    const target = e.target instanceof Element ? e.target : null;
+    const inEditor = target && (target.closest("textarea.sqlInput") || target.closest(".CodeMirror"));
+    if (inEditor) return;
     e.preventDefault();
   };
 
@@ -322,6 +326,7 @@ function ensureSqlLabUI() {
     setMsg(sqlLabMsg, "");
     try {
       await api("/api/sql_templates/reset", "POST");
+      resetSqlEditorHeights();
       await loadSqlTemplates();
       setMsg(sqlLabMsg, "Reset to SQL defaults.", true);
       setSqlLastSaved(new Date().toISOString());
@@ -465,6 +470,10 @@ async function setTab(which) {
 
 function renderSqlLab(templates) {
   ensureSqlLabUI();
+  sqlEditors.forEach((editor) => {
+    if (editor && typeof editor.toTextArea === "function") editor.toTextArea();
+  });
+  sqlEditors.clear();
   sqlLabList.innerHTML = "";
 
   let globalIndex = 0;
@@ -594,10 +603,60 @@ function renderSqlLab(templates) {
       }
       if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
       outer.appendChild(ta);
+      sqlLabList.appendChild(outer);
+
+      if (window.CodeMirror) {
+        const editor = window.CodeMirror.fromTextArea(ta, {
+          mode: "text/x-sql",
+          lineNumbers: false,
+          lineWrapping: true,
+          viewportMargin: Infinity
+        });
+        editor.setValue(ta.value || "");
+        const storedHeight = getSqlEditorHeight(item.key);
+        const initialHeight = storedHeight ? `${storedHeight}px` : (item.textAreaHeight || "100px");
+        editor.setSize(null, initialHeight);
+        sqlEditors.set(item.key, editor);
+        requestAnimationFrame(() => editor.refresh());
+
+        const resizer = document.createElement("div");
+        resizer.className = "sqlResizeHandle";
+        resizer.title = "Drag to resize";
+        outer.appendChild(resizer);
+
+        let startY = 0;
+        let startH = 0;
+
+        const onMove = (e) => {
+          const dy = (e.touches?.[0]?.clientY ?? e.clientY) - startY;
+          const next = Math.max(80, startH + dy);
+          editor.setSize(null, `${next}px`);
+        };
+
+        const onUp = () => {
+          const height = editor.getWrapperElement().getBoundingClientRect().height;
+          setSqlEditorHeight(item.key, height);
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("mouseup", onUp);
+          window.removeEventListener("touchmove", onMove);
+          window.removeEventListener("touchend", onUp);
+        };
+
+        const onDown = (e) => {
+          e.preventDefault();
+          startY = e.touches?.[0]?.clientY ?? e.clientY;
+          startH = editor.getWrapperElement().getBoundingClientRect().height;
+          window.addEventListener("mousemove", onMove);
+          window.addEventListener("mouseup", onUp);
+          window.addEventListener("touchmove", onMove, { passive: false });
+          window.addEventListener("touchend", onUp);
+        };
+
+        resizer.addEventListener("mousedown", onDown);
+        resizer.addEventListener("touchstart", onDown, { passive: false });
+      }
 
       // TODO ADD green if correct query
-
-      sqlLabList.appendChild(outer);
     }
   }
 
@@ -679,7 +738,11 @@ function collectSqlLabInputs() {
   ensureSqlLabUI();
   const out = {};
   const areas = sqlLabList.querySelectorAll("textarea[data-sqlkey]");
-  for (const ta of areas) out[ta.dataset.sqlkey] = ta.value;
+  for (const ta of areas) {
+    const key = ta.dataset.sqlkey;
+    const editor = sqlEditors.get(key);
+    out[key] = editor ? editor.getValue() : ta.value;
+  }
   return out;
 }
 
@@ -733,6 +796,8 @@ state.messagesByChannel = {};
 const SQL_META_KEY = "info330_sql_meta";
 const sqlMeta = loadLocal(SQL_META_KEY, {});
 const SQL_LAST_SAVED_KEY = "info330_sql_last_saved";
+const SQL_EDITOR_HEIGHT_KEY = "info330_sql_editor_heights";
+const sqlEditorHeights = loadLocal(SQL_EDITOR_HEIGHT_KEY, {});
 
 // ----------------------------
 // Helpers
@@ -902,12 +967,40 @@ function resetSqlStatus() {
   clearSqlLastSaved();
   clearToast();
   setMsg(schemabMsg, "");
+  resetSqlEditorHeights();
   SQL_LAB_ITEMS.forEach((item) => {
     item.status = null;
     updateSqlItemUI(item.key);
   });
   confettiShown = false;
   updateSqlProgress();
+}
+
+function getSqlEditorHeight(key) {
+  const v = sqlEditorHeights?.[key];
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function setSqlEditorHeight(key, px) {
+  if (!key) return;
+  const n = Math.max(80, Math.round(Number(px)));
+  if (!Number.isFinite(n)) return;
+  sqlEditorHeights[key] = n;
+  saveLocal(SQL_EDITOR_HEIGHT_KEY, sqlEditorHeights);
+}
+
+function resetSqlEditorHeights() {
+  Object.keys(sqlEditorHeights).forEach((k) => delete sqlEditorHeights[k]);
+  saveLocal(SQL_EDITOR_HEIGHT_KEY, sqlEditorHeights);
+  SQL_LAB_ITEMS.forEach((item) => {
+    const editor = sqlEditors.get(item.key);
+    if (editor) {
+      const next = item.textAreaHeight || "100px";
+      editor.setSize(null, next);
+      editor.refresh();
+    }
+  });
 }
 
 function formatSqlValue(v) {

@@ -1450,7 +1450,56 @@ textarea:focus {
   outline: none;
 }
 
+#sqlLabList .CodeMirror {
+  width: 100%;
+  height: 100px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--panel);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#sqlLabList .CodeMirror-lines {
+  padding: 10px 12px;
+}
+
+#sqlLabList .CodeMirror-scroll {
+  height: 100%;
+}
+
+#sqlLabList .sqlResizeHandle {
+  height: 10px;
+  margin-top: 6px;
+  cursor: ns-resize;
+  position: relative;
+}
+
+#sqlLabList .sqlResizeHandle::before {
+  content: "";
+  position: absolute;
+  left: 40%;
+  right: 40%;
+  top: 4px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 999px;
+}
+
+#sqlLabList .CodeMirror-gutters {
+  background: transparent;
+  border-right: 0;
+}
+
 #sqlLabList textarea.sqlInput:focus {
+  border-color: var(--accent, #7c3aed);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, .15);
+}
+
+#sqlLabList .CodeMirror-focused {
   border-color: var(--accent, #7c3aed);
   box-shadow: 0 0 0 4px rgba(124, 58, 237, .15);
 }
