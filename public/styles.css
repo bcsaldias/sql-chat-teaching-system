@@ -1113,6 +1113,19 @@ textarea:focus {
   margin-top: 12px;
 }
 
+#sqlLabList .sqlSection {
+  margin: 30px 0 16px;
+  padding: 12px 4px;
+  border-bottom: 1px dashed var(--border);
+}
+
+#sqlLabList .sqlSectionTitle {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--text);
+}
+
 #sqlLabList .sqlItem {
   border: 1px solid var(--border, #e5e7eb);
   border-radius: 14px;

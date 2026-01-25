@@ -96,11 +96,18 @@ let confettiShown = false;
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
 
+const SQL_LAB_GROUPS = [
+  { id: "auth", title: "Auth & Users" },
+  { id: "channels", title: "Channels & Membership" },
+  { id: "messages", title: "Messages" }
+];
+
 const SQL_LAB_ITEMS = [
   {
     key: "user_login",
     status: null,
     title: "Log in button",
+    group: "auth",
     description: `
       <div><b>What happens:</b> user clicks <code>Log in</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
@@ -116,6 +123,7 @@ const SQL_LAB_ITEMS = [
     key: "user_register",
     status: null,
     title: "Sign up button",
+    group: "auth",
     description: `
       <div><b>What happens:</b> user clicks <code>Register</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>password_hash</b></div>
@@ -127,6 +135,7 @@ const SQL_LAB_ITEMS = [
     key: "update_password",
     status: null,
     title: "Reset password",
+    group: "auth",
     description: `
       <div><b>What happens:</b> user clicks <code>Reset password</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>new_password_hash</b></div>
@@ -137,6 +146,7 @@ const SQL_LAB_ITEMS = [
     key: "channels_list",
     status: null,
     title: "Display channels + membership",
+    group: "channels",
     description: `
       <div><b>What happens:</b> load sidebar channel list + join/leave state</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
@@ -151,9 +161,21 @@ const SQL_LAB_ITEMS = [
     ]
   },
   {
+    key: "member_check",
+    status: null,
+    title: "Check membership before loading messages",
+    group: "channels",
+    description: `
+      <div><b>What happens:</b> app checks access before showing messages</div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
+      <div><b>Must return:</b> at least one row only if the user is a member (no rows otherwise)</div>
+    `,
+  },
+  {
     key: "channel_join",
     status: null,
     title: "Join channel",
+    group: "channels",
     description: `
       <div><b>What happens:</b> user clicks <code>Join</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
@@ -165,6 +187,7 @@ const SQL_LAB_ITEMS = [
     key: "channel_leave",
     status: null,
     title: "Leave channel",
+    group: "channels",
     description: `
       <div><b>What happens:</b> user clicks <code>Leave</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
@@ -172,19 +195,10 @@ const SQL_LAB_ITEMS = [
     `,
   },
   {
-    key: "member_check",
-    status: null,
-    title: "Check membership before loading messages",
-    description: `
-      <div><b>What happens:</b> app checks access before showing messages</div>
-      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
-      <div><b>Must return:</b> at least one row only if the user is a member (no rows otherwise)</div>
-    `,
-  },
-  {
     key: "messages_list",
     status: null,
     title: "Display messages for a channel",
+    group: "messages",
     description: `
       <div><b>What happens:</b> load messages when a channel is opened</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
@@ -202,6 +216,7 @@ const SQL_LAB_ITEMS = [
     key: "message_post",
     status: null,
     title: "Send button: Post message",
+    group: "messages",
     description: `
       <div><b>What happens:</b> user clicks <code>Send</code></div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b>, <code>$2</code> = <b>username</b>, <code>$3</code> = <b>body</b></div>
@@ -210,24 +225,26 @@ const SQL_LAB_ITEMS = [
     // <div><b>Must return:</b> inserted <b>message id</b></div>
   },
   {
-    key: "channel_members_list",
-    status: null,
-    title: "Channel members list",
-    description: `
-      <div><b>What happens:</b> members modal opens</div>
-      <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
-    `,
-    expectedCols: [{ name: "username" }]
-  },
-  {
     key: "channel_create",
     status: null,
     title: "Create channel",
+    group: "channels",
     description: `
       <div><b>What happens:</b> user creates a new channel</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>name</b>, <code>$2</code> = <b>description</b></div>
     `,
     // <div><b>Must return:</b> new <b>channel_pk</b></div>
+  },
+  {
+    key: "channel_members_list",
+    status: null,
+    title: "Channel members list",
+    group: "channels",
+    description: `
+      <div><b>What happens:</b> members modal opens</div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
+    `,
+    expectedCols: [{ name: "username" }]
   }
 ];
 
@@ -372,122 +389,138 @@ function renderSqlLab(templates) {
   ensureSqlLabUI();
   sqlLabList.innerHTML = "";
 
-  for (const [index, item] of SQL_LAB_ITEMS.entries()) {
-    const outer = document.createElement("div");
-    outer.className = "sqlItem";
-    outer.dataset.sqlkey = item.key;
+  let globalIndex = 0;
+  for (const group of SQL_LAB_GROUPS) {
+    const items = SQL_LAB_ITEMS.filter((i) => i.group === group.id);
+    if (!items.length) continue;
 
-    const title = document.createElement("div");
-    title.className = "sqlTitle";
-    title.textContent = String(index) + ") " + item.title;
+    const section = document.createElement("div");
+    section.className = "sqlSection";
+    const sectionTitle = document.createElement("div");
+    sectionTitle.className = "sqlSectionTitle";
+    sectionTitle.textContent = group.title;
+    section.appendChild(sectionTitle);
+    sqlLabList.appendChild(section);
 
-    const queryStatus = document.createElement("span");
-    queryStatus.className = "queryStatus";
+    for (const item of items) {
+      globalIndex += 1;
 
-    if (item.status) queryStatus.classList.add("is-pass");
-    else if (item.status === false) queryStatus.classList.add("is-fail");
+      const outer = document.createElement("div");
+      outer.className = "sqlItem";
+      outer.dataset.sqlkey = item.key;
 
-    // console.log("STATUS", item.status, item.title);
-    queryStatus.dataset.tip = item.status ? "Query runs." :
-      item.status === false ? "Try again." :
-        "Not tested";
+      const title = document.createElement("div");
+      title.className = "sqlTitle";
+      title.textContent = String(globalIndex) + ") " + item.title;
 
-    // if (item.key === "user_login" && item.status === false) {
-    //   item.status = userAuthMsg.textContent ? userAuthMsg.textContent : "Try again.";
-    // }
+      const queryStatus = document.createElement("span");
+      queryStatus.className = "queryStatus";
 
-    const desc = document.createElement("div");
-    desc.className = "sqlDesc";
-    // desc.textContent = item.description || "";
-    desc.innerHTML = item.description || "";
+      if (item.status) queryStatus.classList.add("is-pass");
+      else if (item.status === false) queryStatus.classList.add("is-fail");
 
-    const req = document.createElement("pre");
-    req.className = "sqlRequired";
-    req.textContent = item.required;
+      // console.log("STATUS", item.status, item.title);
+      queryStatus.dataset.tip = item.status ? "Query runs." :
+        item.status === false ? "Try again." :
+          "Not tested";
 
-    const ta = document.createElement("textarea");
-    ta.className = "sqlInput";
-    ta.dataset.sqlkey = item.key;
-    const s = String(templates[item.key] ?? "").trimEnd();
-    ta.value = s ? (s.endsWith(";") ? s : s + ";") : "";
-    // for a given text area color keywords, SELECT, INSERT, ...
+      // if (item.key === "user_login" && item.status === false) {
+      //   item.status = userAuthMsg.textContent ? userAuthMsg.textContent : "Try again.";
+      // }
 
-    const headerRow = document.createElement("div");
-    headerRow.className = "sqlItemHeader";
-    headerRow.appendChild(title);
-    headerRow.appendChild(queryStatus);
-    outer.appendChild(headerRow);
+      const desc = document.createElement("div");
+      desc.className = "sqlDesc";
+      // desc.textContent = item.description || "";
+      desc.innerHTML = item.description || "";
 
-    outer.appendChild(desc);
-    if (item.expectedCols && item.expectedCols.length) {
-      const chips = document.createElement("div");
-      chips.className = "sqlChips";
+      const req = document.createElement("pre");
+      req.className = "sqlRequired";
+      req.textContent = item.required;
 
-      const label = document.createElement("div");
-      label.className = "sqlChipLabel";
-      label.textContent = "Expected columns";
+      const ta = document.createElement("textarea");
+      ta.className = "sqlInput";
+      ta.dataset.sqlkey = item.key;
+      const s = String(templates[item.key] ?? "").trimEnd();
+      ta.value = s ? (s.endsWith(";") ? s : s + ";") : "";
+      // for a given text area color keywords, SELECT, INSERT, ...
 
-      const row = document.createElement("div");
-      row.className = "sqlChipRow";
-      for (const col of item.expectedCols) {
-        const chip = document.createElement("span");
-        chip.className = "sqlChip";
-        const name = (col && typeof col === "object") ? col.name : col;
-        const type = (col && typeof col === "object") ? col.type : null;
-        if (type) {
-          const nameEl = document.createElement("span");
-          nameEl.className = "sqlChipName";
-          nameEl.textContent = name;
-          const typeEl = document.createElement("span");
-          typeEl.className = "sqlChipType";
-          typeEl.textContent = type;
-          chip.appendChild(nameEl);
-          chip.appendChild(typeEl);
-        } else {
-          chip.textContent = name;
+      const headerRow = document.createElement("div");
+      headerRow.className = "sqlItemHeader";
+      headerRow.appendChild(title);
+      headerRow.appendChild(queryStatus);
+      outer.appendChild(headerRow);
+
+      outer.appendChild(desc);
+      if (item.expectedCols && item.expectedCols.length) {
+        const chips = document.createElement("div");
+        chips.className = "sqlChips";
+
+        const label = document.createElement("div");
+        label.className = "sqlChipLabel";
+        label.textContent = "Expected columns";
+
+        const row = document.createElement("div");
+        row.className = "sqlChipRow";
+        for (const col of item.expectedCols) {
+          const chip = document.createElement("span");
+          chip.className = "sqlChip";
+          const name = (col && typeof col === "object") ? col.name : col;
+          const type = (col && typeof col === "object") ? col.type : null;
+          if (type) {
+            const nameEl = document.createElement("span");
+            nameEl.className = "sqlChipName";
+            nameEl.textContent = name;
+            const typeEl = document.createElement("span");
+            typeEl.className = "sqlChipType";
+            typeEl.textContent = type;
+            chip.appendChild(nameEl);
+            chip.appendChild(typeEl);
+          } else {
+            chip.textContent = name;
+          }
+          row.appendChild(chip);
         }
-        row.appendChild(chip);
+
+        chips.appendChild(label);
+        chips.appendChild(row);
+        outer.appendChild(chips);
       }
+      if (item.required) outer.appendChild(req);
+      const meta = sqlMeta[item.key] || {};
+      if (meta.lastInput) {
+        const metaBlock = document.createElement("div");
+        metaBlock.className = "sqlMeta";
+        const metaLabel = document.createElement("div");
+        metaLabel.className = "sqlMetaLabel";
+        metaLabel.textContent = "Last input";
+        const metaCode = document.createElement("pre");
+        metaCode.className = "sqlMetaCode";
+        const inputArr = Array.isArray(meta.lastInput) ? meta.lastInput : [meta.lastInput];
+        metaCode.textContent = formatSqlInputs(inputArr);
+        metaBlock.appendChild(metaLabel);
+        metaBlock.appendChild(metaCode);
+        outer.appendChild(metaBlock);
+      }
+      if (meta.lastError) {
+        const errBlock = document.createElement("div");
+        errBlock.className = "sqlMeta sqlMetaError";
+        const errLabel = document.createElement("div");
+        errLabel.className = "sqlMetaLabel";
+        errLabel.textContent = "Last error";
+        const errText = document.createElement("div");
+        errText.className = "sqlMetaText";
+        errText.textContent = meta.lastError;
+        errBlock.appendChild(errLabel);
+        errBlock.appendChild(errText);
+        outer.appendChild(errBlock);
+      }
+      if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
+      outer.appendChild(ta);
 
-      chips.appendChild(label);
-      chips.appendChild(row);
-      outer.appendChild(chips);
-    }
-    if (item.required) outer.appendChild(req);
-    const meta = sqlMeta[item.key] || {};
-    if (meta.lastInput) {
-      const metaBlock = document.createElement("div");
-      metaBlock.className = "sqlMeta";
-      const metaLabel = document.createElement("div");
-      metaLabel.className = "sqlMetaLabel";
-      metaLabel.textContent = "Last input";
-      const metaCode = document.createElement("pre");
-      metaCode.className = "sqlMetaCode";
-      const inputArr = Array.isArray(meta.lastInput) ? meta.lastInput : [meta.lastInput];
-      metaCode.textContent = formatSqlInputs(inputArr);
-      metaBlock.appendChild(metaLabel);
-      metaBlock.appendChild(metaCode);
-      outer.appendChild(metaBlock);
-    }
-    if (meta.lastError) {
-      const errBlock = document.createElement("div");
-      errBlock.className = "sqlMeta sqlMetaError";
-      const errLabel = document.createElement("div");
-      errLabel.className = "sqlMetaLabel";
-      errLabel.textContent = "Last error";
-      const errText = document.createElement("div");
-      errText.className = "sqlMetaText";
-      errText.textContent = meta.lastError;
-      errBlock.appendChild(errLabel);
-      errBlock.appendChild(errText);
-      outer.appendChild(errBlock);
-    }
-    if (item.textAreaHeight) ta.style.height = item.textAreaHeight;
-    outer.appendChild(ta);
+      // TODO ADD green if correct query
 
-    // TODO ADD green if correct query
-
-    sqlLabList.appendChild(outer);
+      sqlLabList.appendChild(outer);
+    }
   }
 
   updateSqlProgress();
