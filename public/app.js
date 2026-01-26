@@ -109,6 +109,7 @@ let _printGuardReady = false;
 let _lastSqlTemplates = null;
 const sqlEditors = new Map();
 const MAX_SQL_LEN = 600; // to make sure students don't go too long.
+const SQL_LEN_WARN = Math.floor(MAX_SQL_LEN * 0.9);
 
 const SQL_LAB_GROUPS = [
   { id: "auth", title: "Auth & Users" },
@@ -635,22 +636,43 @@ function renderSqlLab(templates) {
           const inserted = change.text ? change.text.join("\n") : "";
           const nextLen = currentLen - removed.length + inserted.length;
 
-          if (currentLen <= MAX_SQL_LEN) {
-            if (nextLen > MAX_SQL_LEN) {
-              change.cancel();
-              const now = Date.now();
-              if (!cm._maxToastAt || now - cm._maxToastAt > 1200) {
-                toast(`Max SQL length is ${MAX_SQL_LEN} characters.`);
-                cm._maxToastAt = now;
-              }
-            }
-          } else if (nextLen > currentLen) {
-            change.cancel();
+          const showMaxToast = () => {
             const now = Date.now();
             if (!cm._maxToastAt || now - cm._maxToastAt > 1200) {
               toast(`Max SQL length is ${MAX_SQL_LEN} characters.`);
               cm._maxToastAt = now;
             }
+          };
+
+          const showWarnToast = () => {
+            const now = Date.now();
+            if (!cm._warnToastAt || now - cm._warnToastAt > 2000) {
+              toast(`Approaching max SQL length (${MAX_SQL_LEN}).`);
+              cm._warnToastAt = now;
+            }
+          };
+
+          if (currentLen > MAX_SQL_LEN && nextLen > currentLen) {
+            change.cancel();
+            showMaxToast();
+            return;
+          }
+
+          if (nextLen > MAX_SQL_LEN) {
+            const allowed = MAX_SQL_LEN - (currentLen - removed.length);
+            if (allowed <= 0) {
+              change.cancel();
+              showMaxToast();
+              return;
+            }
+            const truncated = inserted.slice(0, allowed);
+            change.update(change.from, change.to, truncated.split("\n"));
+            showMaxToast();
+            return;
+          }
+
+          if (nextLen >= SQL_LEN_WARN && nextLen > currentLen) {
+            showWarnToast();
           }
         });
         const storedHeight = getSqlEditorHeight(item.key);
