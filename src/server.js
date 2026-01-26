@@ -333,10 +333,14 @@ function normalizeSingleStatement(sql) {
 }
 
 const ALLOWED_SQL_FIRST_WORDS = new Set(["select", "insert", "delete", "update", "with"]);
+const MAX_SQL_TEMPLATE_LEN = 600;
 const COUNT_STAR_RE = /\bcount\s*\(\s*\*\s*\)/i;
 const STAR_WITHOUT_COUNT_RE = /\*(?!\s*\))/; // bare star
 
 function validateSqlTemplate(key, normalized) {
+  if (normalized.length > MAX_SQL_TEMPLATE_LEN) {
+    throw new Error(`Template "${key}" exceeds ${MAX_SQL_TEMPLATE_LEN} characters.`);
+  }
   const firstWord = normalized.trim().split(/\s+/)[0].toLowerCase();
   if (!ALLOWED_SQL_FIRST_WORDS.has(firstWord)) {
     throw new Error(`Template "${key}" must start with SELECT/INSERT/DELETE/UPDATE/WITH.`);
