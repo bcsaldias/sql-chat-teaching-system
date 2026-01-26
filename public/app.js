@@ -103,6 +103,7 @@ let sqlProgressText = null;
 let sqlProgressBar = null;
 let sqlLastSavedEl = null;
 let confettiShown = false;
+let sqlSubmissionInFlight = false;
 let _printGuardReady = false;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
@@ -737,6 +738,7 @@ function updateSqlProgress() {
     if (!confettiShown) {
       confettiShown = true;
       launchConfetti();
+      // submitSqlSnapshot();
     }
   } else {
     confettiShown = false;
@@ -850,6 +852,24 @@ async function saveSqlTemplatesIfChanged() {
   _lastSqlTemplates = templates;
   setSqlLastSaved(new Date().toISOString());
   return true;
+}
+
+async function submitSqlSnapshot() {
+  if (sqlSubmissionInFlight) return;
+  sqlSubmissionInFlight = true;
+  try {
+    const data = await api("/api/sql_templates/submit", "POST");
+    if (data?.filename) {
+      console.info("SQL snapshot saved:", data.filename);
+      setTimeout(() => {
+        toast("Saved — your submission is on file.");
+      }, 2200);
+    }
+  } catch (e) {
+    console.warn("SQL snapshot submission failed:", e?.message || e);
+  } finally {
+    sqlSubmissionInFlight = false;
+  }
 }
 
 

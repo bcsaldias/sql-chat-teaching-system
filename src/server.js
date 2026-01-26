@@ -15,6 +15,7 @@ const HEALTHCHECK_DB_PASS = process.env.HEALTHCHECK_DB_PASS || "demo";
 const GIT_SHA = process.env.GIT_SHA || readGitSha() || "unknown";
 const DEPLOYED_BY = process.env.DEPLOYED_BY || "unknown";
 const DEPLOYED_AT = new Date().toISOString();
+const SUBMISSIONS_DIR = process.env.SQL_SUBMISSIONS_DIR || path.join(__dirname, "..", "submissions");
 const PT_TZ = "America/Los_Angeles";
 function formatPt(iso) {
   const base = new Date(iso).toLocaleString("sv-SE", { timeZone: PT_TZ, hour12: false });
@@ -364,10 +365,57 @@ function validateSqlTemplate(key, normalized) {
   }
 }
 
+function safeFilenamePart(value) {
+  return String(value || "unknown").replace(/[^a-zA-Z0-9_-]/g, "_");
+}
 
--// =====================================================
--// API routes
--// =====================================================
+function buildSqlSnapshot(req) {
+  const dbUser = String(req.session?.dbUser || "unknown");
+  const submittedAt = new Date().toISOString();
+  const keys = Object.keys(DEFAULT_SQL);
+  const templates = {};
+  const lines = [
+    `-- db_user: ${dbUser}`,
+    `-- submitted_at: ${submittedAt}`,
+    "--"
+  ];
+
+  for (const key of keys) {
+    const sql = getSql(req, key);
+    templates[key] = sql;
+    lines.push(`-- ${key}`);
+    lines.push(`${sql};`);
+    lines.push("");
+  }
+
+  const content = lines.join("\n").trimEnd() + "\n";
+  return { dbUser, submittedAt, templates, content };
+}
+
+function writeSqlSnapshotFile(snapshot) {
+  const safeUser = safeFilenamePart(snapshot.dbUser);
+  const safeStamp = safeFilenamePart(snapshot.submittedAt);
+  const base = `${safeUser}_${safeStamp}`;
+
+  fs.mkdirSync(SUBMISSIONS_DIR, { recursive: true });
+
+  let filename = `${base}.sql`;
+  let fullPath = path.join(SUBMISSIONS_DIR, filename);
+  let i = 1;
+  while (fs.existsSync(fullPath)) {
+    filename = `${base}_${i}.sql`;
+    fullPath = path.join(SUBMISSIONS_DIR, filename);
+    i += 1;
+  }
+
+  fs.writeFileSync(fullPath, snapshot.content, "utf8");
+  return { filename, fullPath };
+}
+
+
+// =====================================================
+// API routes
+// =====================================================
 
 app.get("/api/sql_templates", requireGroupLogin, (req, res) => {
   res.json({ ok: true, templates: getMergedTemplates(req) });
@@ -401,6 +449,24 @@ app.post("/api/sql_templates/reset", requireGroupLogin, (req, res) => {
     console.log('[sql_templates] reset to defaults');
   } catch (e) { }
   res.json({ ok: true, templates: merged });
+});
+
+app.post("/api/sql_templates/submit", requireGroupLogin, (req, res) => {
+  try {
+    const snapshot = buildSqlSnapshot(req);
+    const { filename } = writeSqlSnapshotFile(snapshot);
+    res.json({
+      ok: true,
+      filename,
+      dbUser: snapshot.dbUser,
+      submittedAt: snapshot.submittedAt
+    });
+  } catch (e) {
+    res.status(400).json({
+      error: "Failed to submit SQL templates.",
+      detail: String(e.message || e)
+    });
+  }
 });
 // =====================================================
 
