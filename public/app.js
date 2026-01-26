@@ -528,6 +528,7 @@ function renderSqlLab(templates) {
       const ta = document.createElement("textarea");
       ta.className = "sqlInput";
       ta.dataset.sqlkey = item.key;
+      ta.maxLength = MAX_SQL_LEN;
       const s = String(templates[item.key] ?? "").trimEnd();
       ta.value = s ? (s.endsWith(";") ? s : s + ";") : "";
       // for a given text area color keywords, SELECT, INSERT, ...
