@@ -108,6 +108,7 @@ let _printGuardReady = false;
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
 let _lastSqlTemplates = null;
 const sqlEditors = new Map();
+const MAX_SQL_LEN = 600; // to make sure students don't go too long.
 
 const SQL_LAB_GROUPS = [
   { id: "auth", title: "Auth & Users" },
@@ -626,6 +627,31 @@ function renderSqlLab(templates) {
           viewportMargin: Infinity
         });
         editor.setValue(ta.value || "");
+        editor.on("beforeChange", (cm, change) => {
+          if (change.origin === "setValue") return;
+          const currentLen = cm.getValue().length;
+          const removed = cm.getRange(change.from, change.to);
+          const inserted = change.text ? change.text.join("\n") : "";
+          const nextLen = currentLen - removed.length + inserted.length;
+
+          if (currentLen <= MAX_SQL_LEN) {
+            if (nextLen > MAX_SQL_LEN) {
+              change.cancel();
+              const now = Date.now();
+              if (!cm._maxToastAt || now - cm._maxToastAt > 1200) {
+                toast(`Max SQL length is ${MAX_SQL_LEN} characters.`);
+                cm._maxToastAt = now;
+              }
+            }
+          } else if (nextLen > currentLen) {
+            change.cancel();
+            const now = Date.now();
+            if (!cm._maxToastAt || now - cm._maxToastAt > 1200) {
+              toast(`Max SQL length is ${MAX_SQL_LEN} characters.`);
+              cm._maxToastAt = now;
+            }
+          }
+        });
         const storedHeight = getSqlEditorHeight(item.key);
         const initialHeight = storedHeight ? `${storedHeight}px` : (item.textAreaHeight || "100px");
         editor.setSize(null, initialHeight);
