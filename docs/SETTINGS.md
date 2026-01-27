@@ -22,11 +22,5 @@ This project has a few places where server and client settings must stay in sync
 - **Why (student-facing)**: prevents confusing guidance on auth/validation mistakes while still pointing students to the SQL Lab when their query is the cause.
 - **Why this matters for beginners**: first-time coders anchor on the first error they see; if it points to the wrong place, they lose time and confidence. Tagging SQL errors keeps feedback accurate and reduces random trial-and-error.
 
-## When adding a new feature that uses SQL templates
-1. Add the template key to `SQL_CONTRACT` in `src/utils.js`.
-2. Add the solution SQL in `src/utils.js` → `SOLUTION_SQL`.
-3. Add the SQL lab item in `public/app.js` (key, group, description).
-4. Use the same key in client calls to `recordSqlInput/flagQueryStatus/recordSqlError`.
-5. Ensure any server errors for that route include `sqlError` and `sqlKey`.
-6. Route all template queries through `runSql` in `src/server.js` (ensures column validation + sqlError tagging).
-7. Verify `applySqlContract()` is called after loading `/api/sql_templates` so expected columns render.
+## Extending checklist
+See `docs/EXTENDING.md` for the step-by-step checklist when adding new SQL Lab items or API routes. This doc focuses on the contract rules and alignment requirements.
