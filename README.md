@@ -140,6 +140,7 @@ The app can log partial SQL progress over time. The client reports pass counts a
 
 A simple dashboard is available at `/instructor` (paste your token to view progress).
 History limits return the most recent N entries (newest first in the UI). The DB user filter matches partial names (case-insensitive).
+If your DB usernames include section suffixes (e.g., `_ba`, `_bb`, `_ca`, `_cb`), the dashboard can summarize counts and average best progress per section using that suffix.
 
 
 ## Feature flags and env toggles
