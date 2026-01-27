@@ -30,6 +30,7 @@ function registerInstructorRoutes(app, options = {}) {
   const progressBest = new Map();
   const progressKeySets = new Map();
   let progressCacheLoaded = false;
+  const SECTION_ORDER = ["ba", "bb", "ca", "cb"];
 
   function normalizePassedKeys(keys) {
     return Array.isArray(keys) ? keys.map(String).sort() : [];
@@ -110,6 +111,46 @@ function registerInstructorRoutes(app, options = {}) {
     return out;
   }
 
+  function getSectionCode(dbUser) {
+    const m = String(dbUser || "").toLowerCase().match(/_([a-z0-9]+)$/);
+    return m ? m[1] : null;
+  }
+
+  function buildSectionStats(dbUserNeedle, matchesDbUser) {
+    const buckets = new Map();
+    for (const entry of progressBest.values()) {
+      if (!matchesDbUser(entry)) continue;
+      const section = getSectionCode(entry.dbUser);
+      if (!section) continue;
+      const total = Number(entry.totalCount || 0);
+      const passed = Number(entry.passedCount || 0);
+      const pct = total > 0 ? (passed / total) * 100 : 0;
+      const prev = buckets.get(section) || { section, groupCount: 0, sumPercent: 0 };
+      prev.groupCount += 1;
+      prev.sumPercent += pct;
+      buckets.set(section, prev);
+    }
+
+    const out = [];
+    const seen = new Set();
+    for (const section of SECTION_ORDER) {
+      const data = buckets.get(section) || { section, groupCount: 0, sumPercent: 0 };
+      const avg = data.groupCount ? data.sumPercent / data.groupCount : 0;
+      out.push({ section, groupCount: data.groupCount, avgPercent: Math.round(avg * 10) / 10 });
+      seen.add(section);
+    }
+
+    const extra = Array.from(buckets.keys())
+      .filter((s) => !seen.has(s))
+      .sort((a, b) => String(a).localeCompare(String(b)));
+    for (const section of extra) {
+      const data = buckets.get(section);
+      const avg = data.groupCount ? data.sumPercent / data.groupCount : 0;
+      out.push({ section, groupCount: data.groupCount, avgPercent: Math.round(avg * 10) / 10 });
+    }
+    return out;
+  }
+
   function requireInstructor(req, res, next) {
     const token = process.env.INSTRUCTOR_TOKEN;
     if (!token) return res.status(403).json({ error: "Instructor access not configured." });
@@ -168,8 +209,9 @@ function registerInstructorRoutes(app, options = {}) {
       .filter(matchesDbUser)
       .sort((a, b) => String(a.dbUser).localeCompare(String(b.dbUser)));
     const keyStats = buildKeyStats(dbUserNeedle);
+    const sectionStats = buildSectionStats(dbUserNeedle, matchesDbUser);
 
-    if (!wantHistory) return res.json({ ok: true, latest, best, keyStats });
+    if (!wantHistory) return res.json({ ok: true, latest, best, keyStats, sectionStats });
 
     const limit = Math.max(1, Math.min(1000, Number(req.query?.limit || 200)));
     const history = [];
@@ -185,7 +227,7 @@ function registerInstructorRoutes(app, options = {}) {
         } catch { }
       }
     }
-    res.json({ ok: true, latest, best, history, keyStats });
+    res.json({ ok: true, latest, best, history, keyStats, sectionStats });
   });
 }
 

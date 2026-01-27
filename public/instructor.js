@@ -16,6 +16,8 @@ const latestRows = el("latestRows");
 const groupViewTitle = el("groupViewTitle");
 const keyStatsRows = el("keyStatsRows");
 const keyStatsSummary = el("keyStatsSummary");
+const sectionStatsRows = el("sectionStatsRows");
+const sectionStatsSummary = el("sectionStatsSummary");
 const historyCard = el("historyCard");
 const historySummary = el("historySummary");
 const historyRows = el("historyRows");
@@ -29,6 +31,7 @@ let latestCache = [];
 let historyCache = [];
 let bestCache = [];
 let keyStatsCache = [];
+let sectionStatsCache = [];
 
 function setMsg(text, ok = false) {
   loadMsg.textContent = text || "";
@@ -110,6 +113,30 @@ function renderKeyStats(list) {
   }
 }
 
+function renderSectionStats(list) {
+  if (!sectionStatsRows) return;
+  sectionStatsRows.innerHTML = "";
+  if (!Array.isArray(list) || list.length === 0) {
+    sectionStatsRows.innerHTML = `<tr><td colspan="3" class="mutedSmall">No section stats yet.</td></tr>`;
+    if (sectionStatsSummary) sectionStatsSummary.textContent = "No data yet.";
+    return;
+  }
+  for (const entry of list) {
+    const tr = document.createElement("tr");
+    const section = entry.section ? String(entry.section).toUpperCase() : "—";
+    const avg = Number(entry.avgPercent || 0);
+    tr.innerHTML = `
+      <td><code>${escapeHtml(section)}</code></td>
+      <td>${escapeHtml(String(entry.groupCount ?? 0))}</td>
+      <td>${escapeHtml(avg.toFixed(1))}%</td>
+    `;
+    sectionStatsRows.appendChild(tr);
+  }
+  if (sectionStatsSummary) {
+    sectionStatsSummary.textContent = `${list.length} section${list.length === 1 ? "" : "s"} reported`;
+  }
+}
+
 function renderHistory(list) {
   historyRows.innerHTML = "";
   if (!Array.isArray(list) || list.length === 0) {
@@ -172,6 +199,8 @@ async function loadProgress() {
     renderCurrentView();
     keyStatsCache = Array.isArray(data.keyStats) ? data.keyStats : [];
     renderKeyStats(keyStatsCache);
+    sectionStatsCache = Array.isArray(data.sectionStats) ? data.sectionStats : [];
+    renderSectionStats(sectionStatsCache);
 
     if (historyToggle.checked) {
       historyCard.classList.remove("hidden");
