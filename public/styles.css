@@ -388,6 +388,10 @@ textarea:focus {
   margin-top: 12px;
 }
 
+.row .btn {
+  flex: 0 0 auto;
+}
+
 .btn {
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -441,6 +445,12 @@ textarea:focus {
   min-height: 18px;
   font-size: 13px;
   margin-left: 6px;
+}
+
+.row .msg {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .msg.ok {
