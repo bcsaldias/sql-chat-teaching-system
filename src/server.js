@@ -130,6 +130,62 @@ async function dropPool(dbUser, dbPass) {
   await pool.end();
 }
 
+const DB_AUTH_ERROR_CODES = new Set(["28P01", "28000"]);
+function isDbAuthError(err) {
+  if (!err) return false;
+  const code = err.code || err?.cause?.code;
+  if (code && DB_AUTH_ERROR_CODES.has(code)) return true;
+  const msg = String(err.message || err).toLowerCase();
+  return (
+    msg.includes("password authentication failed") ||
+    msg.includes("role") && msg.includes("does not exist") ||
+    msg.includes("no pg_hba.conf entry")
+  );
+}
+
+function clearDbSession(req) {
+  if (!req.session) return;
+  req.session.dbUser = null;
+  req.session.dbPass = null;
+  req.session.chatUsername = null;
+  req.session.chatSchemaInfo = null;
+}
+
+async function handleDbAuthFailure(req, res, err) {
+  if (!isDbAuthError(err)) return false;
+  const { dbUser, dbPass } = req.session || {};
+  try { await dropPool(dbUser, dbPass); } catch { }
+  clearDbSession(req);
+  res.status(401).json({
+    error: "Not logged in to group database.",
+    detail: "Database authentication failed. Please log in again."
+  });
+  return true;
+}
+
+function dbError(error, detail, status = 400, extra = null) {
+  const body = { error, detail };
+  if (extra && typeof extra === "object") Object.assign(body, extra);
+  return { status, body };
+}
+
+function dbRoute(handler, errorFactory) {
+  return async (req, res, next) => {
+    try {
+      await handler(req, res, next);
+    } catch (e) {
+      if (await handleDbAuthFailure(req, res, e)) return;
+      if (typeof errorFactory === "function") {
+        const resp = errorFactory(e, req) || {};
+        const status = resp.status || 400;
+        const body = resp.body || { error: "Request failed.", detail: String(e?.message || e) };
+        return res.status(status).json(body);
+      }
+      next(e);
+    }
+  };
+}
+
 function requireGroupLogin(req, res, next) {
   if (!req.session?.dbUser || !req.session?.dbPass) {
     return res.status(401).json({ error: "Not logged in to group database." });
@@ -497,20 +553,17 @@ app.post("/api/login", async (req, res) => {
 });
 
 
-app.post("/api/credentials_login", requireGroupLogin, async (req, res) => {
+app.post("/api/credentials_login", requireGroupLogin, dbRoute(async (req, res) => {
   const username = req.session.dbUser;
   const password = req.session.dbPass;
 
-  try {
-    await testDbLogin(username, password);
-    res.json({ ok: true, dbUser: username });
-  } catch (e) {
-    res.status(401).json({
-      error: "Login failed. Check username/password and connectivity.",
-      detail: String(e.message || e)
-    });
-  }
-});
+  await testDbLogin(username, password);
+  res.json({ ok: true, dbUser: username });
+}, (e) => dbError(
+  "Login failed. Check username/password and connectivity.",
+  String(e.message || e),
+  401
+)));
 
 
 
@@ -539,7 +592,7 @@ app.get("/logout", async (req, res) => {
 // --------------------
 // User auth
 // --------------------
-app.post("/api/user/register", requireGroupLogin, async (req, res) => {
+app.post("/api/user/register", requireGroupLogin, dbRoute(async (req, res) => {
   const { username, password_hash } = req.body || {};
   const u = String(username || "").trim();
   const h = String(password_hash || "").trim();
@@ -549,21 +602,19 @@ app.post("/api/user/register", requireGroupLogin, async (req, res) => {
 
   const { dbUser, dbPass } = req.session;
 
-  try {
-    await withDb(dbUser, dbPass, async (client) => {
-      await client.query(getSql(req, "user_register"), [u, h]);
-    });
-    res.json({ ok: true });
-  } catch (e) {
-    const msg = String(e.message || e);
-    if (msg.includes("duplicate key") || msg.includes("already exists")) {
-      return res.status(409).json({ error: "Username already exists." });
-    }
-    res.status(400).json({ error: "Registration failed.", detail: msg });
+  await withDb(dbUser, dbPass, async (client) => {
+    await client.query(getSql(req, "user_register"), [u, h]);
+  });
+  res.json({ ok: true });
+}, (e) => {
+  const msg = String(e.message || e);
+  if (msg.includes("duplicate key") || msg.includes("already exists")) {
+    return dbError("Username already exists.", null, 409);
   }
-});
+  return dbError("Registration failed.", msg);
+}));
 
-app.post("/api/user/login", requireGroupLogin, async (req, res) => {
+app.post("/api/user/login", requireGroupLogin, dbRoute(async (req, res) => {
   const { username, password_hash } = req.body || {};
   const u = String(username || "").trim();
   const h = String(password_hash || "").trim();
@@ -573,21 +624,17 @@ app.post("/api/user/login", requireGroupLogin, async (req, res) => {
 
   const { dbUser, dbPass } = req.session;
 
-  try {
-    const ok = await withDb(dbUser, dbPass, async (client) => {
-      const r = await client.query(getSql(req, "user_login"), [u]);
-      if (r.rowCount === 0) return false;
-      return r.rows[0].password === h;
-    });
+  const ok = await withDb(dbUser, dbPass, async (client) => {
+    const r = await client.query(getSql(req, "user_login"), [u]);
+    if (r.rowCount === 0) return false;
+    return r.rows[0].password === h;
+  });
 
-    if (!ok) return res.status(401).json({ error: "Invalid username or password." });
+  if (!ok) return res.status(401).json({ error: "Invalid username or password." });
 
-    req.session.chatUsername = u;
-    res.json({ ok: true, username: u });
-  } catch (e) {
-    res.status(400).json({ error: "Login failed.", detail: String(e.message || e) });
-  }
-});
+  req.session.chatUsername = u;
+  res.json({ ok: true, username: u });
+}, (e) => dbError("Login failed.", String(e.message || e))));
 
 app.post("/api/user/logout", requireGroupLogin, (req, res) => {
   req.session.chatUsername = null;
@@ -597,40 +644,31 @@ app.post("/api/user/logout", requireGroupLogin, (req, res) => {
 // --------------------
 // Channels
 // --------------------
-app.get("/api/channels", requireGroupLogin, requireChatUser, async (req, res) => {
+app.get("/api/channels", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   const { dbUser, dbPass, chatUsername } = req.session;
 
-  try {
-    const channels = await withDb(dbUser, dbPass, async (client) => {
-      const r = await client.query(getSql(req, "channels_list"), [chatUsername]);
-      return r.rows;
-    });
+  const channels = await withDb(dbUser, dbPass, async (client) => {
+    const r = await client.query(getSql(req, "channels_list"), [chatUsername]);
+    return r.rows;
+  });
 
-    res.json({ ok: true, channels });
-  } catch (e) {
-    res.status(400).json({ error: "Failed to load channels.", detail: String(e.message || e) });
-  }
-});
+  res.json({ ok: true, channels });
+}, (e) => dbError("Failed to load channels.", String(e.message || e))));
 
 // Channel members
-app.get("/api/channels/members", requireGroupLogin, requireChatUser, async (req, res) => {
+app.get("/api/channels/members", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
-
   const { dbUser, dbPass } = req.session;
-  try {
-    const members = await withDb(dbUser, dbPass, async (client) => {
-      const r = await client.query(getSql(req, "channel_members_list"), [cid]);
-      return r.rows.map(row => Object.values(row || {})[0]).filter(v => v != null).map(String);
-    });
-    res.json({ ok: true, members });
-  } catch (e) {
-    res.status(400).json({ error: "Failed to load channel members.", detail: String(e.message || e) });
-  }
-});
+  const members = await withDb(dbUser, dbPass, async (client) => {
+    const r = await client.query(getSql(req, "channel_members_list"), [cid]);
+    return r.rows.map(row => Object.values(row || {})[0]).filter(v => v != null).map(String);
+  });
+  res.json({ ok: true, members });
+}, (e) => dbError("Failed to load channel members.", String(e.message || e))));
 
 
-app.post("/api/channels/create", requireGroupLogin, requireChatUser, async (req, res) => {
+app.post("/api/channels/create", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   const { name, description } = req.body || {};
   const channel_name = String(name || "").trim();
   const channel_description = String(description || "").trim();
@@ -638,124 +676,100 @@ app.post("/api/channels/create", requireGroupLogin, requireChatUser, async (req,
   if (!channel_name) return res.status(400).json({ error: "channel_name is required." });
   if (!channel_description) return res.status(400).json({ error: "channel_description is required." });
   const { dbUser, dbPass } = req.session;
-  try {
-    await withDb(dbUser, dbPass, async (client) => {
-      await client.query(getSql(req, "channel_create"), [channel_name, channel_description]);
-    });
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(400).json({ error: "Failed to create channel.", detail: String(e.message || e) });
-  }
-});
+  await withDb(dbUser, dbPass, async (client) => {
+    await client.query(getSql(req, "channel_create"), [channel_name, channel_description]);
+  });
+  res.json({ ok: true });
+}, (e) => dbError("Failed to create channel.", String(e.message || e))));
 
-app.post("/api/channels/join", requireGroupLogin, requireChatUser, async (req, res) => {
+app.post("/api/channels/join", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, req.body?.channel_id);
-
   const { dbUser, dbPass, chatUsername } = req.session;
-  try {
-    await withDb(dbUser, dbPass, async (client) => {
-      await client.query(getSql(req, "channel_join"), [chatUsername, cid]);
-    });
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(400).json({ error: "Failed to join channel.", detail: String(e.message || e) });
-  }
-});
+  await withDb(dbUser, dbPass, async (client) => {
+    await client.query(getSql(req, "channel_join"), [chatUsername, cid]);
+  });
+  res.json({ ok: true });
+}, (e) => dbError("Failed to join channel.", String(e.message || e))));
 
 
-app.post("/api/channels/leave", requireGroupLogin, requireChatUser, async (req, res) => {
+app.post("/api/channels/leave", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   const { channel_id } = req.body || {};
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, channel_id);
-
   const { dbUser, dbPass, chatUsername } = req.session;
-
-  try {
-    await withDb(dbUser, dbPass, async (client) => {
-      await client.query(getSql(req, "channel_leave"), [chatUsername, cid]);
-    });
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(400).json({ error: "Failed to leave channel.", detail: String(e.message || e) });
-  }
-});
+  await withDb(dbUser, dbPass, async (client) => {
+    await client.query(getSql(req, "channel_leave"), [chatUsername, cid]);
+  });
+  res.json({ ok: true });
+}, (e) => dbError("Failed to leave channel.", String(e.message || e))));
 
 // --------------------
 // Messages
 // --------------------
-app.get("/api/messages", requireGroupLogin, requireChatUser, async (req, res) => {
+app.get("/api/messages", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   await ensureChatSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
-
   const { dbUser, dbPass, chatUsername } = req.session;
-  try {
-    const trace = [];
-    const messages = await withDb(dbUser, dbPass, async (client) => {
-      const run = async (key, params) => {
-        const entry = { key, paramsCount: Array.isArray(params) ? params.length : 0, status: "running" };
-        trace.push(entry);
-        try {
-          const r = await client.query(getSql(req, key), params);
-          entry.status = "ok";
-          return r;
-        } catch (e) {
-          entry.status = "error";
-          e.sqlKey = key;
-          e.sqlTrace = trace;
-          throw e;
-        }
-      };
-
-      const mem = await run("member_check", [chatUsername, cid]);
-      if (mem.rowCount === 0) {
-        const err = new Error("You must join this channel to view messages.");
-        err.sqlKey = "member_check";
-        err.sqlTrace = trace;
-        throw err;
+  const trace = [];
+  const messages = await withDb(dbUser, dbPass, async (client) => {
+    const run = async (key, params) => {
+      const entry = { key, paramsCount: Array.isArray(params) ? params.length : 0, status: "running" };
+      trace.push(entry);
+      try {
+        const r = await client.query(getSql(req, key), params);
+        entry.status = "ok";
+        return r;
+      } catch (e) {
+        entry.status = "error";
+        e.sqlKey = key;
+        e.sqlTrace = trace;
+        throw e;
       }
+    };
 
-      const r = await run("messages_list", [cid]);
-      return r.rows;
-    });
+    const mem = await run("member_check", [chatUsername, cid]);
+    if (mem.rowCount === 0) {
+      const err = new Error("You must join this channel to view messages.");
+      err.sqlKey = "member_check";
+      err.sqlTrace = trace;
+      throw err;
+    }
 
-    res.json({ ok: true, messages });
-  } catch (e) {
-    res.status(400).json({
-      error: "Failed to load messages.",
-      detail: String(e.message || e),
-      sqlKey: e.sqlKey || null,
-      sqlTrace: e.sqlTrace || null
-    });
-  }
-});
+    const r = await run("messages_list", [cid]);
+    return r.rows;
+  });
+
+  res.json({ ok: true, messages });
+}, (e) => dbError(
+  "Failed to load messages.",
+  String(e.message || e),
+  400,
+  { sqlKey: e.sqlKey || null, sqlTrace: e.sqlTrace || null }
+)));
 
 
-app.post("/api/message", requireGroupLogin, requireChatUser, async (req, res) => {
+app.post("/api/message", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   const { channel_id, body } = req.body || {};
   const b = String(body || "").trim();
-  await ensureChatSchemaInfo(req);
-  const cid = parseChannelId(req, channel_id);
 
   if (!b) return res.status(400).json({ error: "body is required." });
 
+  await ensureChatSchemaInfo(req);
+  const cid = parseChannelId(req, channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
+  const result = await withDb(dbUser, dbPass, async (client) => {
+    const r = await client.query(getSql(req, "message_post"), [chatUsername, cid, b]);
+    return r.rows[0];
+  });
 
-  try {
-    const result = await withDb(dbUser, dbPass, async (client) => {
-      const r = await client.query(getSql(req, "message_post"), [chatUsername, cid, b]);
-      return r.rows[0];
-    });
-
-    res.json({ ok: true, ...result });
-  } catch (e) {
-    res.status(400).json({
-      error: "Failed to post message.",
-      detail: String(e.message || e),
-      sqlKey: "message_post"
-    });
-  }
-});
+  res.json({ ok: true, ...result });
+}, (e) => dbError(
+  "Failed to post message.",
+  String(e.message || e),
+  400,
+  { sqlKey: "message_post" }
+)));
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, () => {
@@ -768,9 +782,8 @@ app.listen(port, () => {
 // Schema check
 // =====================================================
 
-app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
+app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const { dbUser, dbPass } = req.session;
-
   const info = await ensureChatSchemaInfo(req);
 
   const channelsPkCol = qIdent(info.channels_pk);
@@ -788,17 +801,13 @@ app.get("/api/test_schema", requireGroupLogin, async (req, res) => {
 
   for (const checkQuery of sanityChecks) {
     console.log("Testing", checkQuery);
-    try {
-      await withDb(dbUser, dbPass, async (client) => {
-        await client.query(checkQuery);
-      });
-    } catch (e) {
-      return res.status(400).json({ error: "Incorrect Schema.", detail: String(e.message || e) });
-    }
+    await withDb(dbUser, dbPass, async (client) => {
+      await client.query(checkQuery);
+    });
   }
 
   return res.json({ ok: true });
-});
+}, (e) => dbError("Incorrect Schema.", String(e.message || e))));
 
 // prevents sql injection
 const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
@@ -813,7 +822,7 @@ function qIdent(name) {
 // Password reset
 // =====================================================
 
-app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
+app.post("/api/user/reset_password", requireGroupLogin, dbRoute(async (req, res) => {
   const { username, old_password_hash, new_password_hash } = req.body || {};
   const u = String(username || "").trim();
   const oldH = String(old_password_hash || "").trim();
@@ -826,21 +835,17 @@ app.post("/api/user/reset_password", requireGroupLogin, async (req, res) => {
 
   const { dbUser, dbPass } = req.session;
 
-  try {
-    const changed = await withDb(dbUser, dbPass, async (client) => {
-      const r = await client.query(getSql(req, "update_password"), [u, newH, oldH]);
-      return r.rowCount;
-    });
+  const changed = await withDb(dbUser, dbPass, async (client) => {
+    const r = await client.query(getSql(req, "update_password"), [u, newH, oldH]);
+    return r.rowCount;
+  });
 
-    if (changed === 0) {
-      return res.status(401).json({ error: "Invalid username or current password." });
-    }
-
-    // Keep session
-    if (req.session.chatUsername === u) req.session.chatUsername = u;
-
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(400).json({ error: "Password reset failed.", detail: String(e.message || e) });
+  if (changed === 0) {
+    return res.status(401).json({ error: "Invalid username or current password." });
   }
-});
+
+  // Keep session
+  if (req.session.chatUsername === u) req.session.chatUsername = u;
+
+  res.json({ ok: true });
+}, (e) => dbError("Password reset failed.", String(e.message || e))));

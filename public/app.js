@@ -1007,7 +1007,7 @@ function recordSqlInput(key, params) {
 }
 
 function recordSqlError(key, message) {
-  if (!key) return;
+  if (!key || !state.isDbConnected) return;
   sqlMeta[key] = {
     ...(sqlMeta[key] || {}),
     lastError: String(message || ""),
@@ -1432,6 +1432,7 @@ function renderMessages(messages) {
 const INSERT_SQL_KEYS = new Set(["user_register", "channel_join", "channel_create", "message_post"]);
 
 function flagQueryStatus(query, status) {
+  if (!state.isDbConnected) return;
   for (const item of SQL_LAB_ITEMS) {
     if (item.key == query) {
       item.status = status
