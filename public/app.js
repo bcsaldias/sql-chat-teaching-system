@@ -1374,10 +1374,37 @@ function setActiveChannel(channel) {
   }
 }
 
-function formatTime(iso) {
+function dayKey(d) {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function formatMessageTime(iso) {
   if (!iso) return "";
   const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDayLabel(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+
+  const now = new Date();
+  const todayKey = dayKey(now);
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const msgKey = dayKey(d);
+
+  if (msgKey === todayKey) return "Today";
+  if (msgKey === dayKey(yesterday)) return "Yesterday";
+
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "2-digit",
+    ...(sameYear ? {} : { year: "numeric" })
+  });
 }
 
 function isAtBottom(container) {
@@ -1449,7 +1476,19 @@ function renderMessages(messages) {
     return;
   }
   setMessagesEmptyState(false);
+  let lastDay = null;
   for (const m of messages) {
+    const created = m.created_at ? new Date(m.created_at) : null;
+    const createdKey = created && !Number.isNaN(created.getTime()) ? dayKey(created) : null;
+    const label = formatDayLabel(m.created_at);
+    if (label && createdKey && createdKey !== lastDay) {
+      const divider = document.createElement("div");
+      divider.className = "dayDivider";
+      divider.innerHTML = `<span>${escapeHtml(label)}</span>`;
+      messagesEl.appendChild(divider);
+      lastDay = createdKey;
+    }
+
     const mine = state.chatUsername && m.username === state.chatUsername;
     const div = document.createElement("div");
     div.className = "msgRow" + (mine ? " me" : "");
@@ -1457,9 +1496,7 @@ function renderMessages(messages) {
     const bubble = document.createElement("div");
     bubble.className = "bubble" + (mine ? " me" : "");
 
-    const when = m.created_at
-      ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      : "";
+    const when = formatMessageTime(m.created_at);
 
     bubble.innerHTML = `
       <div class="metaLine">
@@ -2232,7 +2269,7 @@ sendBtn.addEventListener("click", async () => {
     bubble.innerHTML = `
       <div class="metaLine">
         <span class="metaUser">${escapeHtml(optimistic.username)}</span>
-        <span class="metaTime">${escapeHtml(formatTime(optimistic.created_at))}</span>
+        <span class="metaTime">${escapeHtml(formatMessageTime(optimistic.created_at))}</span>
       </div>
       <div class="msgText">${escapeHtml(optimistic.body)}</div>
     `;

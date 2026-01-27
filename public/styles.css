@@ -773,6 +773,30 @@ textarea:focus {
   background: linear-gradient(180deg, var(--msgGradTop), var(--msgGradBot));
 }
 
+.dayDivider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0;
+  color: var(--muted2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.dayDivider::before,
+.dayDivider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.7;
+}
+
+.dayDivider span {
+  white-space: nowrap;
+}
+
 .emptyState {
   padding: 14px;
 }
