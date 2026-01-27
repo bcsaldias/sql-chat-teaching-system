@@ -19,6 +19,7 @@ This project has a few places where server and client settings must stay in sync
 - **Server**: include `sqlError`/`sqlKey` in `dbError` responses for SQL-template failures.
   - Use `runSql` and `sqlErrorExtra` where applicable.
 - **Client**: `api()` reads `sqlError`; `maybeAddSqlTraceHint()` uses it to show “Go to SQL tab…” only for SQL errors.
+- **Meaning of `sqlError === false`**: explicitly marks a failure as *not* caused by a SQL template (ex: auth, membership, validation). The UI should avoid showing SQL Lab guidance even if `sqlKey/sqlTrace` exist.
 - **Why (student-facing)**: prevents confusing guidance on auth/validation mistakes while still pointing students to the SQL Lab when their query is the cause.
 - **Why this matters for beginners**: first-time coders anchor on the first error they see; if it points to the wrong place, they lose time and confidence. Tagging SQL errors keeps feedback accurate and reduces random trial-and-error.
 

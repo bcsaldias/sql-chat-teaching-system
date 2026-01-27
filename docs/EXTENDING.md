@@ -11,6 +11,12 @@ This app is simple to run, but extensions work best when you follow the shared "
 - `docs/DEPLOYMENT.md` for environment setup and runtime notes.
 - `README.md` for quick start and instructor tooling overview.
 
+## File map (where to look first)
+- `src/server.js`: API routes, `runSql`, SQL template endpoints, schema test route.
+- `src/utils.js`: `SQL_CONTRACT`, `SOLUTION_SQL`, schema introspection helpers.
+- `public/app.js`: SQL Lab UI, status tracking, error hints, and client calls.
+- `public/instructor.*` + `src/instructor.js`: instructor dashboard + progress logging.
+
 ## Add a new SQL Lab item + API route
 1. Add a key in `src/utils.js` -> `SQL_CONTRACT` (first word, expected columns).
 2. Add a solution SQL in `src/utils.js` -> `SOLUTION_SQL`.
@@ -60,6 +66,13 @@ app.post("/api/example", requireGroupLogin, requireChatUser, dbRoute(async (req,
 ## Env + data locations you might touch
 - `.env`: `ALLOW_SUPERUSER_MODE`, `INSTRUCTOR_TOKEN`, `SQL_PROGRESS_LOG`, pool sizes, etc.
 - `submissions/`: SQL snapshots and progress logs (JSONL).
+
+## Common pitfalls
+- Mismatched SQL Lab keys between server/client/contract.
+- Skipping `runSql` (loses expected-column checks + `sqlError` tagging).
+- Forgetting to call `recordSqlInput/flagQueryStatus/recordSqlError` in the UI path.
+- Not loading `/api/sql_templates` before rendering SQL Lab (missing expected columns).
+- Changing PK/FK types without updating `parseChannelId` + schema introspection.
 
 ## Safe defaults for beginners
 - Prefer clear, constrained SQL contracts over flexible ones.
