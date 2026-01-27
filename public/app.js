@@ -738,7 +738,7 @@ function updateSqlProgress() {
     if (!confettiShown) {
       confettiShown = true;
       launchConfetti();
-      // submitSqlSnapshot();
+      submitSqlSnapshot();
     }
   } else {
     confettiShown = false;
@@ -1726,6 +1726,8 @@ async function loadMessages(channelId, { silent = false } = {}) {
       }
     }
 
+    setMsg(channelMsg, "", true);
+    setMsg(postMsg, "", true);
     flagQueryStatus("member_check", true);
     flagQueryStatus("messages_list", true);
 
