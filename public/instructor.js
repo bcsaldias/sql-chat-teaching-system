@@ -6,12 +6,14 @@ const dbUserInput = el("dbUserInput");
 const historyToggle = el("historyToggle");
 const autoRefreshToggle = el("autoRefreshToggle");
 const highlightToggle = el("highlightToggle");
+const viewToggle = el("viewToggle");
 const historyLimit = el("historyLimit");
 const loadBtn = el("loadBtn");
 const clearBtn = el("clearBtn");
 const loadMsg = el("loadMsg");
 const summaryText = el("summaryText");
 const latestRows = el("latestRows");
+const groupViewTitle = el("groupViewTitle");
 const historyCard = el("historyCard");
 const historySummary = el("historySummary");
 const historyRows = el("historyRows");
@@ -23,6 +25,7 @@ let autoTimer = null;
 let filterTimer = null;
 let latestCache = [];
 let historyCache = [];
+let bestCache = [];
 
 function setMsg(text, ok = false) {
   loadMsg.textContent = text || "";
@@ -73,6 +76,14 @@ function renderLatest(list) {
     `;
     latestRows.appendChild(tr);
   }
+}
+
+function renderCurrentView() {
+  const useBest = !!viewToggle?.checked;
+  const list = useBest ? bestCache : latestCache;
+  renderLatest(list);
+  if (groupViewTitle) groupViewTitle.textContent = useBest ? "Best per group" : "Latest per group";
+  summaryText.textContent = `${list.length} group${list.length === 1 ? "" : "s"} reporting • ${formatTime(new Date().toISOString())}`;
 }
 
 function renderHistory(list) {
@@ -133,8 +144,8 @@ async function loadProgress() {
     }
     const latest = data.latest || [];
     latestCache = latest;
-    renderLatest(latest);
-    summaryText.textContent = `${latest.length} group${latest.length === 1 ? "" : "s"} reporting • ${formatTime(new Date().toISOString())}`;
+    bestCache = Array.isArray(data.best) ? data.best : [];
+    renderCurrentView();
 
     if (historyToggle.checked) {
       historyCard.classList.remove("hidden");
@@ -174,8 +185,11 @@ historyToggle?.addEventListener("change", () => {
   if (!historyToggle.checked) historyCard.classList.add("hidden");
 });
 highlightToggle?.addEventListener("change", () => {
-  renderLatest(latestCache);
+  renderCurrentView();
   if (historyToggle?.checked) renderHistory(historyCache);
+});
+viewToggle?.addEventListener("change", () => {
+  renderCurrentView();
 });
 tokenInput?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") loadProgress();

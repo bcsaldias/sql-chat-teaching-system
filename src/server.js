@@ -486,6 +486,8 @@ function appendProgressLog(entry) {
 }
 
 const progressLatest = new Map();
+const progressBest = new Map();
+let progressCacheLoaded = false;
 
 function normalizePassedKeys(keys) {
   return Array.isArray(keys) ? keys.map(String).sort() : [];
@@ -500,7 +502,25 @@ function isProgressDuplicate(prev, next) {
   return prevKeys.length === nextKeys.length && prevKeys.every((k, i) => k === nextKeys[i]);
 }
 
-function loadProgressLatest() {
+function isBetterProgress(prev, next) {
+  if (!prev) return true;
+  const prevPassed = Number(prev.passedCount || 0);
+  const nextPassed = Number(next.passedCount || 0);
+  if (nextPassed !== prevPassed) return nextPassed > prevPassed;
+  const prevTotal = Number(prev.totalCount || 0);
+  const nextTotal = Number(next.totalCount || 0);
+  if (nextTotal !== prevTotal) return nextTotal > prevTotal;
+  return new Date(next.at).getTime() >= new Date(prev.at).getTime();
+}
+
+function updateProgressBest(entry) {
+  const prev = progressBest.get(entry.dbUser);
+  if (isBetterProgress(prev, entry)) progressBest.set(entry.dbUser, entry);
+}
+
+function loadProgressCache() {
+  if (progressCacheLoaded) return;
+  progressCacheLoaded = true;
   if (!fs.existsSync(PROGRESS_LOG)) return;
   const raw = fs.readFileSync(PROGRESS_LOG, "utf8");
   const lines = raw.split("\n");
@@ -508,7 +528,9 @@ function loadProgressLatest() {
     if (!line.trim()) continue;
     try {
       const entry = JSON.parse(line);
-      if (entry && entry.dbUser) progressLatest.set(entry.dbUser, entry);
+      if (!entry || !entry.dbUser) continue;
+      progressLatest.set(entry.dbUser, entry);
+      updateProgressBest(entry);
     } catch { }
   }
 }
@@ -603,6 +625,7 @@ app.post("/api/progress", requireGroupLogin, dbRoute(async (req, res) => {
   };
   const prev = progressLatest.get(entry.dbUser);
   progressLatest.set(entry.dbUser, entry);
+  updateProgressBest(entry);
   if (!isProgressDuplicate(prev, entry)) {
     appendProgressLog(entry);
   }
@@ -610,7 +633,7 @@ app.post("/api/progress", requireGroupLogin, dbRoute(async (req, res) => {
 }, (e) => dbError("Failed to log progress.", String(e.message || e))));
 
 app.get("/api/instructor/progress", requireInstructor, (req, res) => {
-  if (progressLatest.size === 0) loadProgressLatest();
+  loadProgressCache();
   const wantHistory = String(req.query?.history || "") === "1";
   const dbUserFilter = req.query?.dbUser ? String(req.query.dbUser) : null;
   const dbUserNeedle = dbUserFilter ? dbUserFilter.toLowerCase() : null;
@@ -621,8 +644,11 @@ app.get("/api/instructor/progress", requireInstructor, (req, res) => {
   const latest = Array.from(progressLatest.values())
     .filter(matchesDbUser)
     .sort((a, b) => String(a.dbUser).localeCompare(String(b.dbUser)));
+  const best = Array.from(progressBest.values())
+    .filter(matchesDbUser)
+    .sort((a, b) => String(a.dbUser).localeCompare(String(b.dbUser)));
 
-  if (!wantHistory) return res.json({ ok: true, latest });
+  if (!wantHistory) return res.json({ ok: true, latest, best });
 
   const limit = Math.max(1, Math.min(1000, Number(req.query?.limit || 200)));
   const history = [];
@@ -638,7 +664,7 @@ app.get("/api/instructor/progress", requireInstructor, (req, res) => {
       } catch { }
     }
   }
-  res.json({ ok: true, latest, history });
+  res.json({ ok: true, latest, best, history });
 });
 
 // --------------------

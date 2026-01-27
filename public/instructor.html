@@ -132,6 +132,7 @@
               <label class="check"><input id="historyToggle" type="checkbox" />Include history</label>
               <label class="check"><input id="autoRefreshToggle" type="checkbox" />Auto refresh (10s)</label>
               <label class="check"><input id="highlightToggle" type="checkbox" />Highlight extremes</label>
+              <label class="check"><input id="viewToggle" type="checkbox" />Show best per group</label>
             </div>
           </div>
           <div class="field">
@@ -149,7 +150,7 @@
 
       <section class="card">
         <div class="toolRow">
-          <h3>Latest per group</h3>
+          <h3 id="groupViewTitle">Latest per group</h3>
           <div class="mutedSmall" id="summaryText">Not loaded yet.</div>
         </div>
         <div class="progressTableWrap">
