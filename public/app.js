@@ -104,6 +104,7 @@ let sqlProgressBar = null;
 let sqlLastSavedEl = null;
 let confettiShown = false;
 let sqlSubmissionInFlight = false;
+let progressReportTimer = null;
 let _printGuardReady = false;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
@@ -745,6 +746,25 @@ function updateSqlProgress() {
   }
 }
 
+function queueProgressReport() {
+  if (!state.isDbConnected) return;
+  if (progressReportTimer) clearTimeout(progressReportTimer);
+  progressReportTimer = setTimeout(async () => {
+    progressReportTimer = null;
+    const total = SQL_LAB_ITEMS.length;
+    const passedKeys = SQL_LAB_ITEMS.filter((i) => i.status === true).map((i) => i.key);
+    try {
+      await api("/api/progress", "POST", {
+        passedCount: passedKeys.length,
+        totalCount: total,
+        passedKeys
+      });
+    } catch {
+      // best-effort; ignore logging failures
+    }
+  }, 600);
+}
+
 function getSqlItemStatus(key) {
   return SQL_LAB_ITEMS.find((i) => i.key === key)?.status;
 }
@@ -1088,6 +1108,7 @@ function resetSqlStatus() {
   });
   confettiShown = false;
   updateSqlProgress();
+  queueProgressReport();
 }
 
 function getSqlEditorHeight(key) {
@@ -1463,6 +1484,7 @@ function flagQueryStatus(query, status) {
   // console.log(query, status);
   updateSqlProgress();
   updateSqlItemUI(query);
+  queueProgressReport();
   if (INSERT_SQL_KEYS.has(query)) {
     if (status === true) {
       recordSqlTip(query, "Insert succeeded. Open pgAdmin and run a SELECT to verify.");
@@ -2459,9 +2481,7 @@ function applyTheme(theme) {
 function getInitialTheme() {
   const saved = normalizeTheme(sessionStorage.getItem(THEME_KEY));
   if (saved) return saved;
-
-  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  return prefersDark ? "classic-dark" : "classic-light";
+  return "classic-light";
 }
 
 // init on page load

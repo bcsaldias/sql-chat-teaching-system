@@ -131,6 +131,16 @@ When all SQL Lab items pass, the server saves a snapshot of the current SQL temp
 Each file includes both UTC and PT timestamps (`submitted_at` and `submitted_at_pt`). Newer files (by timestamp) represent the latest submission.
 Snapshots are created when all SQL Lab items pass in a single run.
 
+## Progress logging (instructor)
+
+The app can log partial SQL progress over time. The client reports pass counts as students work, and the server appends JSON lines to `submissions/progress_log.jsonl` (override with `SQL_PROGRESS_LOG`). The latest status per DB user is also exposed via an instructor-only endpoint:
+
+- `GET /api/instructor/progress` (requires `INSTRUCTOR_TOKEN` in `x-instructor-token` header or `?token=...`)
+- Optional: `?history=1&limit=200` for recent history, `?dbUser=grp10` to filter.
+
+A simple dashboard is available at `/instructor` (paste your token to view progress).
+History limits return the most recent N entries (newest first in the UI). The DB user filter matches partial names (case-insensitive).
+
 
 ## Feature flags and env toggles
 
