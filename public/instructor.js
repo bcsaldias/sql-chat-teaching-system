@@ -92,7 +92,7 @@ function renderCurrentView() {
   summaryText.textContent = `${list.length} group${list.length === 1 ? "" : "s"} reporting • ${formatTime(new Date().toISOString())}`;
 }
 
-function renderKeyStats(list) {
+function renderKeyStats(list, totalGroups) {
   if (!keyStatsRows) return;
   keyStatsRows.innerHTML = "";
   if (!Array.isArray(list) || list.length === 0) {
@@ -100,16 +100,21 @@ function renderKeyStats(list) {
     if (keyStatsSummary) keyStatsSummary.textContent = "No data yet.";
     return;
   }
+  const denom = Number(totalGroups || 0);
   for (const entry of list) {
+    const count = Number(entry.count ?? 0);
+    const pct = denom > 0 ? Math.round((count / denom) * 1000) / 10 : 0;
+    const label = denom > 0 ? `${count}/${denom} (${pct}%)` : `${count}`;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><code>${escapeHtml(entry.key || "—")}</code></td>
-      <td>${escapeHtml(String(entry.count ?? 0))}</td>
+      <td>${escapeHtml(label)}</td>
     `;
     keyStatsRows.appendChild(tr);
   }
   if (keyStatsSummary) {
-    keyStatsSummary.textContent = `${list.length} key${list.length === 1 ? "" : "s"} with at least one pass`;
+    const base = `${list.length} key${list.length === 1 ? "" : "s"} with at least one pass`;
+    keyStatsSummary.textContent = denom > 0 ? `${base} • ${denom} group${denom === 1 ? "" : "s"} total` : base;
   }
 }
 
@@ -198,7 +203,7 @@ async function loadProgress() {
     bestCache = Array.isArray(data.best) ? data.best : [];
     renderCurrentView();
     keyStatsCache = Array.isArray(data.keyStats) ? data.keyStats : [];
-    renderKeyStats(keyStatsCache);
+    renderKeyStats(keyStatsCache, latestCache.length);
     sectionStatsCache = Array.isArray(data.sectionStats) ? data.sectionStats : [];
     renderSectionStats(sectionStatsCache);
 
