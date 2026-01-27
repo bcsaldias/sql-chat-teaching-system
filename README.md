@@ -128,6 +128,9 @@ When all SQL Lab items pass, the server saves a snapshot of the current SQL temp
 
 - `dbUser_2026-01-27T02_46_24_566Z.sql`
 
+Each file includes both UTC and PT timestamps (`submitted_at` and `submitted_at_pt`). Newer files (by timestamp) represent the latest submission.
+Snapshots are created when all SQL Lab items pass in a single run.
+
 
 ## Feature flags and env toggles
 
