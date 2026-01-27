@@ -494,6 +494,7 @@ function renderSqlLab(templates) {
     sqlLabList.appendChild(section);
 
     for (const item of items) {
+      const indexLabel = globalIndex;
       globalIndex += 1;
 
       const outer = document.createElement("div");
@@ -502,7 +503,7 @@ function renderSqlLab(templates) {
 
       const title = document.createElement("div");
       title.className = "sqlTitle";
-      title.textContent = String(globalIndex) + ") " + item.title;
+      title.textContent = String(indexLabel) + ") " + item.title;
 
       const queryStatus = document.createElement("span");
       queryStatus.className = "queryStatus";
