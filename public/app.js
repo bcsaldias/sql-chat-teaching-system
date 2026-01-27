@@ -105,6 +105,7 @@ let sqlLastSavedEl = null;
 let confettiShown = false;
 let sqlSubmissionInFlight = false;
 let progressReportTimer = null;
+let lastProgressSignature = null;
 let _printGuardReady = false;
 // keep the last templates we loaded from the server so we can avoid
 // saving / reloading when nothing changed (prevents unnecessary re-runs)
@@ -753,6 +754,9 @@ function queueProgressReport() {
     progressReportTimer = null;
     const total = SQL_LAB_ITEMS.length;
     const passedKeys = SQL_LAB_ITEMS.filter((i) => i.status === true).map((i) => i.key);
+    const signature = JSON.stringify({ total, passedKeys });
+    if (signature === lastProgressSignature) return;
+    lastProgressSignature = signature;
     try {
       await api("/api/progress", "POST", {
         passedCount: passedKeys.length,
@@ -1108,6 +1112,7 @@ function resetSqlStatus() {
   });
   confettiShown = false;
   updateSqlProgress();
+  lastProgressSignature = null;
   queueProgressReport();
 }
 

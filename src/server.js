@@ -487,6 +487,19 @@ function appendProgressLog(entry) {
 
 const progressLatest = new Map();
 
+function normalizePassedKeys(keys) {
+  return Array.isArray(keys) ? keys.map(String).sort() : [];
+}
+
+function isProgressDuplicate(prev, next) {
+  if (!prev) return false;
+  if (Number(prev.passedCount) !== Number(next.passedCount)) return false;
+  if (Number(prev.totalCount) !== Number(next.totalCount)) return false;
+  const prevKeys = normalizePassedKeys(prev.passedKeys);
+  const nextKeys = normalizePassedKeys(next.passedKeys);
+  return prevKeys.length === nextKeys.length && prevKeys.every((k, i) => k === nextKeys[i]);
+}
+
 function loadProgressLatest() {
   if (!fs.existsSync(PROGRESS_LOG)) return;
   const raw = fs.readFileSync(PROGRESS_LOG, "utf8");
@@ -588,8 +601,11 @@ app.post("/api/progress", requireGroupLogin, dbRoute(async (req, res) => {
     totalCount: total,
     passedKeys: keys
   };
+  const prev = progressLatest.get(entry.dbUser);
   progressLatest.set(entry.dbUser, entry);
-  appendProgressLog(entry);
+  if (!isProgressDuplicate(prev, entry)) {
+    appendProgressLog(entry);
+  }
   res.json({ ok: true });
 }, (e) => dbError("Failed to log progress.", String(e.message || e))));
 
