@@ -122,6 +122,13 @@ Tip: the SQL Lab “Last input” box shows the exact parameter values used ($1,
 - **Local storage signals**: SQL Lab stores last input/error/tip, last save time, and editor heights in `localStorage` so instructors can refresh without losing diagnostics.
 - **Message load trace**: `/api/messages` returns `sqlKey` / `sqlTrace` on failure so the UI can flag `member_check` vs `messages_list` correctly.
 
+## SQL submissions
+
+When all SQL Lab items pass, the server saves a snapshot of the current SQL templates to the `submissions/` folder (one set per DB user / student group). Files are named like:
+
+- `dbUser_2026-01-27T02_46_24_566Z.sql`
+
+
 ## Feature flags and env toggles
 
 - **`ALLOW_SUPERUSER_MODE`**: When `true`, logging into the DB as `demo` causes the server to run **solution SQL** (from `src/utils.js`) instead of student templates. Useful for demos.
