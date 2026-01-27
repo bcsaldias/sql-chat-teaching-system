@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>INFO 330 • Instructor Progress</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="assets/db-icon.svg" type="image/svg+xml">
+  <style>
+    .progressTableWrap {
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+
+    .progressTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .progressTable th,
+    .progressTable td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .progressTable th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .progressBar {
+      height: 6px;
+      background: var(--soft);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progressBar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+
+    .checkRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toolRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="appShell">
+    <header class="topbar">
+      <div class="brand">
+        <img class="uwLogo" src="/assets/ischool_logo.jpg" alt="UW iSchool logo" />
+        <div>
+          <div class="brandTitle">Instructor Progress</div>
+          <div class="brandSub">SQL Lab reporting (read-only)</div>
+        </div>
+      </div>
+      <div class="topbarRight">
+        <span class="pill">Instructor</span>
+        <select id="themeSelect" class="themeSelect" aria-label="Theme">
+          <option value="classic-light">☀️</option>
+          <option value="classic-dark">☄️</option>
+          <option value="studio-light">🌗</option>
+          <option value="studio-dark">🌒</option>
+        </select>
+      </div>
+    </header>
+
+    <div class="container">
+      <section class="card">
+        <h2>Progress Dashboard</h2>
+        <p class="muted">
+          Enter your instructor token to view the latest SQL Lab progress by group. This page never writes to student
+          data.
+        </p>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Instructor token</label>
+            <input id="tokenInput" type="password" placeholder="INSTRUCTOR_TOKEN" autocomplete="current-password" />
+          </div>
+          <div class="field">
+            <label>DB user filter (optional)</label>
+            <input id="dbUserInput" placeholder="grp10_ba" />
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top: 10px;">
+          <div class="field">
+            <label>Options</label>
+            <div class="checkRow">
+              <label class="check"><input id="historyToggle" type="checkbox" />Include history</label>
+              <label class="check"><input id="autoRefreshToggle" type="checkbox" />Auto refresh (10s)</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>History limit</label>
+            <input id="historyLimit" type="number" min="1" max="1000" value="200" />
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="loadBtn" class="btn btn-primary" type="button">Load progress</button>
+          <button id="clearBtn" class="btn btn-ghost" type="button">Clear token</button>
+          <div id="loadMsg" class="msg"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="toolRow">
+          <h3>Latest per group</h3>
+          <div class="mutedSmall" id="summaryText">Not loaded yet.</div>
+        </div>
+        <div class="progressTableWrap">
+          <table class="progressTable">
+            <thead>
+              <tr>
+                <th>DB User</th>
+                <th>Chat User</th>
+                <th>Progress</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="latestRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="historyCard" class="card hidden">
+        <div class="toolRow">
+          <h3>Recent history</h3>
+          <div class="mutedSmall" id="historySummary"></div>
+        </div>
+        <div class="progressTableWrap">
+          <table class="progressTable">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>DB User</th>
+                <th>Chat User</th>
+                <th>Progress</th>
+                <th>Passed Keys</th>
+              </tr>
+            </thead>
+            <tbody id="historyRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="/instructor.js"></script>
+</body>
+
+</html>
