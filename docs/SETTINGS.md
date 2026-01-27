@@ -13,6 +13,7 @@ This project has a few places where server and client settings must stay in sync
 ## SQL validation constraints
 - Server enforces: `MAX_SQL_TEMPLATE_LEN`, allowed first words, no `*` outside `COUNT(*)`, no `--` comments, no `DROP/ALTER/CREATE`.
 - Client should mirror: `MAX_SQL_LEN`/`SQL_LEN_WARN` match server max; UI hints reflect server restrictions; consider exposing max via `/api/sql_templates` to avoid drift.
+- CTE note: templates that start with `WITH` are currently rejected when a key has an explicit first‑word list (even if the CTE leads to the expected verb). To allow CTEs, update `validateSqlTemplate` to accept `WITH` and then validate the next verb matches the contract.
 
 ## SQL error tagging (for UI guidance)
 - **Server**: include `sqlError`/`sqlKey` in `dbError` responses for SQL-template failures.
