@@ -75,6 +75,34 @@
       color: var(--muted);
     }
 
+    .toggleChip {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel2);
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .toggleChip input {
+      accent-color: var(--accent);
+    }
+
+    .viewToggleRow {
+      flex-wrap: nowrap;
+    }
+
+    .toolRow.nowrap {
+      flex-wrap: nowrap;
+    }
+
+    @media (max-width: 820px) {
+      .toolRow.nowrap {
+        flex-wrap: wrap;
+      }
+    }
+
     .toolRow {
       display: flex;
       align-items: center;
@@ -132,7 +160,6 @@
               <label class="check"><input id="historyToggle" type="checkbox" />Include history</label>
               <label class="check"><input id="autoRefreshToggle" type="checkbox" />Auto refresh (10s)</label>
               <label class="check"><input id="highlightToggle" type="checkbox" />Highlight extremes</label>
-              <label class="check"><input id="viewToggle" type="checkbox" />Show best per group</label>
             </div>
           </div>
           <div class="field">
@@ -150,20 +177,19 @@
 
       <section class="card">
         <div class="toolRow">
-          <h3 id="groupViewTitle">Latest per group</h3>
-          <div class="mutedSmall" id="summaryText">Not loaded yet.</div>
+          <h3>Section Summary</h3>
+          <div class="mutedSmall" id="sectionStatsSummary">Not loaded yet.</div>
         </div>
         <div class="progressTableWrap">
           <table class="progressTable">
             <thead>
               <tr>
-                <th>DB User</th>
-                <th>Chat User</th>
-                <th>Progress</th>
-                <th>Updated</th>
+                <th>Section</th>
+                <th>Groups Connected</th>
+                <th>Avg Best Progress</th>
               </tr>
             </thead>
-            <tbody id="latestRows"></tbody>
+            <tbody id="sectionStatsRows"></tbody>
           </table>
         </div>
       </section>
@@ -187,20 +213,25 @@
       </section>
 
       <section class="card">
-        <div class="toolRow">
-          <h3>Section Summary</h3>
-          <div class="mutedSmall" id="sectionStatsSummary">Not loaded yet.</div>
+        <div class="toolRow nowrap">
+          <h3 id="groupViewTitle">Latest per group</h3>
+          <div class="checkRow viewToggleRow">
+            <span class="mutedSmall">View:</span>
+            <label class="check toggleChip"><input id="viewToggle" type="checkbox" />Best per group</label>
+          </div>
         </div>
+        <div class="mutedSmall" id="summaryText">Not loaded yet.</div>
         <div class="progressTableWrap">
           <table class="progressTable">
             <thead>
               <tr>
-                <th>Section</th>
-                <th>Groups Connected</th>
-                <th>Avg Best Progress</th>
+                <th>DB User</th>
+                <th>Chat User</th>
+                <th>Progress</th>
+                <th>Updated</th>
               </tr>
             </thead>
-            <tbody id="sectionStatsRows"></tbody>
+            <tbody id="latestRows"></tbody>
           </table>
         </div>
       </section>
