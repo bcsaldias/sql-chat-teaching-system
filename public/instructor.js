@@ -5,6 +5,7 @@ const tokenInput = el("tokenInput");
 const dbUserInput = el("dbUserInput");
 const historyToggle = el("historyToggle");
 const autoRefreshToggle = el("autoRefreshToggle");
+const highlightToggle = el("highlightToggle");
 const historyLimit = el("historyLimit");
 const loadBtn = el("loadBtn");
 const clearBtn = el("clearBtn");
@@ -20,6 +21,8 @@ const TOKEN_KEY = "info330_instructor_token";
 const THEME_KEY = "info330_theme";
 let autoTimer = null;
 let filterTimer = null;
+let latestCache = [];
+let historyCache = [];
 
 function setMsg(text, ok = false) {
   loadMsg.textContent = text || "";
@@ -60,6 +63,8 @@ function renderLatest(list) {
     const passed = Number(entry.passedCount || 0);
     const total = Number(entry.totalCount || 0);
     const tr = document.createElement("tr");
+    if (highlightToggle?.checked && total > 0 && passed === 0) tr.classList.add("is-zero");
+    if (highlightToggle?.checked && total > 0 && passed === total) tr.classList.add("is-full");
     tr.innerHTML = `
       <td><code>${escapeHtml(entry.dbUser || "—")}</code></td>
       <td>${escapeHtml(entry.chatUser || "—")}</td>
@@ -127,6 +132,7 @@ async function loadProgress() {
       return;
     }
     const latest = data.latest || [];
+    latestCache = latest;
     renderLatest(latest);
     summaryText.textContent = `${latest.length} group${latest.length === 1 ? "" : "s"} reporting • ${formatTime(new Date().toISOString())}`;
 
@@ -134,9 +140,11 @@ async function loadProgress() {
       historyCard.classList.remove("hidden");
       const history = Array.isArray(data.history) ? data.history.slice() : [];
       history.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+      historyCache = history;
       renderHistory(history);
       historySummary.textContent = `${history.length} recent entries`;
     } else {
+      historyCache = [];
       historyCard.classList.add("hidden");
     }
     setMsg("Loaded.", true);
@@ -164,6 +172,10 @@ clearBtn?.addEventListener("click", () => {
 autoRefreshToggle?.addEventListener("change", updateAutoRefresh);
 historyToggle?.addEventListener("change", () => {
   if (!historyToggle.checked) historyCard.classList.add("hidden");
+});
+highlightToggle?.addEventListener("change", () => {
+  renderLatest(latestCache);
+  if (historyToggle?.checked) renderHistory(historyCache);
 });
 tokenInput?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") loadProgress();

@@ -52,6 +52,14 @@
       background: linear-gradient(135deg, var(--accent), var(--accent2));
     }
 
+    .progressTable tr.is-zero td {
+      background: color-mix(in srgb, var(--bad) 10%, transparent);
+    }
+
+    .progressTable tr.is-full td {
+      background: color-mix(in srgb, var(--good) 12%, transparent);
+    }
+
     .checkRow {
       display: flex;
       flex-wrap: wrap;
@@ -123,6 +131,7 @@
             <div class="checkRow">
               <label class="check"><input id="historyToggle" type="checkbox" />Include history</label>
               <label class="check"><input id="autoRefreshToggle" type="checkbox" />Auto refresh (10s)</label>
+              <label class="check"><input id="highlightToggle" type="checkbox" />Highlight extremes</label>
             </div>
           </div>
           <div class="field">
