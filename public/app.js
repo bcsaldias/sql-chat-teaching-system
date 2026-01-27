@@ -134,8 +134,7 @@ const SQL_LAB_ITEMS = [
         This app hashes passwords before sending them, so sign up users in the chat app for stored passwords to match.
       </div>
     `,
-    required: "SELECT password FROM users WHERE username = $1;",
-    expectedCols: [{ name: "password" }]
+    required: "SELECT password FROM users WHERE username = $1;"
   },
   {
     key: "user_register",
@@ -169,14 +168,7 @@ const SQL_LAB_ITEMS = [
       <div><b>What happens:</b> load sidebar channel list + join/leave state</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
     `,
-    textAreaHeight: "280px",
-    expectedCols: [
-      { name: "id" },
-      { name: "name" },
-      { name: "description" },
-      { name: "is_member", type: "boolean" },
-      { name: "user_count", type: "integer" }
-    ]
+    textAreaHeight: "280px"
   },
   {
     key: "member_check",
@@ -223,12 +215,7 @@ const SQL_LAB_ITEMS = [
       <div><b>Ordering:</b> newest at the bottom</div>
       <div><b>Limit:</b> ~50 rows</div>
     `,
-    textAreaHeight: "140px",
-    expectedCols: [
-      { name: "username" },
-      { name: "body" },
-      { name: "created_at", type: "timestamp" }
-    ]
+    textAreaHeight: "140px"
   },
   {
     key: "message_post",
@@ -261,10 +248,22 @@ const SQL_LAB_ITEMS = [
     description: `
       <div><b>What happens:</b> members modal opens</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
-    `,
-    expectedCols: [{ name: "username" }]
+    `
   }
 ];
+
+let sqlContract = null;
+
+function applySqlContract(contract) {
+  if (!contract || typeof contract !== "object") return;
+  sqlContract = contract;
+  for (const item of SQL_LAB_ITEMS) {
+    const entry = contract[item.key];
+    if (!entry) continue;
+    if (entry.expectedCols) item.expectedCols = entry.expectedCols;
+    if (entry.firstWords) item.firstWords = entry.firstWords;
+  }
+}
 
 function setSidebarVisible(v) {
   sidebar.classList.toggle("hidden", !v); // hidden when v=false
@@ -851,6 +850,7 @@ async function loadSqlTemplates() {
   ensureSqlLabUI();
   setMsg(sqlLabMsg, "");
   const data = await api("/api/sql_templates");
+  applySqlContract(data.contract);
   // remember what we loaded so we can detect real edits later
   _lastSqlTemplates = data.templates || {};
   renderSqlLab(_lastSqlTemplates);
@@ -975,6 +975,19 @@ function setMsg(el, text, ok = false) {
   el.textContent = text || "";
   el.className = "msg " + (ok ? "ok" : "err");
   if (!text) el.className = "msg";
+}
+
+const SQL_TRACE_PREFIX = "Go to SQL tab to trace this error:";
+
+function maybeAddSqlTraceHint(message, meta = null) {
+  const text = String(message || "");
+  if (!text) return text;
+  if (text.startsWith(SQL_TRACE_PREFIX)) return text;
+  const sqlError = meta?.sqlError;
+  if (sqlError === false) return text;
+  const hasSqlMeta = !!meta?.sqlKey || (Array.isArray(meta?.sqlTrace) && meta.sqlTrace.length > 0);
+  if (!hasSqlMeta && sqlError !== true) return text;
+  return `${SQL_TRACE_PREFIX} ${text}`;
 }
 
 function escapeHtml(s) {
@@ -1225,6 +1238,9 @@ async function api(path, method = "GET", body = null) {
     const err = new Error(data.detail || data.error || `Request failed (${r.status})`);
     if (data && data.sqlKey) err.sqlKey = data.sqlKey;
     if (data && data.sqlTrace) err.sqlTrace = data.sqlTrace;
+    if (data && Object.prototype.hasOwnProperty.call(data, "sqlError")) {
+      err.sqlError = data.sqlError;
+    }
     throw err;
   }
   return data;
@@ -1666,13 +1682,15 @@ function renderChannels(list) {
         }
         await loadChannels();
       } catch (err) {
-        setMsg(channelMsg, err.message, false);
+        const rawMsg = err.message || String(err);
+        const displayMsg = maybeAddSqlTraceHint(rawMsg, err);
+        setMsg(channelMsg, displayMsg, false);
         if (ch.is_member) {
           flagQueryStatus("channel_leave", false);
-          recordSqlError("channel_leave", err.message || String(err));
+          recordSqlError("channel_leave", rawMsg);
         } else {
           flagQueryStatus("channel_join", false);
-          recordSqlError("channel_join", err.message || String(err));
+          recordSqlError("channel_join", rawMsg);
         }
       } finally {
         btn.disabled = false;
@@ -1735,6 +1753,8 @@ async function loadChannels() {
     updateChatEmptyState();
     flagQueryStatus("channels_list", true);
   } catch (e) {
+    const rawMsg = e.message || String(e);
+    const displayMsg = maybeAddSqlTraceHint(rawMsg, e);
     // On error, clear any previously rendered channels so the sidebar
     // doesn't show stale data from a prior successful load.
     state.channels = [];
@@ -1742,11 +1762,11 @@ async function loadChannels() {
     // Hide the chat body when channels cannot be loaded so previous
     // messages don't remain visible.
     mainChatUI.classList.add("hidden");
-    setMsg(channelMsg, e.message || String(e), false);
+    setMsg(channelMsg, displayMsg, false);
     // Stop polling since we don't have a valid channel context
     stopPolling();
     flagQueryStatus("channels_list", false);
-    recordSqlError("channels_list", e.message || String(e));
+    recordSqlError("channels_list", rawMsg);
     throw e; // rethrow so callers can handle additional UI changes if needed
   }
 
@@ -1817,14 +1837,13 @@ async function loadMessages(channelId, { silent = false } = {}) {
     flagQueryStatus("messages_list", true);
 
   } catch (e) {
+    const errMsg = e.message || String(e);
     // Clear messages UI on error so stale messages from a previous
     // successful load aren't shown when the request fails.
     messagesEl.innerHTML = "";
     setMessagesEmptyState(false);
     // Also hide the chat body so no stale UI remains visible
     mainChatUI.classList.add("hidden");
-    const errMsg = e.message || String(e);
-    setMsg(postMsg, errMsg, false);
 
     const trace = Array.isArray(e.sqlTrace) ? e.sqlTrace : null;
     if (trace) {
@@ -1856,8 +1875,11 @@ async function loadMessages(channelId, { silent = false } = {}) {
     }
     if (!sqlKey) sqlKey = inferMessagesSqlKey(errMsg);
 
+    const displayMsg = maybeAddSqlTraceHint(errMsg, { sqlKey, sqlTrace: trace, sqlError: e.sqlError });
+    setMsg(postMsg, displayMsg, false);
+
     if (sqlKey === "member_check") {
-      setMsg(channelMsg, errMsg, false); // surface membership error in chat tab
+      setMsg(channelMsg, displayMsg, false); // surface membership error in chat tab
       if (!trace) {
         flagQueryStatus("member_check", false);
         recordSqlError("member_check", errMsg);
@@ -1879,7 +1901,7 @@ async function loadMessages(channelId, { silent = false } = {}) {
         lower.includes("not a member");
 
       if (isMemberErr) {
-        setMsg(channelMsg, errMsg, false);
+        setMsg(channelMsg, displayMsg, false);
         if (!trace) {
           flagQueryStatus("member_check", false);
           recordSqlError("member_check", errMsg);
@@ -1922,8 +1944,9 @@ async function loadChannelMembers(channelId, channelName) {
   } catch (err) {
     memberModalList.innerHTML = "";
     const msg = err.message || String(err);
-    if (memberModalMsg) setMsg(memberModalMsg, msg, false);
-    else setMsg(channelMsg, msg, false);
+    const displayMsg = maybeAddSqlTraceHint(msg, err);
+    if (memberModalMsg) setMsg(memberModalMsg, displayMsg, false);
+    else setMsg(channelMsg, displayMsg, false);
     flagQueryStatus("channel_members_list", false);
     recordSqlError("channel_members_list", msg);
   }
@@ -1992,9 +2015,9 @@ loginBtn.addEventListener("click", async () => {
     await setTab("chat");
     toast("Connected");
   } catch (e) {
-    setMsg(loginMsg, e.message, false);
     state.isDbConnected = false;
     renderGate();
+    setMsg(loginMsg, e.message || String(e), false);
     sessionStorage.removeItem(DB_USER_KEY);
     setBrandSubDefault();
   } finally {
@@ -2025,9 +2048,9 @@ async function tryDBCredentials() {
     await setTab("chat");
     toast("Connected");
   } catch (e) {
-    setMsg(loginMsg, e.message, false);
     state.isDbConnected = false;
     renderGate();
+    setMsg(loginMsg, e.message || String(e), false);
     sessionStorage.removeItem(DB_USER_KEY);
     setBrandSubDefault();
   } finally {
@@ -2097,7 +2120,8 @@ registerBtn.addEventListener("click", async () => {
     toast(`Welcome @${u}`);
   } catch (e) {
     const msg = e.message || String(e);
-    setMsg(userAuthMsg, msg, false);
+    const displayMsg = maybeAddSqlTraceHint(msg, e);
+    setMsg(userAuthMsg, displayMsg, false);
     flagQueryStatus(step, false);
     recordSqlError(step, msg);
   } finally {
@@ -2133,13 +2157,15 @@ userLoginBtn.addEventListener("click", async () => {
     loggedIn = true;
   } catch (e) {
     const m = String(e.message || "");
-    if (m.toLowerCase().includes("invalid username") || m.toLowerCase().includes("does not exist")) {
-      setMsg(userAuthMsg, "Invalid username or password.", false);
-    } else {
-      setMsg(userAuthMsg, m, false);
+    const isInvalid =
+      m.toLowerCase().includes("invalid username") ||
+      m.toLowerCase().includes("does not exist");
+    const displayMsg = isInvalid ? "Invalid username or password." : maybeAddSqlTraceHint(m, e);
+    setMsg(userAuthMsg, displayMsg, false);
+    if (e?.sqlError === true) {
+      flagQueryStatus("user_login", false);
+      recordSqlError("user_login", m);
     }
-    flagQueryStatus("user_login", false);
-    recordSqlError("user_login", e.message || String(e));
     state.chatUsername = null;
     state.activeChannelId = null;
     state.channels = [];
@@ -2169,7 +2195,8 @@ if (emptyRefreshBtn) {
       await loadChannels();
       toast("Channels refreshed");
     } catch (err) {
-      setMsg(channelMsg, err.message || String(err), false);
+      const rawMsg = err.message || String(err);
+      setMsg(channelMsg, maybeAddSqlTraceHint(rawMsg, err), false);
     }
   });
 }
@@ -2212,13 +2239,15 @@ postNewChannelBtn.addEventListener("click", async () => {
     toast(`Channel #${n} created.`);
     flagQueryStatus("channel_create", true);
   } catch (e) {
+    const rawMsg = e.message || String(e);
+    const displayMsg = maybeAddSqlTraceHint(rawMsg, e);
     if (newChannelMsg) {
-      setMsg(newChannelMsg, e.message, false);
+      setMsg(newChannelMsg, displayMsg, false);
     } else {
-      setMsg(userAuthMsg, e.message, false);
+      setMsg(userAuthMsg, displayMsg, false);
     }
     flagQueryStatus("channel_create", false);
-    recordSqlError("channel_create", e.message || String(e));
+    recordSqlError("channel_create", rawMsg);
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;
@@ -2292,7 +2321,8 @@ sendBtn.addEventListener("click", async () => {
     }
   } catch (e) {
     const errMsg = e.message || String(e);
-    setMsg(postMsg, errMsg, false);
+    const displayMsg = maybeAddSqlTraceHint(errMsg, e);
+    setMsg(postMsg, displayMsg, false);
     toast("Send failed");
     flagQueryStatus("message_post", false);
     recordSqlError("message_post", errMsg);
@@ -2398,9 +2428,11 @@ function ensureResetModal() {
       flagQueryStatus("update_password", true);
       setTimeout(close, 700);
     } catch (err) {
-      setMsg(resetMsgEl, err.message, false);
+      const rawMsg = err.message || String(err);
+      const displayMsg = maybeAddSqlTraceHint(rawMsg, err);
+      setMsg(resetMsgEl, displayMsg, false);
       flagQueryStatus("update_password", false);
-      recordSqlError("update_password", err.message || String(err));
+      recordSqlError("update_password", rawMsg);
     } finally {
       resetSaveBtn.disabled = false;
     }

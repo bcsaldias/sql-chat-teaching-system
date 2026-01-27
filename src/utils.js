@@ -2,20 +2,54 @@
 // SQL LAB SUPPORTING CODE
 // =====================================================
 
-// Default SQL templates
-const DEFAULT_SQL = {
-    user_login: "SELECT '';",
-    user_register: "INSERT '';",
-    channels_list: "SELECT '';",
-    channel_join: "INSERT '';",
-    channel_leave: "DELETE '';",
-    member_check: "SELECT '';",
-    messages_list: "SELECT '';",
-    message_post: "INSERT '';",
-    channel_members_list: "SELECT '';",
-    channel_create: "INSERT '';",
-    update_password: "UPDATE '';"
+// SQL contract (shared requirements)
+const SQL_CONTRACT = {
+    user_login: { firstWords: ["select"], expectedCols: [{ name: "password" }] },
+    user_register: { firstWords: ["insert"] },
+    update_password: { firstWords: ["update"] },
+    channels_list: {
+        firstWords: ["select"],
+        expectedCols: [
+            { name: "id" },
+            { name: "name" },
+            { name: "description" },
+            { name: "is_member", type: "boolean" },
+            { name: "user_count", type: "integer" }
+        ]
+    },
+    channel_join: { firstWords: ["insert"] },
+    channel_leave: { firstWords: ["delete"] },
+    member_check: { firstWords: ["select"] },
+    messages_list: {
+        firstWords: ["select"],
+        expectedCols: [
+            { name: "username" },
+            { name: "body" },
+            { name: "created_at", type: "timestamp" }
+        ]
+    },
+    message_post: { firstWords: ["insert", "select"] },
+    channel_members_list: { firstWords: ["select"], expectedCols: [{ name: "username" }] },
+    channel_create: { firstWords: ["insert"] }
 };
+
+function normalizeFirstWords(words) {
+    const list = Array.isArray(words) ? words : [words];
+    return list.map((w) => String(w || "").trim().toLowerCase()).filter(Boolean);
+}
+
+function buildDefaultSql(contract) {
+    const out = {};
+    for (const [key, cfg] of Object.entries(contract || {})) {
+        const list = normalizeFirstWords(cfg?.firstWords);
+        const first = list[0] || "select";
+        out[key] = `${first.toUpperCase()} '';`;
+    }
+    return out;
+}
+
+// Default SQL templates
+const DEFAULT_SQL = buildDefaultSql(SQL_CONTRACT);
 
 // solution for solutions/solution_channel_name_pk, used in demo.
 const SOLUTION_SQL = {
@@ -252,6 +286,7 @@ async function loadChannelMembershipKeys(client) {
 
 
 module.exports = {
+    SQL_CONTRACT,
     DEFAULT_SQL,
     SOLUTION_SQL,
     PGDATABASES_MAPPING,

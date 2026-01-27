@@ -1,0 +1,30 @@
+# Settings Alignment Guide
+
+This project has a few places where server and client settings must stay in sync. Use this guide to add or change SQL templates, SQL lab items, or related endpoints.
+
+## SQL contract (source of truth)
+- **Location**: `src/utils.js` → `SQL_CONTRACT` defines required first words + expected columns.
+- **Defaults**: `DEFAULT_SQL` is generated from `SQL_CONTRACT` (first word list → default verb).
+- **Server enforcement**: `src/server.js` reads `SQL_CONTRACT` in `validateSqlTemplate` (first word) and `assertExpectedCols` (columns). All template queries should go through `runSql`.
+- **Client UI skeleton**: `public/app.js` → `SQL_LAB_ITEMS` holds text, grouping, and layout. Keys must match `SQL_CONTRACT`.
+- **Client UI requirements**: `/api/sql_templates` returns `{ templates, contract }`, and `applySqlContract()` merges contract fields into `SQL_LAB_ITEMS` so “Expected columns” render. Tradeoff: the UI depends on this contract payload.
+- **Client status hooks**: wherever the query runs in `public/app.js`, call `recordSqlInput`, `flagQueryStatus`, and `recordSqlError` with the same key.
+
+## SQL validation constraints
+- Server enforces: `MAX_SQL_TEMPLATE_LEN`, allowed first words, no `*` outside `COUNT(*)`, no `--` comments, no `DROP/ALTER/CREATE`.
+- Client should mirror: `MAX_SQL_LEN`/`SQL_LEN_WARN` match server max; UI hints reflect server restrictions; consider exposing max via `/api/sql_templates` to avoid drift.
+
+## SQL error tagging (for UI guidance)
+- **Server**: include `sqlError`/`sqlKey` in `dbError` responses for SQL-template failures.
+  - Use `runSql` and `sqlErrorExtra` where applicable.
+- **Client**: `api()` reads `sqlError`; `maybeAddSqlTraceHint()` uses it to show “Go to SQL tab…” only for SQL errors.
+- **Why (student-facing)**: prevents confusing guidance on auth/validation mistakes while still pointing students to the SQL Lab when their query is the cause.
+
+## When adding a new feature that uses SQL templates
+1. Add the template key to `SQL_CONTRACT` in `src/utils.js`.
+2. Add the solution SQL in `src/utils.js` → `SOLUTION_SQL`.
+3. Add the SQL lab item in `public/app.js` (key, group, description).
+4. Use the same key in client calls to `recordSqlInput/flagQueryStatus/recordSqlError`.
+5. Ensure any server errors for that route include `sqlError` and `sqlKey`.
+6. Route all template queries through `runSql` in `src/server.js` (ensures column validation + sqlError tagging).
+7. Verify `applySqlContract()` is called after loading `/api/sql_templates` so expected columns render.
