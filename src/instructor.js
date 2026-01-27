@@ -28,6 +28,7 @@ function registerInstructorRoutes(app, options = {}) {
 
   const progressLatest = new Map();
   const progressBest = new Map();
+  const progressKeySets = new Map();
   let progressCacheLoaded = false;
 
   function normalizePassedKeys(keys) {
@@ -59,6 +60,21 @@ function registerInstructorRoutes(app, options = {}) {
     if (isBetterProgress(prev, entry)) progressBest.set(entry.dbUser, entry);
   }
 
+  function trackProgressKeys(entry) {
+    const dbUser = String(entry.dbUser || "");
+    if (!dbUser) return;
+    const keys = Array.isArray(entry.passedKeys) ? entry.passedKeys : [];
+    for (const key of keys) {
+      if (!key) continue;
+      let set = progressKeySets.get(key);
+      if (!set) {
+        set = new Set();
+        progressKeySets.set(key, set);
+      }
+      set.add(dbUser);
+    }
+  }
+
   function loadProgressCache() {
     if (progressCacheLoaded) return;
     progressCacheLoaded = true;
@@ -72,8 +88,26 @@ function registerInstructorRoutes(app, options = {}) {
         if (!entry || !entry.dbUser) continue;
         progressLatest.set(entry.dbUser, entry);
         updateProgressBest(entry);
+        trackProgressKeys(entry);
       } catch { }
     }
+  }
+
+  function buildKeyStats(dbUserNeedle) {
+    const out = [];
+    for (const [key, set] of progressKeySets.entries()) {
+      let count = 0;
+      if (!dbUserNeedle) {
+        count = set.size;
+      } else {
+        for (const dbUser of set) {
+          if (String(dbUser).toLowerCase().includes(dbUserNeedle)) count += 1;
+        }
+      }
+      if (count > 0) out.push({ key, count });
+    }
+    out.sort((a, b) => b.count - a.count || String(a.key).localeCompare(String(b.key)));
+    return out;
   }
 
   function requireInstructor(req, res, next) {
@@ -111,6 +145,7 @@ function registerInstructorRoutes(app, options = {}) {
     const prev = progressLatest.get(entry.dbUser);
     progressLatest.set(entry.dbUser, entry);
     updateProgressBest(entry);
+    trackProgressKeys(entry);
     if (!isProgressDuplicate(prev, entry)) {
       appendProgressLog(entry);
     }
@@ -132,8 +167,9 @@ function registerInstructorRoutes(app, options = {}) {
     const best = Array.from(progressBest.values())
       .filter(matchesDbUser)
       .sort((a, b) => String(a.dbUser).localeCompare(String(b.dbUser)));
+    const keyStats = buildKeyStats(dbUserNeedle);
 
-    if (!wantHistory) return res.json({ ok: true, latest, best });
+    if (!wantHistory) return res.json({ ok: true, latest, best, keyStats });
 
     const limit = Math.max(1, Math.min(1000, Number(req.query?.limit || 200)));
     const history = [];
@@ -149,7 +185,7 @@ function registerInstructorRoutes(app, options = {}) {
         } catch { }
       }
     }
-    res.json({ ok: true, latest, best, history });
+    res.json({ ok: true, latest, best, history, keyStats });
   });
 }
 

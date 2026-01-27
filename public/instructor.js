@@ -14,6 +14,8 @@ const loadMsg = el("loadMsg");
 const summaryText = el("summaryText");
 const latestRows = el("latestRows");
 const groupViewTitle = el("groupViewTitle");
+const keyStatsRows = el("keyStatsRows");
+const keyStatsSummary = el("keyStatsSummary");
 const historyCard = el("historyCard");
 const historySummary = el("historySummary");
 const historyRows = el("historyRows");
@@ -26,6 +28,7 @@ let filterTimer = null;
 let latestCache = [];
 let historyCache = [];
 let bestCache = [];
+let keyStatsCache = [];
 
 function setMsg(text, ok = false) {
   loadMsg.textContent = text || "";
@@ -84,6 +87,27 @@ function renderCurrentView() {
   renderLatest(list);
   if (groupViewTitle) groupViewTitle.textContent = useBest ? "Best per group" : "Latest per group";
   summaryText.textContent = `${list.length} group${list.length === 1 ? "" : "s"} reporting • ${formatTime(new Date().toISOString())}`;
+}
+
+function renderKeyStats(list) {
+  if (!keyStatsRows) return;
+  keyStatsRows.innerHTML = "";
+  if (!Array.isArray(list) || list.length === 0) {
+    keyStatsRows.innerHTML = `<tr><td colspan="2" class="mutedSmall">No key stats yet.</td></tr>`;
+    if (keyStatsSummary) keyStatsSummary.textContent = "No data yet.";
+    return;
+  }
+  for (const entry of list) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><code>${escapeHtml(entry.key || "—")}</code></td>
+      <td>${escapeHtml(String(entry.count ?? 0))}</td>
+    `;
+    keyStatsRows.appendChild(tr);
+  }
+  if (keyStatsSummary) {
+    keyStatsSummary.textContent = `${list.length} key${list.length === 1 ? "" : "s"} with at least one pass`;
+  }
 }
 
 function renderHistory(list) {
@@ -146,6 +170,8 @@ async function loadProgress() {
     latestCache = latest;
     bestCache = Array.isArray(data.best) ? data.best : [];
     renderCurrentView();
+    keyStatsCache = Array.isArray(data.keyStats) ? data.keyStats : [];
+    renderKeyStats(keyStatsCache);
 
     if (historyToggle.checked) {
       historyCard.classList.remove("hidden");
