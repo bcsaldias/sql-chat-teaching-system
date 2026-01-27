@@ -1215,10 +1215,29 @@ function showLogin() {
 }
 
 const BRAND_SUB_DEFAULT = "UW INFO 330 • SQL-driven messaging";
+// DB_USER_KEY is a session-only UI hint;
+// DB_IDENTITY_KEY persists to detect DB switches.
 const DB_USER_KEY = "info330_db_user";
+const DB_IDENTITY_KEY = "info330_db_identity";
 
 function getDbUserFromSession() {
   return sessionStorage.getItem(DB_USER_KEY);
+}
+
+function getDbIdentity() {
+  try { return localStorage.getItem(DB_IDENTITY_KEY); } catch { return null; }
+}
+
+function setDbIdentity(dbUser) {
+  if (!dbUser) return;
+  try { localStorage.setItem(DB_IDENTITY_KEY, dbUser); } catch { }
+}
+
+function syncDbIdentity(dbUser) {
+  if (!dbUser) return;
+  const prev = getDbIdentity();
+  if (prev && prev !== dbUser) resetSqlStatus();
+  setDbIdentity(dbUser);
 }
 
 function setBrandSubFromSession() {
@@ -1899,7 +1918,9 @@ loginBtn.addEventListener("click", async () => {
       username: usernameEl.value.trim(),
       password: passwordEl.value
     });
-    sessionStorage.setItem(DB_USER_KEY, usernameEl.value.trim());
+    const dbUser = usernameEl.value.trim();
+    sessionStorage.setItem(DB_USER_KEY, dbUser);
+    syncDbIdentity(dbUser);
     setBrandSubFromSession();
     setMsg(loginMsg, "Connected to your group database.", true);
     state.isDbConnected = true;
@@ -1924,6 +1945,7 @@ async function tryDBCredentials() {
     const data = await api("/api/credentials_login", "POST");
     if (data?.dbUser) {
       sessionStorage.setItem(DB_USER_KEY, data.dbUser);
+      syncDbIdentity(data.dbUser);
     } else {
       // If the browser already knows the username (e.g. autofill), mirror it into sessionStorage
       const existing = getDbUserFromSession();
