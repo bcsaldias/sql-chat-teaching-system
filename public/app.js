@@ -1372,6 +1372,8 @@ function renderGate() {
     loginPanel.classList.remove("hidden");
     setConnectedPill(false);
     setBrandSubDefault();
+    setMsg(loginMsg, "", true);
+    sessionStorage.removeItem(DB_USER_KEY);
 
     setTabsVisible(false);
 
