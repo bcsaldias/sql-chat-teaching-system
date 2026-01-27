@@ -428,11 +428,13 @@ function safeFilenamePart(value) {
 function buildSqlSnapshot(req) {
   const dbUser = String(req.session?.dbUser || "unknown");
   const submittedAt = new Date().toISOString();
+  const submittedAtPt = formatPt(submittedAt);
   const keys = Object.keys(DEFAULT_SQL);
   const templates = {};
   const lines = [
     `-- db_user: ${dbUser}`,
     `-- submitted_at: ${submittedAt}`,
+    `-- submitted_at_pt: ${submittedAtPt}`,
     "--"
   ];
 
