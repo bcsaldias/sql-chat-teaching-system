@@ -74,6 +74,11 @@ app.post("/api/example", requireGroupLogin, requireChatUser, dbRoute(async (req,
 - Not loading `/api/sql_templates` before rendering SQL Lab (missing expected columns).
 - Changing PK/FK types without updating `parseChannelId` + schema introspection.
 
+## Rule of thumb (wiring)
+If a key is in `SQL_CONTRACT` and appears in the SQL Lab UI, it should also appear in:
+- `recordSqlInput`, `flagQueryStatus`, and `recordSqlError` calls in `public/app.js`
+- a `runSql(..., "<key>")` call in `src/server.js`
+
 ## Safe defaults for beginners
 - Prefer clear, constrained SQL contracts over flexible ones.
 - Always tag SQL errors so the UI can guide students to the right place.
@@ -83,3 +88,4 @@ app.post("/api/example", requireGroupLogin, requireChatUser, dbRoute(async (req,
 1. Run the app, log in, and open SQL Lab.
 2. Trigger the new API route from the UI.
 3. Confirm the SQL item flips pass/fail and the error hint shows only when appropriate.
+4. Run the contract checker: `npm run check:contract`.

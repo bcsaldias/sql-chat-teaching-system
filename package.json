@@ -4,7 +4,8 @@
   "private": true,
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "check:contract": "node scripts/check_contract.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
