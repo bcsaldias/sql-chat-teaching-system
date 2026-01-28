@@ -14,11 +14,13 @@ If you run this at larger scale, watch your Postgres `max_connections` and use s
 - `src/server.js` — Express server + API routes
 - `src/utils.js` — helpers (SQL lab items, schema introspection, etc.)
 - `public/` — front-end (`index.html`, `app.js`, `styles.css`)
-- `scripts/`
-  - `db_setup.sql` — initial DB/role/database setup (instructor/admin use)
-  - `setting_demo.sql` — demo-mode configuration (instructor/admin use)
-  - `lock_schemas.sh` — locking/protecting schemas (instructor/admin use)
+- `scripts/` — instructor/admin utilities for DB ecosystem setup (see `SCRIPTS.md`)
 - `config/pm2/ecosystem.config.js` — PM2 process config
+- `docs/DEPLOYMENT.md` — deployment notes (PM2, env)
+
+## Docs (start here)
+- `docs/SETTINGS.md` — SQL contract + error tagging rules
+- `docs/EXTENDING.md` — how to add SQL keys, routes, and UI wiring
 - `docs/DEPLOYMENT.md` — deployment notes (PM2, env)
 
 ## Client-side constraints (deterrents)
@@ -78,69 +80,12 @@ Then I open:
 - `http://localhost:3000`
 
 ## Demo accounts / teaching flow
+- `demo`: shows the intended behavior quickly (everything working).
+- `test0`: shows what breaks without required SQL (useful for demos).
 
-### `demo` (show the “working” app)
-I use `demo` when I want to show the intended behavior quickly (i.e., everything working). This is useful for live demos and sanity checks.
-
-### `test0` (show what breaks without required SQL)
-I use `test0` when I want to demonstrate that the UI depends on the database work (missing tables/constraints/queries => features fail). This helps motivate the checklist.
-
-## Instructor error‑trigger scenarios (SQL Lab keys)
-Use these to reliably produce failures and see how the UI flags them. Each scenario shows which SQL Lab item should flip to **fail** (red dot), and where the error message surfaces in the UI.
-
-- **Group DB login (not a SQL Lab key)**: Enter a wrong DB username/password on the first login screen. Error appears under the login form.
-- **`user_register`**: Click **Register** with a username that already exists (or with broken `users` table). Error appears under the chat-user auth form.
-- **`user_login`**: Click **Log in** with a bad password (or broken `user_login` query). Error appears under the chat-user auth form.
-- **`update_password`**: Open **Reset password** and submit with a wrong current password (or broken `update_password` query). Error appears inside the reset modal.
-- **`channels_list`**: Log in as a chat user (or refresh channels). Error appears near the channels list and the sidebar empties.
-- **`channel_join`**: Click **Join** on any channel. Error appears near the channels list.
-- **`channel_leave`**: Click **Leave** on any joined channel. Error appears near the channels list.
-- **`channel_create`**: Click **Create channel**, submit the modal. Error appears in the modal.
-- **`member_check`**: Open a channel you should be a member of (or break the query / membership rows). Error appears near the channel list and the messages panel stays hidden.
-- **`messages_list`**: Open a joined channel after `member_check` passes (or break the query). Error appears near the composer/message area.
-- **`message_post`**: Click **Send** with a non‑empty message. Error appears near the composer; an optimistic bubble is removed on failure.
-- **`channel_members_list`**: Click the “X members” badge next to the active channel description (only shows if `channels_list` returns `user_count`). Error appears in the members modal.
-- **`/api/test_schema`**: Click **Test Schema** in SQL Lab. Errors show next to the button if required tables/columns/types are missing.
-
-Tip: the SQL Lab “Last input” box shows the exact parameter values used ($1, $2, …) for each failed query, which is a fast way to confirm the mismatch.
-
-## SQL Lab tips, flags, and UI cues
-
-- **Status flags (per query)**: Each SQL Lab item has a status dot with three states: *Not tested*, *Pass*, *Fail*. Status updates happen when the app calls the corresponding API route.
-- **Last input / Last error / Tip**: The SQL Lab item shows the most recent parameters, error message, and (for inserts) a tip. Insert keys (`user_register`, `channel_join`, `channel_create`, `message_post`) show: “Insert succeeded. Open pgAdmin and run a SELECT to verify.”
-- **Expected output hints**: Many items display “Expected columns” chips and (sometimes) a required SQL snippet to keep students aligned with column names/types.
-- **Progress bar**: Counts passed items vs total SQL Lab items and fills the bar accordingly.
-- **Confetti**: Triggers only when **all** SQL Lab items are pass in the same user journey. Resets if any item fails or is reset.
-- **SQL save behavior**: SQL is auto‑saved when switching from SQL Lab → Chat. If a template fails validation, the app keeps you on the SQL tab and shows a “SQL save failed” message.
-- **Reset buttons**: “Reset to SQL defaults” restores starter templates. “Reset SQL lab status” clears pass/fail flags, last input/error/tip, and resets confetti/progress.
-- **SQL template guardrails** (server‑side validation):
-  - One statement only (no extra `;`)
-  - Must start with `SELECT`, `INSERT`, `DELETE`, `UPDATE`, or `WITH`
-  - No `*` except inside `COUNT(*)`
-  - No `--` comments
-  - No `DROP`, `ALTER`, or `CREATE`
-- **Local storage signals**: SQL Lab stores last input/error/tip, last save time, and editor heights in `localStorage` so instructors can refresh without losing diagnostics.
-- **Message load trace**: `/api/messages` returns `sqlKey` / `sqlTrace` on failure so the UI can flag `member_check` vs `messages_list` correctly.
-
-## SQL submissions
-
-When all SQL Lab items pass, the server saves a snapshot of the current SQL templates to the `submissions/` folder (one set per DB user / student group). Files are named like:
-
-- `dbUser_2026-01-27T02_46_24_566Z.sql`
-
-Each file includes both UTC and PT timestamps (`submitted_at` and `submitted_at_pt`). Newer files (by timestamp) represent the latest submission.
-Snapshots are created when all SQL Lab items pass in a single run.
-
-## Progress logging (instructor)
-
-The app can log partial SQL progress over time. The client reports pass counts as students work, and the server appends JSON lines to `submissions/progress_log.jsonl` (override with `SQL_PROGRESS_LOG`). The latest status per DB user is also exposed via an instructor-only endpoint:
-
-- `GET /api/instructor/progress` (requires `INSTRUCTOR_TOKEN` in `x-instructor-token` header or `?token=...`)
-- Optional: `?history=1&limit=200` for recent history, `?dbUser=grp10` to filter.
-
-A simple dashboard is available at `/instructor` (paste your token to view progress).
-History limits return the most recent N entries (newest first in the UI). The DB user filter matches partial names (case-insensitive).
-If your DB usernames include section suffixes (e.g., `_ba`, `_bb`, `_ca`, `_cb`), the dashboard can summarize counts and average best progress per section using that suffix.
+## Instructor tooling (brief)
+- SQL Lab status, error hints, and progress logging are covered in `docs/SETTINGS.md`.
+- Extending the instructor dashboard is covered in `docs/EXTENDING.md`.
 
 
 ## Feature flags and env toggles
