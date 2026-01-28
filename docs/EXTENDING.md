@@ -78,6 +78,7 @@ app.post("/api/example", requireGroupLogin, requireChatUser, dbRoute(async (req,
 If a key is in `SQL_CONTRACT` and appears in the SQL Lab UI, it should also appear in:
 - `recordSqlInput`, `flagQueryStatus`, and `recordSqlError` calls in `public/app.js`
 - a `runSql(..., "<key>")` call in `src/server.js`
+Use explicit string literals in those calls so the checker can see them.
 
 ## Safe defaults for beginners
 - Prefer clear, constrained SQL contracts over flexible ones.

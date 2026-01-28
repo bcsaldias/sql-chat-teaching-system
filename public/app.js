@@ -2123,8 +2123,13 @@ registerBtn.addEventListener("click", async () => {
     const msg = e.message || String(e);
     const displayMsg = maybeAddSqlTraceHint(msg, e);
     setMsg(userAuthMsg, displayMsg, false);
-    flagQueryStatus(step, false);
-    recordSqlError(step, msg);
+    if (step === "user_register") {
+      flagQueryStatus("user_register", false);
+      recordSqlError("user_register", msg);
+    } else {
+      flagQueryStatus("user_login", false);
+      recordSqlError("user_login", msg);
+    }
   } finally {
     registerBtn.disabled = false;
     userLoginBtn.disabled = false;

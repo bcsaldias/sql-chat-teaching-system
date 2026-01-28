@@ -320,16 +320,16 @@ async function getStatusResponse(req, includeDetails) {
 
   const base = includeDetails
     ? {
-        gitSha: GIT_SHA,
-        deployedBy: DEPLOYED_BY,
-        deployedAt: DEPLOYED_AT,
-        deployedAtPt: formatPt(DEPLOYED_AT),
-        statsDbSource,
-        statsDbUser,
-        statsDatabase,
-        sessionDbUser,
-        sessionDatabase
-      }
+      gitSha: GIT_SHA,
+      deployedBy: DEPLOYED_BY,
+      deployedAt: DEPLOYED_AT,
+      deployedAtPt: formatPt(DEPLOYED_AT),
+      statsDbSource,
+      statsDbUser,
+      statsDatabase,
+      sessionDbUser,
+      sessionDatabase
+    }
     : null;
   let poolStats = {};
 
@@ -777,11 +777,11 @@ app.get("/api/messages", requireGroupLogin, requireChatUser, dbRoute(async (req,
   const { dbUser, dbPass, chatUsername } = req.session;
   const trace = [];
   const messages = await withDb(dbUser, dbPass, async (client) => {
-    const run = async (key, params) => {
+    const runWithTrace = async (key, params, queryFn) => {
       const entry = { key, paramsCount: Array.isArray(params) ? params.length : 0, status: "running" };
       trace.push(entry);
       try {
-        const r = await runSql(req, client, key, params);
+        const r = await queryFn();
         entry.status = "ok";
         return r;
       } catch (e) {
@@ -793,7 +793,11 @@ app.get("/api/messages", requireGroupLogin, requireChatUser, dbRoute(async (req,
       }
     };
 
-    const mem = await run("member_check", [chatUsername, cid]);
+    const mem = await runWithTrace(
+      "member_check",
+      [chatUsername, cid],
+      () => runSql(req, client, "member_check", [chatUsername, cid])
+    );
     if (mem.rowCount === 0) {
       const err = new Error("You must join this channel to view messages.");
       err.sqlKey = "member_check";
@@ -802,7 +806,11 @@ app.get("/api/messages", requireGroupLogin, requireChatUser, dbRoute(async (req,
       throw err;
     }
 
-    const r = await run("messages_list", [cid]);
+    const r = await runWithTrace(
+      "messages_list",
+      [cid],
+      () => runSql(req, client, "messages_list", [cid])
+    );
     return r.rows;
   });
 
