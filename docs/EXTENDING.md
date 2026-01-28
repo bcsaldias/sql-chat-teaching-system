@@ -2,20 +2,10 @@
 
 This app is simple to run, but extensions work best when you follow the shared "contract" between server, client, and SQL templates. The steps below keep everything aligned.
 
-## Quick mental model
-- The SQL Lab keys are the glue. The same key appears in `src/utils.js`, `public/app.js`, and `src/server.js`.
-- The contract details (first words, expected columns, validation rules) live in `docs/SETTINGS.md`.
-
-## Related docs worth skimming
-- `docs/SETTINGS.md` for the full contract + error-tagging rules.
-- `docs/DEPLOYMENT.md` for environment setup and runtime notes.
-- `README.md` for quick start and instructor tooling overview.
-
-## File map (where to look first)
-- `src/server.js`: API routes, `runSql`, SQL template endpoints, schema test route.
-- `src/utils.js`: `SQL_CONTRACT`, `SOLUTION_SQL`, schema introspection helpers.
-- `public/app.js`: SQL Lab UI, status tracking, error hints, and client calls.
-- `public/instructor.*` + `src/instructor.js`: instructor dashboard + progress logging.
+## Start here
+- Contract rules: `docs/SETTINGS.md`
+- Entry points: `src/server.js`, `public/app.js`, `src/utils.js`
+- Deployment/runtime: `docs/DEPLOYMENT.md`, `README.md`
 
 ## Add a new SQL Lab item + API route
 1. Add a key in `src/utils.js` -> `SQL_CONTRACT` (first word, expected columns).
@@ -67,23 +57,14 @@ app.post("/api/example", requireGroupLogin, requireChatUser, dbRoute(async (req,
 - `.env`: `ALLOW_SUPERUSER_MODE`, `INSTRUCTOR_TOKEN`, `SQL_PROGRESS_LOG`, pool sizes, etc.
 - `submissions/`: SQL snapshots and progress logs (JSONL).
 
-## Common pitfalls
-- Mismatched SQL Lab keys between server/client/contract.
-- Skipping `runSql` (loses expected-column checks + `sqlError` tagging).
-- Forgetting to call `recordSqlInput/flagQueryStatus/recordSqlError` in the UI path.
-- Not loading `/api/sql_templates` before rendering SQL Lab (missing expected columns).
-- Changing PK/FK types without updating `parseChannelId` + schema introspection.
-
-## Rule of thumb (wiring)
-If a key is in `SQL_CONTRACT` and appears in the SQL Lab UI, it should also appear in:
-- `recordSqlInput`, `flagQueryStatus`, and `recordSqlError` calls in `public/app.js`
-- a `runSql(..., "<key>")` call in `src/server.js`
-Use explicit string literals in those calls so the checker can see them.
+## Wiring rules (don’t skip)
+- Keys must match across `SQL_CONTRACT`, `SQL_LAB_ITEMS`, and API routes.
+- Use `runSql(..., "<key>")` on the server and `recordSqlInput/flagQueryStatus/recordSqlError` on the client.
+- Use explicit string literals so the checker can see them.
+- Load `/api/sql_templates` so `applySqlContract()` hydrates expected columns.
 
 ## Safe defaults for beginners
-- Prefer clear, constrained SQL contracts over flexible ones.
-- Always tag SQL errors so the UI can guide students to the right place.
-- Keep required columns stable so students can match expected output.
+- Keep contracts constrained, errors tagged, and columns stable.
 
 ## Suggested quick test
 1. Run the app, log in, and open SQL Lab.
