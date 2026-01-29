@@ -165,7 +165,7 @@ const SQL_LAB_ITEMS = [
     title: "Display channels + membership",
     group: "channels",
     description: `
-      <div><b>What happens:</b> load sidebar channel list + join/leave state</div>
+      <div><b>What happens:</b> Loads the sidebar channel list, indicates your current join/leave status for each channel, and provides Join/Leave buttons.</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b></div>
     `,
     textAreaHeight: "280px"
@@ -176,7 +176,7 @@ const SQL_LAB_ITEMS = [
     title: "Check membership before loading messages",
     group: "channels",
     description: `
-      <div><b>What happens:</b> app checks access before showing messages</div>
+      <div><b>What happens:</b> The app checks whether you’re allowed to view the channel before loading its messages.</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b></div>
       <div><b>Must return:</b> at least one row only if the user is a member (no rows otherwise)</div>
     `,
