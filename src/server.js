@@ -85,7 +85,7 @@ const DB_CONFIG_BASE = {
 };
 
 function resolveDbPassword(dbUser, dbPass) {
-  return dbUser === "demo" && dbPass === "demo" ? process.env.REAL_DEMO_PASSWORD : dbPass;
+  return dbUser === "demo" && dbPass === "demo" && ALLOW_SUPERUSER_MODE ? process.env.REAL_DEMO_PASSWORD : dbPass;
 }
 
 function dbConfig(dbUser, dbPass) {
