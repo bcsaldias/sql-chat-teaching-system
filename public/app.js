@@ -246,7 +246,7 @@ const SQL_LAB_ITEMS = [
     title: "Channel members list",
     group: "channels",
     description: `
-      <div><b>What happens:</b> members modal opens</div>
+      <div><b>What happens:</b> Clicking the “x members” button opens the modal and lists member names for that channel.</div>
       <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b></div>
     `
   }
