@@ -8,7 +8,7 @@ const SQL_CONTRACT = {
     user_register: { firstWords: ["insert"] },
     update_password: { firstWords: ["update"] },
     channels_list: {
-        firstWords: ["select"],
+        firstWords: ["with", "select"],
         expectedCols: [
             { name: "id" },
             { name: "name" },

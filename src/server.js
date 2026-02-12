@@ -437,7 +437,19 @@ function normalizeSingleStatement(sql) {
   return t;
 }
 
-const ALLOWED_SQL_FIRST_WORDS = new Set(["select", "insert", "delete", "update", "with"]);
+const DEFAULT_ALLOWED_SQL_FIRST_WORDS = ["select", "insert", "delete", "update", "with"];
+function normalizeFirstWords(words) {
+  const list = Array.isArray(words) ? words : [words];
+  return list.map((w) => String(w || "").trim().toLowerCase()).filter(Boolean);
+}
+function buildAllowedFirstWords(contract) {
+  const fromContract = Object.values(contract || {}).flatMap((cfg) =>
+    normalizeFirstWords(cfg?.firstWords)
+  );
+  const unique = Array.from(new Set(fromContract));
+  return new Set(unique.length > 0 ? unique : DEFAULT_ALLOWED_SQL_FIRST_WORDS);
+}
+const ALLOWED_SQL_FIRST_WORDS = buildAllowedFirstWords(SQL_CONTRACT);
 const MAX_SQL_TEMPLATE_LEN = 600;
 const COUNT_STAR_RE = /\bcount\s*\(\s*\*\s*\)/i;
 const STAR_WITHOUT_COUNT_RE = /\*(?!\s*\))/; // bare star
