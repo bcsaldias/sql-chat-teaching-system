@@ -1,0 +1,5 @@
+user_id,username,channel_id,channel_name,message_body,message_created_at
+1,alice,1,General,Hello everyone!,2026-02-12T09:00:00Z
+2,bob,1,General,Hi Alice!,2026-02-12T09:01:00Z
+3,carla,2,Movies,Anyone seen Dune?,2026-02-12T10:00:00Z
+1,alice,2,Movies,I'm in!,2026-02-12T10:02:00Z
