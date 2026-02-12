@@ -10,6 +10,11 @@ This project has a few places where server and client settings must stay in sync
 - **Client UI requirements**: `/api/sql_templates` returns `{ templates, contract }`, and `applySqlContract()` merges contract fields into `SQL_LAB_ITEMS` so “Expected columns” render. Tradeoff: the UI depends on this contract payload.
 - **Client status hooks**: wherever the query runs in `public/app.js`, call `recordSqlInput`, `flagQueryStatus`, and `recordSqlError` with the same key.
 
+## Schema checks vs. SQL contract
+- **Schema checks** live in `/api/test_schema` (`src/server.js`). They verify *tables/columns exist* in the database and can be flexible via alias lists.
+- **SQL contract** checks the *query output* (column names/types) returned by student SQL. This is what keeps the UI stable.
+- **Pedagogical rule of thumb**: allow flexible schema names if you want, but require students to alias query outputs to the contract names (e.g., `SELECT channel_name AS name`).
+
 ## SQL validation constraints
 - Server enforces: `MAX_SQL_TEMPLATE_LEN`, allowed first words, no `*` outside `COUNT(*)`, no `--` comments, no `DROP/ALTER/CREATE`.
 - Client should mirror: `MAX_SQL_LEN`/`SQL_LEN_WARN` match server max; UI hints reflect server restrictions; consider exposing max via `/api/sql_templates` to avoid drift.
