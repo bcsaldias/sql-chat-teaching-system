@@ -21,6 +21,8 @@ If you run this at larger scale, watch your Postgres `max_connections` and use s
 ## Docs (start here)
 - `docs/SETTINGS.md` — SQL contract + error tagging rules
 - `docs/EXTENDING.md` — how to add SQL keys, routes, and UI wiring
+- `docs/POPULATE_DB.md` — populate DB tool and CSV mapping
+- `docs/GRADING.md` — grading workflow and checks
 - `docs/DEPLOYMENT.md` — deployment notes (PM2, env)
 
 ## Client-side constraints (deterrents)
