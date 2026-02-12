@@ -1,5 +1,808 @@
 user_id,username,channel_id,channel_name,message_body,message_created_at
-1,alice,1,General,Hello everyone!,2026-02-12T09:00:00Z
-2,bob,1,General,Hi Alice!,2026-02-12T09:01:00Z
-3,carla,2,Movies,Anyone seen Dune?,2026-02-12T10:00:00Z
-1,alice,2,Movies,I'm in!,2026-02-12T10:02:00Z
+3041,priyasharma,4005,film-photography,Developing Portra 400 Sunday afternoon. Anyone want to join?,2026-02-10T09:07:00Z
+3002,sofiadiaz,4008,campus-gardens,watering session after class at the herb plot.,2026-02-10T09:27:00Z
+3096,avabrown,4008,campus-gardens,Watering at 5?,2026-02-10T09:39:05.782523Z
+3080,masonsmith,4008,campus-gardens,I'll be there.,2026-02-10T09:43:05.782523Z
+3098,avamoore,4005,film-photography,I'm in for Sunday afternoon.,2026-02-10T09:46:00Z
+3096,avabrown,4008,campus-gardens,Did the herbs survive the cold?,2026-02-10T09:51:05.782523Z
+3080,masonsmith,4008,campus-gardens,Mostly—basil struggled.,2026-02-10T09:53:05.782523Z
+3096,avabrown,4008,campus-gardens,Watering at 5?,2026-02-10T09:57:05.782523Z
+3080,masonsmith,4008,campus-gardens,I'll be there.,2026-02-10T10:00:05.782523Z
+3000,sofiagarcia,4008,campus-gardens,I can help with watering.,2026-02-10T10:02:00Z
+3096,avabrown,4008,campus-gardens,Watering at 5?,2026-02-10T10:04:05.782523Z
+3080,masonsmith,4008,campus-gardens,I'll be there.,2026-02-10T10:06:05.782523Z
+3096,avabrown,4008,campus-gardens,Did the herbs survive the cold?,2026-02-10T10:09:05.782523Z
+3080,masonsmith,4008,campus-gardens,Mostly—basil struggled.,2026-02-10T10:13:05.782523Z
+3096,avabrown,4008,campus-gardens,Seed swap table is set?,2026-02-10T10:17:05.782523Z
+3080,masonsmith,4008,campus-gardens,"Yes, labeled and ready.",2026-02-10T10:18:05.782523Z
+3059,yunapark,4005,film-photography,I'm in for Sunday afternoon.,2026-02-10T10:19:00Z
+3096,avabrown,4008,campus-gardens,Seed swap table is set?,2026-02-10T10:22:05.782523Z
+3080,masonsmith,4008,campus-gardens,"Yes, labeled and ready.",2026-02-10T10:23:05.782523Z
+3096,avabrown,4008,campus-gardens,Watering at 5?,2026-02-10T10:26:05.782523Z
+3080,masonsmith,4008,campus-gardens,I'll be there.,2026-02-10T10:30:05.782523Z
+3003,sofiaortiz,4005,film-photography,I'm in for Sunday afternoon.,2026-02-10T10:34:00Z
+3096,avabrown,4008,campus-gardens,Did the herbs survive the cold?,2026-02-10T10:35:05.782523Z
+3080,masonsmith,4008,campus-gardens,Mostly—basil struggled.,2026-02-10T10:39:05.782523Z
+3080,masonsmith,4008,campus-gardens,Let's update the signboard.,2026-02-10T10:40:00Z
+3096,avabrown,4008,campus-gardens,Watering at 5?,2026-02-10T10:42:05.782523Z
+3098,avamoore,4005,film-photography,I'll bring my scanner.,2026-02-10T10:44:00Z
+3069,kenjipark,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-10T10:45:00Z
+3080,masonsmith,4008,campus-gardens,I'll be there.,2026-02-10T10:46:05.782523Z
+3059,yunapark,4005,film-photography,Darkroom slots open Sunday afternoon.,2026-02-10T10:51:00Z
+3037,ishaansingh,4008,campus-gardens,Let's update the signboard.,2026-02-10T11:15:00Z
+3041,priyasharma,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-10T11:24:00Z
+3000,sofiagarcia,4008,campus-gardens,Compost bin needs turning.,2026-02-10T11:26:00Z
+3002,sofiadiaz,4008,campus-gardens,New planters arrived today.,2026-02-10T11:28:00Z
+3000,sofiagarcia,4008,campus-gardens,I'll be there after class.,2026-02-10T11:36:00Z
+3098,avamoore,4005,film-photography,I'll bring my scanner.,2026-02-10T11:39:00Z
+3080,masonsmith,4008,campus-gardens,Let's update the signboard.,2026-02-10T11:40:00Z
+3020,camilagarcia,4003,makers-guild,laser cutter is free after 5pm. Anyone want a slot?,2026-02-10T12:01:00Z
+3003,sofiaortiz,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-10T12:03:00Z
+3069,kenjipark,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-10T12:08:00Z
+3028,aaraviyer,4008,campus-gardens,Let's update the signboard.,2026-02-10T12:08:00Z
+3002,sofiadiaz,4008,campus-gardens,Compost bin needs turning.,2026-02-10T12:09:00Z
+3037,ishaansingh,4008,campus-gardens,New planters arrived today.,2026-02-10T12:22:00Z
+3060,meikim,4003,makers-guild,That project sounds solid.,2026-02-10T12:26:00Z
+3020,camilagarcia,4003,makers-guild,"I'm free after 5pm, let's do it.",2026-02-10T12:28:00Z
+3059,yunapark,4005,film-photography,I'm in for Sunday afternoon.,2026-02-10T12:43:00Z
+3028,aaraviyer,4008,campus-gardens,New planters arrived today.,2026-02-10T12:43:00Z
+3069,kenjipark,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-10T12:44:00Z
+3002,sofiadiaz,4008,campus-gardens,seed starting session noon at the north beds.,2026-02-10T12:46:00Z
+3050,minhokim,4003,makers-guild,That project sounds solid.,2026-02-10T12:49:00Z
+3003,sofiaortiz,4005,film-photography,Developing Ektar 100 after 6pm. Anyone want to join?,2026-02-10T12:53:00Z
+3069,kenjipark,4005,film-photography,Photo walk this weekend?,2026-02-10T12:54:00Z
+3009,mateoromero,4003,makers-guild,I can share my PETG profile.,2026-02-10T13:06:00Z
+3089,emmadavis,4003,makers-guild,That project sounds solid.,2026-02-10T13:17:00Z
+3000,sofiagarcia,4008,campus-gardens,Happy to bring gloves.,2026-02-10T13:25:00Z
+3098,avamoore,4005,film-photography,I'll post scans later.,2026-02-10T13:31:00Z
+3003,sofiaortiz,4005,film-photography,I'm in for after 6pm.,2026-02-10T13:51:00Z
+3073,haruchen,4003,makers-guild,We should order parts together.,2026-02-10T13:52:00Z
+3069,kenjipark,4005,film-photography,Photo walk this weekend?,2026-02-10T13:53:00Z
+3002,sofiadiaz,4008,campus-gardens,New planters arrived today.,2026-02-10T13:53:00Z
+3020,camilagarcia,4003,makers-guild,I can share my PETG profile.,2026-02-10T13:55:00Z
+3041,priyasharma,4005,film-photography,Yes please—I'd love to try Ektar 100.,2026-02-10T13:59:00Z
+3096,avabrown,4008,campus-gardens,Happy to bring gloves.,2026-02-10T14:12:00Z
+3002,sofiadiaz,4008,campus-gardens,I'll be there noon.,2026-02-10T14:13:00Z
+3070,harukim,4003,makers-guild,I'll bring calipers and a spare nozzle.,2026-02-10T14:34:00Z
+3049,rohangupta,4005,film-photography,Try stand development for more contrast.,2026-02-10T14:39:00Z
+3069,kenjipark,4005,film-photography,I'm in for after 6pm.,2026-02-10T14:41:00Z
+3096,avabrown,4008,campus-gardens,New planters arrived today.,2026-02-10T14:49:00Z
+3078,oliviamoore,4005,film-photography,I'll bring my scanner.,2026-02-10T15:06:00Z
+3084,masondavis,4003,makers-guild,"I'm free after 5pm, let's do it.",2026-02-10T15:08:00Z
+3002,sofiadiaz,4008,campus-gardens,New planters arrived today.,2026-02-10T15:16:00Z
+3037,ishaansingh,4008,campus-gardens,Seed swap after class—bring extras.,2026-02-10T15:25:00Z
+3050,minhokim,4003,makers-guild,Project idea: campus kiosk panel. Thoughts?,2026-02-10T15:40:00Z
+3000,sofiagarcia,4008,campus-gardens,Happy to bring gloves.,2026-02-10T15:41:00Z
+3003,sofiaortiz,4005,film-photography,Photo walk this weekend?,2026-02-10T15:43:00Z
+3069,kenjipark,4005,film-photography,I'm in for after 6pm.,2026-02-10T15:45:00Z
+3037,ishaansingh,4008,campus-gardens,Compost bin needs turning.,2026-02-10T15:48:00Z
+3003,sofiaortiz,4005,film-photography,Darkroom slots open Saturday morning.,2026-02-10T15:59:00Z
+3084,masondavis,4003,makers-guild,I'll bring calipers and a spare nozzle.,2026-02-10T16:04:00Z
+3059,yunapark,4005,film-photography,Yes please—I'd love to try HP5.,2026-02-10T16:07:00Z
+3028,aaraviyer,4008,campus-gardens,Let's update the signboard.,2026-02-10T16:09:00Z
+3080,masonsmith,4008,campus-gardens,Happy to bring gloves.,2026-02-10T16:22:00Z
+3069,kenjipark,4005,film-photography,I'll post scans later.,2026-02-10T16:23:00Z
+3096,avabrown,4008,campus-gardens,New planters arrived today.,2026-02-10T16:35:00Z
+3081,masonbrown,4005,film-photography,Yes please—I'd love to try HP5.,2026-02-10T16:39:00Z
+3070,harukim,4003,makers-guild,I'll post photos after the cut.,2026-02-10T16:40:00Z
+3007,mateodiaz,4003,makers-guild,I'll post photos after the cut.,2026-02-10T16:44:00Z
+3003,sofiaortiz,4005,film-photography,I'm in for Saturday morning.,2026-02-10T16:50:00Z
+3002,sofiadiaz,4008,campus-gardens,Did the herbs survive the cold?,2026-02-10T16:52:56.752512Z
+3000,sofiagarcia,4008,campus-gardens,Mostly—basil struggled.,2026-02-10T16:56:56.752512Z
+3002,sofiadiaz,4008,campus-gardens,Seed swap table is set?,2026-02-10T16:59:56.752512Z
+3049,rohangupta,4005,film-photography,Want to swap a roll?,2026-02-10T17:01:50.560430Z
+3059,yunapark,4005,film-photography,I'm in for Saturday morning.,2026-02-10T17:02:00Z
+3000,sofiagarcia,4008,campus-gardens,"Yes, labeled and ready.",2026-02-10T17:03:56.752512Z
+3065,kenjikim,4005,film-photography,"Yes, I have HP5.",2026-02-10T17:05:50.560430Z
+3028,aaraviyer,4008,campus-gardens,Compost bin needs turning.,2026-02-10T17:06:00Z
+3049,rohangupta,4005,film-photography,Your scans look crisp—what DPI?,2026-02-10T17:09:50.560430Z
+3002,sofiadiaz,4008,campus-gardens,Watering at 5?,2026-02-10T17:10:56.752512Z
+3065,kenjikim,4005,film-photography,2400 DPI for prints.,2026-02-10T17:11:50.560430Z
+3000,sofiagarcia,4008,campus-gardens,I'll be there.,2026-02-10T17:13:56.752512Z
+3049,rohangupta,4005,film-photography,Your scans look crisp—what DPI?,2026-02-10T17:17:50.560430Z
+3002,sofiadiaz,4008,campus-gardens,Watering at 5?,2026-02-10T17:19:56.752512Z
+3065,kenjikim,4005,film-photography,2400 DPI for prints.,2026-02-10T17:20:50.560430Z
+3084,masondavis,4003,makers-guild,I can share my plywood profile.,2026-02-10T17:21:00Z
+3000,sofiagarcia,4008,campus-gardens,I'll be there.,2026-02-10T17:21:56.752512Z
+3049,rohangupta,4005,film-photography,Your scans look crisp—what DPI?,2026-02-10T17:28:50.560430Z
+3002,sofiadiaz,4008,campus-gardens,Seed swap table is set?,2026-02-10T17:29:56.752512Z
+3065,kenjikim,4005,film-photography,2400 DPI for prints.,2026-02-10T17:31:50.560430Z
+3000,sofiagarcia,4008,campus-gardens,"Yes, labeled and ready.",2026-02-10T17:32:56.752512Z
+3081,masonbrown,4005,film-photography,Try stand development for more contrast.,2026-02-10T17:34:00Z
+3049,rohangupta,4005,film-photography,Want to swap a roll?,2026-02-10T17:39:50.560430Z
+3080,masonsmith,4008,campus-gardens,Compost bin needs turning.,2026-02-10T17:40:00Z
+3065,kenjikim,4005,film-photography,"Yes, I have HP5.",2026-02-10T17:40:50.560430Z
+3002,sofiadiaz,4008,campus-gardens,Seed swap table is set?,2026-02-10T17:40:56.752512Z
+3049,rohangupta,4005,film-photography,Meet in the darkroom at 7?,2026-02-10T17:43:50.560430Z
+3000,sofiagarcia,4008,campus-gardens,"Yes, labeled and ready.",2026-02-10T17:43:56.752512Z
+3065,kenjikim,4005,film-photography,"Perfect, see you then.",2026-02-10T17:47:50.560430Z
+3009,mateoromero,4003,makers-guild,"I'm free tomorrow morning, let's do it.",2026-02-10T17:50:00Z
+3002,sofiadiaz,4008,campus-gardens,Did the herbs survive the cold?,2026-02-10T17:50:56.752512Z
+3000,sofiagarcia,4008,campus-gardens,Mostly—basil struggled.,2026-02-10T17:52:56.752512Z
+3002,sofiadiaz,4008,campus-gardens,Let's update the signboard.,2026-02-10T17:54:00Z
+3049,rohangupta,4005,film-photography,Want to swap a roll?,2026-02-10T17:54:50.560430Z
+3065,kenjikim,4005,film-photography,"Yes, I have HP5.",2026-02-10T17:55:50.560430Z
+3049,rohangupta,4005,film-photography,Meet in the darkroom at 7?,2026-02-10T17:57:50.560430Z
+3003,sofiaortiz,4005,film-photography,Developing Ektar 100 Saturday morning. Anyone want to join?,2026-02-10T17:59:00Z
+3065,kenjikim,4005,film-photography,"Perfect, see you then.",2026-02-10T18:00:50.560430Z
+3081,masonbrown,4005,film-photography,I'll bring my scanner.,2026-02-10T18:08:00Z
+3060,meikim,4003,makers-guild,I can share my plywood profile.,2026-02-10T18:13:00Z
+3080,masonsmith,4008,campus-gardens,I can help with weeding.,2026-02-10T18:27:00Z
+3056,yunalee,4003,makers-guild,I'll bring calipers and a spare nozzle.,2026-02-10T18:42:00Z
+3078,oliviamoore,4005,film-photography,Photo walk this weekend?,2026-02-10T18:47:00Z
+3065,kenjikim,4005,film-photography,Yes please—I'd love to try Ektar 100.,2026-02-10T18:58:00Z
+3009,mateoromero,4003,makers-guild,That project sounds solid.,2026-02-10T18:59:00Z
+3000,sofiagarcia,4008,campus-gardens,I can help with weeding.,2026-02-10T19:07:00Z
+3049,rohangupta,4005,film-photography,Yes please—I'd love to try Ektar 100.,2026-02-10T19:31:00Z
+3060,meikim,4003,makers-guild,I can share my plywood profile.,2026-02-10T19:37:00Z
+3050,minhokim,4003,makers-guild,I'll bring calipers and a spare nozzle.,2026-02-10T19:42:00Z
+3037,ishaansingh,4008,campus-gardens,Compost bin needs turning.,2026-02-10T19:43:00Z
+3089,emmadavis,4003,makers-guild,We should order parts together.,2026-02-10T19:54:00Z
+3000,sofiagarcia,4008,campus-gardens,Seed swap noon—bring extras.,2026-02-10T19:54:00Z
+3037,ishaansingh,4008,campus-gardens,I can help with watering.,2026-02-10T20:00:00Z
+3098,avamoore,4005,film-photography,I'll bring my scanner.,2026-02-10T20:06:00Z
+3056,yunalee,4003,makers-guild,3D printer is free after 5pm. Anyone want a slot?,2026-02-10T20:12:00Z
+3049,rohangupta,4005,film-photography,I'm in for Saturday morning.,2026-02-10T20:15:00Z
+3060,meikim,4003,makers-guild,"I'm free after 5pm, let's do it.",2026-02-10T20:39:00Z
+3096,avabrown,4008,campus-gardens,Let's update the signboard.,2026-02-10T20:39:00Z
+3037,ishaansingh,4008,campus-gardens,I can help with watering.,2026-02-10T20:46:00Z
+3098,avamoore,4005,film-photography,I'll bring my scanner.,2026-02-10T20:52:00Z
+3089,emmadavis,4003,makers-guild,"I'm free after 5pm, let's do it.",2026-02-10T21:03:00Z
+3000,sofiagarcia,4008,campus-gardens,I'll be there noon.,2026-02-10T21:25:00Z
+3049,rohangupta,4005,film-photography,I'll post scans later.,2026-02-10T21:27:00Z
+3006,mateolopez,4003,makers-guild,I'll bring calipers and a spare nozzle.,2026-02-10T21:41:00Z
+3096,avabrown,4008,campus-gardens,New planters arrived today.,2026-02-10T21:54:00Z
+3056,yunalee,4003,makers-guild,I'll post photos after the cut.,2026-02-10T21:55:00Z
+3041,priyasharma,4005,film-photography,Photo walk this weekend?,2026-02-10T21:58:00Z
+3089,emmadavis,4003,makers-guild,We should order parts together.,2026-02-10T22:12:00Z
+3065,kenjikim,4005,film-photography,I'll bring my scanner.,2026-02-10T22:20:00Z
+3000,sofiagarcia,4008,campus-gardens,New planters arrived today.,2026-02-10T22:30:00Z
+3029,aaravgupta,4003,makers-guild,"I'm free after 5pm, let's do it.",2026-02-10T22:38:00Z
+3049,rohangupta,4005,film-photography,Developing Portra 400 Saturday morning. Anyone want to join?,2026-02-10T22:45:00Z
+3091,noahbrown,4007,studio-ceramics,Looking for a spare trimming tools.,2026-02-10T22:48:00Z
+3096,avabrown,4008,campus-gardens,Let's update the signboard.,2026-02-10T23:01:00Z
+3073,haruchen,4003,makers-guild,I'll post photos after the cut.,2026-02-10T23:13:00Z
+3081,masonbrown,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-10T23:15:00Z
+3087,emmataylor,4007,studio-ceramics,Test tiles are ready for pickup.,2026-02-10T23:21:00Z
+3095,avasmith,4003,makers-guild,That project sounds solid.,2026-02-10T23:26:00Z
+3000,sofiagarcia,4008,campus-gardens,Happy to bring gloves.,2026-02-10T23:32:00Z
+3094,noahdavis,4003,makers-guild,Project idea: campus kiosk panel. Thoughts?,2026-02-10T23:37:00Z
+3069,kenjipark,4002,late-night-boba,Anyone want jasmine milk tea at Moonleaf around 8pm?,2026-02-10T23:46:00Z
+3096,avabrown,4008,campus-gardens,Seed swap Saturday morning—bring extras.,2026-02-10T23:49:00Z
+3029,aaravgupta,4003,makers-guild,That project sounds solid.,2026-02-10T23:52:00Z
+3049,rohangupta,4005,film-photography,I'll post scans later.,2026-02-10T23:53:00Z
+3061,meilee,4007,studio-ceramics,Test tiles are ready for pickup.,2026-02-10T23:57:00Z
+3065,kenjikim,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-11T00:01:00Z
+3098,avamoore,4005,film-photography,I'll bring my scanner.,2026-02-11T00:07:00Z
+3006,mateolopez,4003,makers-guild,That project sounds solid.,2026-02-11T00:09:00Z
+3006,mateolopez,4001,campus-hikes,Quick plan: Lake Loop Saturday 9am.,2026-02-11T00:19:00Z
+3068,kenjichen,4007,studio-ceramics,Test tiles are ready for pickup.,2026-02-11T00:19:00Z
+3043,priyaiyer,4001,campus-hikes,Count me in for Lake Loop.,2026-02-11T00:21:00Z
+3086,emmabrown,4007,studio-ceramics,I can bring a trimming tools.,2026-02-11T00:21:00Z
+3064,meipark,4002,late-night-boba,I'll be there a few minutes early.,2026-02-11T00:25:00Z
+3087,emmataylor,4007,studio-ceramics,Thanks! Saturday works.,2026-02-11T00:34:00Z
+3086,emmabrown,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T00:36:00Z
+3059,yunapark,4005,film-photography,I'm in for Saturday morning.,2026-02-11T00:38:00Z
+3066,kenjilee,4002,late-night-boba,I'll be there a few minutes early.,2026-02-11T00:39:00Z
+3060,meikim,4003,makers-guild,I can share my plywood profile.,2026-02-11T00:45:00Z
+3094,noahdavis,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T00:50:33.796671Z
+3094,noahdavis,4003,makers-guild,That project sounds solid.,2026-02-11T00:53:00Z
+3006,mateolopez,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T00:53:33.796671Z
+3094,noahdavis,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T00:54:00Z
+3094,noahdavis,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T01:00:33.796671Z
+3003,sofiaortiz,4002,late-night-boba,Student discount applies at Moonleaf on Tuesdays.,2026-02-11T01:02:00Z
+3073,haruchen,4003,makers-guild,I'll post photos after the cut.,2026-02-11T01:02:00Z
+3006,mateolopez,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T01:02:33.796671Z
+3069,kenjipark,4002,late-night-boba,I'm down for Moonleaf at 8pm.,2026-02-11T01:03:00Z
+3094,noahdavis,4001,campus-hikes,Want to pace group A on the {trail}?,2026-02-11T01:05:33.796671Z
+3006,mateolopez,4001,campus-hikes,"Yeah, I'll take the lead.",2026-02-11T01:06:33.796671Z
+3087,emmataylor,4007,studio-ceramics,Thanks! Saturday works.,2026-02-11T01:08:00Z
+3094,noahdavis,4001,campus-hikes,Did you pack extra water?,2026-02-11T01:09:33.796671Z
+3006,mateolopez,4001,campus-hikes,"Yep, got a full extra bottle.",2026-02-11T01:10:33.796671Z
+3041,priyasharma,4005,film-photography,I'll post scans later.,2026-02-11T01:11:00Z
+3064,meipark,4002,late-night-boba,Meet by the fountain?,2026-02-11T01:13:00Z
+3069,kenjipark,4002,late-night-boba,Meet by the fountain?,2026-02-11T01:15:00Z
+3042,priyasingh,4001,campus-hikes,I'm in for Lake Loop at 9am.,2026-02-11T01:16:00Z
+3094,noahdavis,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T01:16:33.796671Z
+3006,mateolopez,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T01:17:33.796671Z
+3094,noahdavis,4001,campus-hikes,Want to pace group A on the {trail}?,2026-02-11T01:23:33.796671Z
+3006,mateolopez,4001,campus-hikes,"Yeah, I'll take the lead.",2026-02-11T01:24:33.796671Z
+3061,meilee,4006,board-game-night,Game night 7:30pm—thinking Coup.,2026-02-11T01:28:00Z
+3056,yunalee,4003,makers-guild,That project sounds solid.,2026-02-11T01:29:00Z
+3094,noahdavis,4001,campus-hikes,Did you pack extra water?,2026-02-11T01:29:33.796671Z
+3006,mateolopez,4001,campus-hikes,"Yep, got a full extra bottle.",2026-02-11T01:31:33.796671Z
+3029,aaravgupta,4003,makers-guild,That project sounds solid.,2026-02-11T01:34:00Z
+3031,anayasharma,4002,late-night-boba,I'm down for Moonleaf at 8pm.,2026-02-11T01:35:00Z
+3094,noahdavis,4001,campus-hikes,Want to pace group A on the {trail}?,2026-02-11T01:37:33.796671Z
+3081,masonbrown,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-11T01:38:00Z
+3043,priyaiyer,4001,campus-hikes,Count me in for Lake Loop.,2026-02-11T01:40:00Z
+3056,yunalee,4003,makers-guild,We should order parts together.,2026-02-11T01:41:00Z
+3006,mateolopez,4001,campus-hikes,"Yeah, I'll take the lead.",2026-02-11T01:41:33.796671Z
+3066,kenjilee,4002,late-night-boba,I'll be there a few minutes early.,2026-02-11T01:44:00Z
+3094,noahdavis,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T01:47:33.796671Z
+3086,emmabrown,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T01:48:00Z
+3006,mateolopez,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T01:51:33.796671Z
+3094,noahdavis,4001,campus-hikes,I'll bring extra water and snacks.,2026-02-11T01:57:00Z
+3024,camilaromero,4006,board-game-night,I'll bring snacks.,2026-02-11T01:58:00Z
+3094,noahdavis,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T01:58:33.796671Z
+3068,kenjichen,4007,studio-ceramics,Test tiles are ready for pickup.,2026-02-11T01:59:00Z
+3061,meilee,4006,board-game-night,7:30pm works for me.,2026-02-11T02:00:00Z
+3006,mateolopez,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T02:00:33.796671Z
+3098,avamoore,4005,film-photography,Photo walk this weekend?,2026-02-11T02:01:00Z
+3031,anayasharma,4002,late-night-boba,Meet by the fountain?,2026-02-11T02:17:00Z
+3006,mateolopez,4003,makers-guild,Need settings for acrylic—any tips?,2026-02-11T02:19:00Z
+3010,valeriagarcia,4002,late-night-boba,You going for classic or a special?,2026-02-11T02:21:19.913365Z
+3024,camilaromero,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T02:24:00Z
+3002,sofiadiaz,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T02:25:00Z
+3069,kenjipark,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T02:25:19.913365Z
+3007,mateodiaz,4003,makers-guild,"I'm free Friday afternoon, let's do it.",2026-02-11T02:29:00Z
+3010,valeriagarcia,4002,late-night-boba,Meet inside or outside?,2026-02-11T02:33:19.913365Z
+3069,kenjipark,4002,late-night-boba,"Outside, less noisy.",2026-02-11T02:35:19.913365Z
+3013,valeriaortiz,4007,studio-ceramics,Kiln firing scheduled Friday.,2026-02-11T02:36:00Z
+3041,priyasharma,4005,film-photography,Got extra Ektar 100 to share.,2026-02-11T02:37:00Z
+3010,valeriagarcia,4002,late-night-boba,You going for classic or a special?,2026-02-11T02:39:19.913365Z
+3078,oliviamoore,4001,campus-hikes,I'm in for Lake Loop at 9am.,2026-02-11T02:40:00Z
+3069,kenjipark,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T02:41:19.913365Z
+3010,valeriagarcia,4002,late-night-boba,You going for classic or a special?,2026-02-11T02:44:19.913365Z
+3061,meilee,4006,board-game-night,I'll bring snacks.,2026-02-11T02:46:00Z
+3069,kenjipark,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T02:48:19.913365Z
+3022,camiladiaz,4004,club-soccer,Scrimmage tonight at field B.,2026-02-11T02:49:00Z
+3066,kenjilee,4002,late-night-boba,Line is short if we go before 8pm.,2026-02-11T02:50:00Z
+3070,harukim,4003,makers-guild,That project sounds solid.,2026-02-11T02:51:00Z
+3087,emmataylor,4007,studio-ceramics,Test tiles are ready for pickup.,2026-02-11T02:54:00Z
+3010,valeriagarcia,4002,late-night-boba,Trying the new topping?,2026-02-11T02:55:19.913365Z
+3032,anayasingh,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T02:58:00Z
+3069,kenjipark,4002,late-night-boba,"Yep, crystal boba tonight.",2026-02-11T02:59:19.913365Z
+3010,valeriagarcia,4002,late-night-boba,You going for classic or a special?,2026-02-11T03:02:19.913365Z
+3098,avamoore,4005,film-photography,Photo walk this weekend?,2026-02-11T03:04:00Z
+3069,kenjipark,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T03:06:19.913365Z
+3010,valeriagarcia,4002,late-night-boba,You going for classic or a special?,2026-02-11T03:10:19.913365Z
+3069,kenjipark,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T03:13:19.913365Z
+3029,aaravgupta,4003,makers-guild,We should order parts together.,2026-02-11T03:15:00Z
+3080,masonsmith,4004,club-soccer,I can bring cones.,2026-02-11T03:17:00Z
+3075,oliviasmith,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T03:18:00Z
+3010,valeriagarcia,4002,late-night-boba,Trying the new topping?,2026-02-11T03:20:19.913365Z
+3006,mateolopez,4001,campus-hikes,I'm in for Lake Loop at 9am.,2026-02-11T03:22:00Z
+3064,meipark,4002,late-night-boba,Study break at Moonleaf 9pm?,2026-02-11T03:22:00Z
+3001,sofialopez,4004,club-soccer,Let's warm up 10 min early.,2026-02-11T03:22:00Z
+3024,camilaromero,4006,board-game-night,We can switch games after one round.,2026-02-11T03:23:00Z
+3069,kenjipark,4002,late-night-boba,"Yep, crystal boba tonight.",2026-02-11T03:23:19.913365Z
+3013,valeriaortiz,4007,studio-ceramics,I can bring a rib set.,2026-02-11T03:30:00Z
+3043,priyaiyer,4001,campus-hikes,I'll bring extra water and snacks.,2026-02-11T03:31:00Z
+3010,valeriagarcia,4002,late-night-boba,Trying the new topping?,2026-02-11T03:31:19.913365Z
+3029,aaravgupta,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T03:33:59.455810Z
+3069,kenjipark,4002,late-night-boba,"Yep, crystal boba tonight.",2026-02-11T03:34:19.913365Z
+3041,priyasharma,4005,film-photography,Try stand development for more contrast.,2026-02-11T03:35:00Z
+3056,yunalee,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T03:37:59.455810Z
+3010,valeriagarcia,4002,late-night-boba,Meet inside or outside?,2026-02-11T03:41:19.913365Z
+3056,yunalee,4003,makers-guild,"I'm free Friday afternoon, let's do it.",2026-02-11T03:42:00Z
+3069,kenjipark,4002,late-night-boba,"Outside, less noisy.",2026-02-11T03:42:19.913365Z
+3029,aaravgupta,4003,makers-guild,Can you share your PETG profile?,2026-02-11T03:44:59.455810Z
+3056,yunalee,4003,makers-guild,"Sure, I'll upload it.",2026-02-11T03:46:59.455810Z
+3049,rohangupta,4006,board-game-night,Count me in for Coup.,2026-02-11T03:51:00Z
+3066,kenjilee,4002,late-night-boba,Student discount applies at Moonleaf on Tuesdays.,2026-02-11T03:53:00Z
+3029,aaravgupta,4003,makers-guild,Can you share your PETG profile?,2026-02-11T03:54:59.455810Z
+3056,yunalee,4003,makers-guild,"Sure, I'll upload it.",2026-02-11T03:55:59.455810Z
+3074,harupark,4004,club-soccer,I'll be there at 5pm.,2026-02-11T03:56:00Z
+3061,meilee,4007,studio-ceramics,Clay reclaim bucket is full.,2026-02-11T03:56:00Z
+3022,camiladiaz,4004,club-soccer,I'll be there at 5pm.,2026-02-11T03:57:00Z
+3029,aaravgupta,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T03:58:59.455810Z
+3065,kenjikim,4004,club-soccer,I'll keep score.,2026-02-11T04:02:00Z
+3016,diegolopez,4006,board-game-night,Count me in for Coup.,2026-02-11T04:02:00Z
+3056,yunalee,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T04:02:59.455810Z
+3075,oliviasmith,4001,campus-hikes,Meetup spot: trailhead lot. Sound good?,2026-02-11T04:03:00Z
+3064,meipark,4002,late-night-boba,Line is short if we go before 9pm.,2026-02-11T04:04:00Z
+3061,meilee,4006,board-game-night,7:30pm works for me.,2026-02-11T04:04:00Z
+3029,aaravgupta,4003,makers-guild,Your kerf test worked?,2026-02-11T04:06:59.455810Z
+3068,kenjichen,4007,studio-ceramics,Thanks! Friday works.,2026-02-11T04:07:00Z
+3056,yunalee,4003,makers-guild,"Yep, 0.2mm was perfect.",2026-02-11T04:07:59.455810Z
+3054,minhopark,4002,late-night-boba,Line is short if we go before 9pm.,2026-02-11T04:10:00Z
+3049,rohangupta,4005,film-photography,I'll bring my scanner.,2026-02-11T04:11:00Z
+3076,oliviabrown,4004,club-soccer,I'll keep score.,2026-02-11T04:12:00Z
+3029,aaravgupta,4003,makers-guild,Your kerf test worked?,2026-02-11T04:12:59.455810Z
+3071,harulee,4001,campus-hikes,trailhead lot is perfect.,2026-02-11T04:13:00Z
+3089,emmadavis,4003,makers-guild,That project sounds solid.,2026-02-11T04:13:00Z
+3061,meilee,4007,studio-ceramics,Test tiles are ready for pickup.,2026-02-11T04:13:00Z
+3056,yunalee,4003,makers-guild,"Yep, 0.2mm was perfect.",2026-02-11T04:14:59.455810Z
+3068,kenjichen,4007,studio-ceramics,Kiln schedule look ok?,2026-02-11T04:19:33.930250Z
+3061,meilee,4007,studio-ceramics,"Yep, I booked the slot.",2026-02-11T04:20:33.930250Z
+3043,priyaiyer,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T04:22:00Z
+3029,aaravgupta,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T04:22:59.455810Z
+3068,kenjichen,4007,studio-ceramics,Can you trim my bowl?,2026-02-11T04:25:33.930250Z
+3056,yunalee,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T04:25:59.455810Z
+3061,meilee,4007,studio-ceramics,Happy to help after class.,2026-02-11T04:26:33.930250Z
+3059,yunapark,4004,club-soccer,Count me in.,2026-02-11T04:27:00Z
+3068,kenjichen,4007,studio-ceramics,Kiln schedule look ok?,2026-02-11T04:30:33.930250Z
+3029,aaravgupta,4003,makers-guild,Can you share your PETG profile?,2026-02-11T04:30:59.455810Z
+3061,meilee,4007,studio-ceramics,"Yep, I booked the slot.",2026-02-11T04:31:33.930250Z
+3069,kenjipark,4007,studio-ceramics,wheel practice on Saturday. Anyone joining?,2026-02-11T04:32:00Z
+3056,yunalee,4003,makers-guild,"Sure, I'll upload it.",2026-02-11T04:32:59.455810Z
+3078,oliviamoore,4005,film-photography,Yes please—I'd love to try Ektar 100.,2026-02-11T04:33:00Z
+3068,kenjichen,4007,studio-ceramics,Your glaze combo was amazing.,2026-02-11T04:36:33.930250Z
+3031,anayasharma,4002,late-night-boba,I'm down for Moonleaf at 9pm.,2026-02-11T04:38:00Z
+3061,meilee,4007,studio-ceramics,Thanks! It's cobalt + clear.,2026-02-11T04:39:33.930250Z
+3029,aaravgupta,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T04:39:59.455810Z
+3056,yunalee,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T04:41:59.455810Z
+3042,priyasingh,4001,campus-hikes,trailhead lot is perfect.,2026-02-11T04:42:00Z
+3041,priyasharma,4005,film-photography,I'll bring my scanner.,2026-02-11T04:42:00Z
+3050,minhokim,4006,board-game-night,7:30pm works for me.,2026-02-11T04:42:00Z
+3098,avamoore,4005,film-photography,Your scans look crisp—what DPI?,2026-02-11T04:42:44.272046Z
+3003,sofiaortiz,4002,late-night-boba,Line is short if we go before 9pm.,2026-02-11T04:44:00Z
+3007,mateodiaz,4003,makers-guild,That project sounds solid.,2026-02-11T04:44:00Z
+3068,kenjichen,4007,studio-ceramics,Can you trim my bowl?,2026-02-11T04:44:33.930250Z
+3081,masonbrown,4005,film-photography,2400 DPI for prints.,2026-02-11T04:44:44.272046Z
+3029,aaravgupta,4003,makers-guild,Your kerf test worked?,2026-02-11T04:44:59.455810Z
+3056,yunalee,4003,makers-guild,"Yep, 0.2mm was perfect.",2026-02-11T04:47:59.455810Z
+3061,meilee,4007,studio-ceramics,Happy to help after class.,2026-02-11T04:48:33.930250Z
+3068,kenjichen,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T04:50:00Z
+3068,kenjichen,4007,studio-ceramics,Kiln schedule look ok?,2026-02-11T04:50:33.930250Z
+3061,meilee,4007,studio-ceramics,"Yep, I booked the slot.",2026-02-11T04:52:33.930250Z
+3098,avamoore,4005,film-photography,Meet in the darkroom at 7?,2026-02-11T04:52:44.272046Z
+3068,kenjichen,4007,studio-ceramics,Your glaze combo was amazing.,2026-02-11T04:54:33.930250Z
+3061,meilee,4007,studio-ceramics,Thanks! It's cobalt + clear.,2026-02-11T04:55:33.930250Z
+3081,masonbrown,4005,film-photography,"Perfect, see you then.",2026-02-11T04:55:44.272046Z
+3061,meilee,4006,board-game-night,I'll bring snacks.,2026-02-11T04:56:00Z
+3068,kenjichen,4007,studio-ceramics,Kiln schedule look ok?,2026-02-11T04:57:33.930250Z
+3098,avamoore,4005,film-photography,Want to swap a roll?,2026-02-11T04:57:44.272046Z
+3095,avasmith,4003,makers-guild,That project sounds solid.,2026-02-11T04:59:00Z
+3074,harupark,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T04:59:00Z
+3078,oliviamoore,4005,film-photography,Yes please—I'd love to try Ektar 100.,2026-02-11T05:00:00Z
+3081,masonbrown,4005,film-photography,"Yes, I have HP5.",2026-02-11T05:00:44.272046Z
+3061,meilee,4007,studio-ceramics,"Yep, I booked the slot.",2026-02-11T05:01:33.930250Z
+3006,mateolopez,4003,makers-guild,That project sounds solid.,2026-02-11T05:05:00Z
+3068,kenjichen,4007,studio-ceramics,Can you trim my bowl?,2026-02-11T05:07:33.930250Z
+3098,avamoore,4005,film-photography,Your scans look crisp—what DPI?,2026-02-11T05:07:44.272046Z
+3030,anayapatel,4001,campus-hikes,trailhead lot is perfect.,2026-02-11T05:08:00Z
+3049,rohangupta,4005,film-photography,Photo walk this weekend?,2026-02-11T05:08:00Z
+3081,masonbrown,4005,film-photography,2400 DPI for prints.,2026-02-11T05:08:44.272046Z
+3061,meilee,4007,studio-ceramics,Happy to help after class.,2026-02-11T05:10:33.930250Z
+3098,avamoore,4005,film-photography,Meet in the darkroom at 7?,2026-02-11T05:10:44.272046Z
+3081,masonbrown,4005,film-photography,"Perfect, see you then.",2026-02-11T05:13:44.272046Z
+3010,valeriagarcia,4002,late-night-boba,Line is short if we go before 9pm.,2026-02-11T05:16:00Z
+3098,avamoore,4005,film-photography,Want to swap a roll?,2026-02-11T05:21:44.272046Z
+3091,noahbrown,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T05:22:00Z
+3081,masonbrown,4005,film-photography,"Yes, I have HP5.",2026-02-11T05:22:44.272046Z
+3043,priyaiyer,4001,campus-hikes,Thanks! rain jackets would be great.,2026-02-11T05:24:00Z
+3065,kenjikim,4005,film-photography,Developing Portra 400 Saturday morning. Anyone want to join?,2026-02-11T05:27:00Z
+3032,anayasingh,4004,club-soccer,Pickup game at field B 5pm. Need one more!,2026-02-11T05:29:00Z
+3098,avamoore,4005,film-photography,Your scans look crisp—what DPI?,2026-02-11T05:29:44.272046Z
+3081,masonbrown,4005,film-photography,2400 DPI for prints.,2026-02-11T05:30:44.272046Z
+3065,kenjikim,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-11T05:33:00Z
+3073,haruchen,4003,makers-guild,We should order parts together.,2026-02-11T05:34:00Z
+3098,avamoore,4005,film-photography,Meet in the darkroom at 7?,2026-02-11T05:34:44.272046Z
+3003,sofiaortiz,4006,board-game-night,Table space is limited—RSVP here.,2026-02-11T05:35:00Z
+3081,masonbrown,4005,film-photography,"Perfect, see you then.",2026-02-11T05:35:44.272046Z
+3065,kenjikim,4005,film-photography,Try stand development for more contrast.,2026-02-11T05:39:00Z
+3068,kenjichen,4007,studio-ceramics,Test tiles are ready for pickup.,2026-02-11T05:44:00Z
+3065,kenjikim,4001,campus-hikes,I'll be 10 minutes early.,2026-02-11T05:47:00Z
+3006,mateolopez,4003,makers-guild,laser cutter is free Friday afternoon. Anyone want a slot?,2026-02-11T05:48:00Z
+3065,kenjikim,4005,film-photography,Photo walk this weekend?,2026-02-11T05:52:00Z
+3056,yunalee,4003,makers-guild,We should order parts together.,2026-02-11T05:55:00Z
+3031,anayasharma,4002,late-night-boba,Student discount applies at Moonleaf on Tuesdays.,2026-02-11T05:56:00Z
+3099,avadavis,4004,club-soccer,I can bring cleats.,2026-02-11T06:06:00Z
+3060,meikim,4003,makers-guild,We should order parts together.,2026-02-11T06:08:00Z
+3075,oliviasmith,4001,campus-hikes,Any gear suggestions? I have extra rain jackets.,2026-02-11T06:10:00Z
+3024,camilaromero,4006,board-game-night,Hosting Coup at 7:30pm. Who's in?,2026-02-11T06:13:00Z
+3091,noahbrown,4007,studio-ceramics,Studio opens early tomorrow.,2026-02-11T06:15:00Z
+3065,kenjikim,4005,film-photography,Yes please—I'd love to try Portra 400.,2026-02-11T06:21:00Z
+3016,diegolopez,4006,board-game-night,Table space is limited—RSVP here.,2026-02-11T06:26:00Z
+3010,valeriagarcia,4002,late-night-boba,Meet by the fountain?,2026-02-11T06:30:00Z
+3076,oliviabrown,4004,club-soccer,Count me in.,2026-02-11T06:35:00Z
+3050,minhokim,4003,makers-guild,We should order parts together.,2026-02-11T06:37:00Z
+3061,meilee,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T06:37:00Z
+3054,minhopark,4002,late-night-boba,You going for classic or a special?,2026-02-11T06:40:47.347761Z
+3003,sofiaortiz,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T06:41:47.347761Z
+3013,valeriaortiz,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T06:42:00Z
+3054,minhopark,4002,late-night-boba,Yes! brown sugar boba sounds perfect.,2026-02-11T06:47:00Z
+3051,minholee,4001,campus-hikes,I'll bring a first-aid kit too.,2026-02-11T06:48:00Z
+3054,minhopark,4002,late-night-boba,You going for classic or a special?,2026-02-11T06:48:47.347761Z
+3003,sofiaortiz,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T06:49:47.347761Z
+3069,kenjipark,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T06:53:00Z
+3054,minhopark,4002,late-night-boba,You going for classic or a special?,2026-02-11T06:57:47.347761Z
+3065,kenjikim,4004,club-soccer,I'll be there at 5pm.,2026-02-11T06:59:00Z
+3049,rohangupta,4006,board-game-night,Count me in for Coup.,2026-02-11T06:59:00Z
+3003,sofiaortiz,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T06:59:47.347761Z
+3022,camiladiaz,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T07:00:00Z
+3015,diegogarcia,4001,campus-hikes,north entrance is perfect.,2026-02-11T07:01:00Z
+3054,minhopark,4002,late-night-boba,Trying the new topping?,2026-02-11T07:03:47.347761Z
+3003,sofiaortiz,4002,late-night-boba,"Yep, crystal boba tonight.",2026-02-11T07:04:47.347761Z
+3065,kenjikim,4001,campus-hikes,north entrance is perfect.,2026-02-11T07:05:00Z
+3043,priyaiyer,4001,campus-hikes,Thanks! rain jackets would be great.,2026-02-11T07:07:00Z
+3053,minhochen,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T07:08:00Z
+3054,minhopark,4002,late-night-boba,Trying the new topping?,2026-02-11T07:08:47.347761Z
+3060,meikim,4003,makers-guild,"I'm free Friday afternoon, let's do it.",2026-02-11T07:10:00Z
+3003,sofiaortiz,4002,late-night-boba,"Yep, crystal boba tonight.",2026-02-11T07:10:47.347761Z
+3064,meipark,4002,late-night-boba,I'll be there a few minutes early.,2026-02-11T07:12:00Z
+3071,harulee,4001,campus-hikes,I'll be 10 minutes early.,2026-02-11T07:15:00Z
+3054,minhopark,4002,late-night-boba,You going for classic or a special?,2026-02-11T07:17:47.347761Z
+3013,valeriaortiz,4007,studio-ceramics,Clay reclaim bucket is full.,2026-02-11T07:18:00Z
+3003,sofiaortiz,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T07:21:47.347761Z
+3054,minhopark,4002,late-night-boba,Meet inside or outside?,2026-02-11T07:29:47.347761Z
+3091,noahbrown,4007,studio-ceramics,I can bring a rib set.,2026-02-11T07:30:00Z
+3003,sofiaortiz,4002,late-night-boba,"Outside, less noisy.",2026-02-11T07:31:47.347761Z
+3031,anayasharma,4002,late-night-boba,Craving brown sugar boba tonight—who's in?,2026-02-11T07:35:00Z
+3071,harulee,4004,club-soccer,Count me in.,2026-02-11T07:36:00Z
+3054,minhopark,4002,late-night-boba,You going for classic or a special?,2026-02-11T07:36:47.347761Z
+3003,sofiaortiz,4002,late-night-boba,Classic—brown sugar for me.,2026-02-11T07:39:47.347761Z
+3027,aaravsingh,4006,board-game-night,7:30pm works for me.,2026-02-11T07:41:00Z
+3054,minhopark,4002,late-night-boba,Trying the new topping?,2026-02-11T07:41:47.347761Z
+3070,harukim,4003,makers-guild,I'll post photos after the cut.,2026-02-11T07:42:00Z
+3003,sofiaortiz,4002,late-night-boba,"Yep, crystal boba tonight.",2026-02-11T07:42:47.347761Z
+3054,minhopark,4002,late-night-boba,Meet inside or outside?,2026-02-11T07:49:47.347761Z
+3060,meikim,4003,makers-guild,"I'm free Friday afternoon, let's do it.",2026-02-11T07:51:00Z
+3003,sofiaortiz,4002,late-night-boba,"Outside, less noisy.",2026-02-11T07:51:47.347761Z
+3002,sofiadiaz,4001,campus-hikes,north entrance is perfect.,2026-02-11T07:52:00Z
+3054,minhopark,4002,late-night-boba,I'll be there a few minutes early.,2026-02-11T07:52:00Z
+3069,kenjipark,4007,studio-ceramics,wheel practice on Saturday. Anyone joining?,2026-02-11T07:52:00Z
+3003,sofiaortiz,4006,board-game-night,I'll bring Wingspan—interested?,2026-02-11T07:56:15.771391Z
+3016,diegolopez,4006,board-game-night,"Absolutely, love that one.",2026-02-11T07:58:15.771391Z
+3003,sofiaortiz,4006,board-game-night,Dice trays needed?,2026-02-11T08:02:15.771391Z
+3016,diegolopez,4006,board-game-night,I have two.,2026-02-11T08:05:15.771391Z
+3016,diegolopez,4006,board-game-night,7:30pm works for me.,2026-02-11T08:06:00Z
+3076,oliviabrown,4004,club-soccer,Let's warm up 10 min early.,2026-02-11T08:07:00Z
+3022,camiladiaz,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T08:10:00Z
+3003,sofiaortiz,4006,board-game-night,I'll bring Wingspan—interested?,2026-02-11T08:10:15.771391Z
+3009,mateoromero,4001,campus-hikes,I'll bring a first-aid kit too.,2026-02-11T08:13:00Z
+3016,diegolopez,4006,board-game-night,"Absolutely, love that one.",2026-02-11T08:14:15.771391Z
+3003,sofiaortiz,4006,board-game-night,I'll bring Wingspan—interested?,2026-02-11T08:19:15.771391Z
+3043,priyaiyer,4004,club-soccer,Scrimmage tonight at the quad.,2026-02-11T08:20:00Z
+3050,minhokim,4003,makers-guild,I'll bring calipers and a spare nozzle.,2026-02-11T08:22:00Z
+3016,diegolopez,4006,board-game-night,"Absolutely, love that one.",2026-02-11T08:22:15.771391Z
+3081,masonbrown,4001,campus-hikes,Quick plan: Raven Ridge Saturday 7:30am.,2026-02-11T08:23:00Z
+3003,sofiaortiz,4006,board-game-night,I'll bring Wingspan—interested?,2026-02-11T08:26:15.771391Z
+3031,anayasharma,4002,late-night-boba,I'm down for Moonleaf at 10pm.,2026-02-11T08:28:00Z
+3091,noahbrown,4007,studio-ceramics,I'm in for wheel practice.,2026-02-11T08:28:00Z
+3016,diegolopez,4006,board-game-night,"Absolutely, love that one.",2026-02-11T08:30:15.771391Z
+3003,sofiaortiz,4006,board-game-night,Dice trays needed?,2026-02-11T08:33:15.771391Z
+3016,diegolopez,4006,board-game-night,I have two.,2026-02-11T08:34:15.771391Z
+3094,noahdavis,4001,campus-hikes,Saturday works for me—see you at 7:30am.,2026-02-11T08:38:00Z
+3084,masondavis,4003,makers-guild,I'll post photos after the cut.,2026-02-11T08:44:00Z
+3050,minhokim,4006,board-game-night,I'll bring snacks.,2026-02-11T08:45:00Z
+3027,aaravsingh,4006,board-game-night,7:30pm works for me.,2026-02-11T08:49:00Z
+3022,camiladiaz,4004,club-soccer,I'll be there at 4pm.,2026-02-11T08:51:00Z
+3061,meilee,4007,studio-ceramics,Studio opens early tomorrow.,2026-02-11T08:51:00Z
+3078,oliviamoore,4001,campus-hikes,Saturday works for me—see you at 7:30am.,2026-02-11T09:00:00Z
+3070,harukim,4003,makers-guild,I can share my acrylic profile.,2026-02-11T09:04:00Z
+3017,diegodiaz,4006,board-game-night,I'll bring snacks.,2026-02-11T09:04:00Z
+3003,sofiaortiz,4002,late-night-boba,Meet by the fountain?,2026-02-11T09:08:00Z
+3091,noahbrown,4007,studio-ceramics,Clay reclaim bucket is full.,2026-02-11T09:11:00Z
+3054,minhopark,4002,late-night-boba,I'll be there a few minutes early.,2026-02-11T09:16:00Z
+3087,emmataylor,4007,studio-ceramics,Your glaze combo was amazing.,2026-02-11T09:17:10.362594Z
+3076,oliviabrown,4004,club-soccer,Let's warm up 10 min early.,2026-02-11T09:18:00Z
+3091,noahbrown,4007,studio-ceramics,Thanks! It's cobalt + clear.,2026-02-11T09:18:10.362594Z
+3042,priyasingh,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T09:19:00Z
+3087,emmataylor,4007,studio-ceramics,Kiln schedule look ok?,2026-02-11T09:24:10.362594Z
+3084,masondavis,4003,makers-guild,I can share my acrylic profile.,2026-02-11T09:26:00Z
+3081,masonbrown,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T09:27:00Z
+3091,noahbrown,4007,studio-ceramics,"Yep, I booked the slot.",2026-02-11T09:28:10.362594Z
+3087,emmataylor,4007,studio-ceramics,Your glaze combo was amazing.,2026-02-11T09:32:10.362594Z
+3071,harulee,4001,campus-hikes,Weather looks good—layers recommended.,2026-02-11T09:36:00Z
+3091,noahbrown,4007,studio-ceramics,Thanks! It's cobalt + clear.,2026-02-11T09:36:10.362594Z
+3087,emmataylor,4007,studio-ceramics,Kiln schedule look ok?,2026-02-11T09:38:10.362594Z
+3037,ishaansingh,4006,board-game-night,7:30pm works for me.,2026-02-11T09:40:00Z
+3091,noahbrown,4007,studio-ceramics,"Yep, I booked the slot.",2026-02-11T09:42:10.362594Z
+3099,avadavis,4004,club-soccer,I'll keep score.,2026-02-11T09:43:00Z
+3022,camiladiaz,4004,club-soccer,Count me in.,2026-02-11T09:44:00Z
+3003,sofiaortiz,4002,late-night-boba,Meet by the fountain?,2026-02-11T09:46:00Z
+3087,emmataylor,4007,studio-ceramics,Your glaze combo was amazing.,2026-02-11T09:47:10.362594Z
+3061,meilee,4007,studio-ceramics,Thanks! Saturday works.,2026-02-11T09:50:00Z
+3091,noahbrown,4007,studio-ceramics,Thanks! It's cobalt + clear.,2026-02-11T09:50:10.362594Z
+3087,emmataylor,4007,studio-ceramics,Kiln schedule look ok?,2026-02-11T09:53:10.362594Z
+3091,noahbrown,4007,studio-ceramics,"Yep, I booked the slot.",2026-02-11T09:54:10.362594Z
+3058,yunachen,4004,club-soccer,Count me in.,2026-02-11T09:56:00Z
+3007,mateodiaz,4003,makers-guild,CNC is free tomorrow morning. Anyone want a slot?,2026-02-11T10:03:00Z
+3051,minholee,4004,club-soccer,Count me in.,2026-02-11T10:09:00Z
+3015,diegogarcia,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T10:10:00Z
+3017,diegodiaz,4006,board-game-night,Hosting Coup at 7pm. Who's in?,2026-02-11T10:11:00Z
+3054,minhopark,4002,late-night-boba,Anyone want taro milk tea at Boba Base around 10pm?,2026-02-11T10:14:00Z
+3071,harulee,4004,club-soccer,Count me in.,2026-02-11T10:17:00Z
+3099,avadavis,4006,board-game-night,Table space is limited—RSVP here.,2026-02-11T10:22:00Z
+3029,aaravgupta,4003,makers-guild,We should order parts together.,2026-02-11T10:24:00Z
+3022,camiladiaz,4004,club-soccer,Scrimmage tonight at the quad.,2026-02-11T10:41:00Z
+3003,sofiaortiz,4002,late-night-boba,I'll be there a few minutes early.,2026-02-11T10:43:00Z
+3078,oliviamoore,4001,campus-hikes,Weather looks good—layers recommended.,2026-02-11T10:49:00Z
+3053,minhochen,4006,board-game-night,We can switch games after one round.,2026-02-11T10:55:00Z
+3043,priyaiyer,4004,club-soccer,I'll keep score.,2026-02-11T11:00:00Z
+3007,mateodiaz,4003,makers-guild,We should order parts together.,2026-02-11T11:01:00Z
+3022,camiladiaz,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T11:02:00Z
+3042,priyasingh,4001,campus-hikes,Any gear suggestions? I have extra headlamps.,2026-02-11T11:10:00Z
+3054,minhopark,4002,late-night-boba,I'm down for Boba Base at 10pm.,2026-02-11T11:23:00Z
+3003,sofiaortiz,4006,board-game-night,I'll bring snacks.,2026-02-11T11:24:00Z
+3065,kenjikim,4001,campus-hikes,I'll be 10 minutes early.,2026-02-11T11:25:00Z
+3003,sofiaortiz,4002,late-night-boba,I'm down for Boba Base at 10pm.,2026-02-11T11:33:00Z
+3056,yunalee,4003,makers-guild,That project sounds solid.,2026-02-11T11:35:00Z
+3032,anayasingh,4004,club-soccer,I'll be there at 6pm.,2026-02-11T11:41:00Z
+3022,camiladiaz,4004,club-soccer,I'll keep score.,2026-02-11T11:42:00Z
+3042,priyasingh,4001,campus-hikes,campus shuttle stop is perfect.,2026-02-11T11:45:00Z
+3054,minhopark,4002,late-night-boba,Meet by the fountain?,2026-02-11T11:47:00Z
+3003,sofiaortiz,4002,late-night-boba,I'm down for Boba Base at 10pm.,2026-02-11T11:51:00Z
+3071,harulee,4001,campus-hikes,Thanks! headlamps would be great.,2026-02-11T11:56:00Z
+3017,diegodiaz,4006,board-game-night,I'll bring snacks.,2026-02-11T11:58:00Z
+3054,minhopark,4002,late-night-boba,Meet by the fountain?,2026-02-11T12:01:00Z
+3095,avasmith,4003,makers-guild,"I'm free tomorrow morning, let's do it.",2026-02-11T12:15:00Z
+3076,oliviabrown,4004,club-soccer,I'll keep score.,2026-02-11T12:16:00Z
+3003,sofiaortiz,4002,late-night-boba,Yes! taro milk tea sounds perfect.,2026-02-11T12:20:00Z
+3074,harupark,4004,club-soccer,Count me in.,2026-02-11T12:22:00Z
+3015,diegogarcia,4001,campus-hikes,I'll be 10 minutes early.,2026-02-11T12:23:00Z
+3099,avadavis,4004,club-soccer,Practice 4pm at the quad—bring pinnies if you can.,2026-02-11T12:27:00Z
+3037,ishaansingh,4006,board-game-night,7pm works for me.,2026-02-11T12:35:00Z
+3032,anayasingh,4004,club-soccer,I can bring pinnies.,2026-02-11T12:50:00Z
+3084,masondavis,4003,makers-guild,We should order parts together.,2026-02-11T12:52:00Z
+3022,camiladiaz,4004,club-soccer,I'll keep score.,2026-02-11T12:52:00Z
+3065,kenjikim,4001,campus-hikes,I'll be 10 minutes early.,2026-02-11T12:57:00Z
+3045,rohanpatel,4006,board-game-night,Count me in for Coup.,2026-02-11T12:58:00Z
+3042,priyasingh,4001,campus-hikes,Thanks! headlamps would be great.,2026-02-11T13:03:00Z
+3003,sofiaortiz,4006,board-game-night,Count me in for Coup.,2026-02-11T13:09:00Z
+3095,avasmith,4003,makers-guild,That project sounds solid.,2026-02-11T13:13:00Z
+3043,priyaiyer,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T13:20:00Z
+3045,rohanpatel,4006,board-game-night,I'll bring snacks.,2026-02-11T13:29:00Z
+3078,oliviamoore,4001,campus-hikes,campus shuttle stop is perfect.,2026-02-11T13:35:00Z
+3051,minholee,4004,club-soccer,I'll keep score.,2026-02-11T13:46:00Z
+3029,aaravgupta,4003,makers-guild,That project sounds solid.,2026-02-11T13:49:00Z
+3065,kenjikim,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T13:51:00Z
+3080,masonsmith,4004,club-soccer,I'll be there at 4pm.,2026-02-11T13:55:00Z
+3065,kenjikim,4001,campus-hikes,Anyone up for a Sunday hike on Raven Ridge around 8am?,2026-02-11T13:57:00Z
+3084,masondavis,4003,makers-guild,That project sounds solid.,2026-02-11T14:04:00Z
+3050,minhokim,4006,board-game-night,Need one more for Wingspan.,2026-02-11T14:07:00Z
+3070,harukim,4006,board-game-night,8pm works for me.,2026-02-11T14:18:00Z
+3074,harupark,4004,club-soccer,Let's warm up 10 min early.,2026-02-11T14:21:00Z
+3081,masonbrown,4001,campus-hikes,I'm in for Raven Ridge at 8am.,2026-02-11T14:28:00Z
+3099,avadavis,4006,board-game-night,8pm works for me.,2026-02-11T14:36:00Z
+3056,yunalee,4003,makers-guild,"I'm free tomorrow morning, let's do it.",2026-02-11T14:42:00Z
+3042,priyasingh,4001,campus-hikes,I'm in for Raven Ridge at 8am.,2026-02-11T14:51:00Z
+3017,diegodiaz,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T14:56:00Z
+3058,yunachen,4004,club-soccer,Count me in.,2026-02-11T14:59:00Z
+3099,avadavis,4006,board-game-night,Count me in for Wingspan.,2026-02-11T15:01:00Z
+3094,noahdavis,4003,makers-guild,I can share my acrylic profile.,2026-02-11T15:10:00Z
+3003,sofiaortiz,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T15:16:00Z
+3078,oliviamoore,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T15:20:00Z
+3037,ishaansingh,4006,board-game-night,Count me in for Wingspan.,2026-02-11T15:20:00Z
+3001,sofialopez,4004,club-soccer,Pickup game at field B 4pm. Need one more!,2026-02-11T15:25:00Z
+3015,diegogarcia,4001,campus-hikes,Count me in for Raven Ridge.,2026-02-11T15:34:00Z
+3070,harukim,4006,board-game-night,Need one more for Azul.,2026-02-11T15:36:00Z
+3070,harukim,4003,makers-guild,Project idea: campus kiosk panel. Thoughts?,2026-02-11T15:39:00Z
+3030,anayapatel,4001,campus-hikes,Count me in for Raven Ridge.,2026-02-11T15:41:00Z
+3056,yunalee,4003,makers-guild,That project sounds solid.,2026-02-11T15:51:00Z
+3074,harupark,4004,club-soccer,I'll be there at 4pm.,2026-02-11T15:55:00Z
+3099,avadavis,4004,club-soccer,I can bring cleats.,2026-02-11T16:02:00Z
+3017,diegodiaz,4006,board-game-night,Count me in for Azul.,2026-02-11T16:02:00Z
+3065,kenjikim,4001,campus-hikes,Sunday works for me—see you at 8am.,2026-02-11T16:04:00Z
+3009,mateoromero,4001,campus-hikes,Did you pack extra water?,2026-02-11T16:08:59.832437Z
+3078,oliviamoore,4001,campus-hikes,"Yep, got a full extra bottle.",2026-02-11T16:09:59.832437Z
+3032,anayasingh,4004,club-soccer,I can bring cleats.,2026-02-11T16:11:00Z
+3009,mateoromero,4001,campus-hikes,Want to pace group A on the {trail}?,2026-02-11T16:17:59.832437Z
+3078,oliviamoore,4001,campus-hikes,"Yeah, I'll take the lead.",2026-02-11T16:20:59.832437Z
+3009,mateoromero,4001,campus-hikes,Want to pace group A on the {trail}?,2026-02-11T16:25:59.832437Z
+3073,haruchen,4003,makers-guild,That project sounds solid.,2026-02-11T16:26:00Z
+3078,oliviamoore,4001,campus-hikes,"Yeah, I'll take the lead.",2026-02-11T16:29:59.832437Z
+3058,yunachen,4004,club-soccer,I can bring cleats.,2026-02-11T16:35:00Z
+3009,mateoromero,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T16:35:59.832437Z
+3078,oliviamoore,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T16:38:59.832437Z
+3049,rohangupta,4006,board-game-night,Count me in for Azul.,2026-02-11T16:42:00Z
+3051,minholee,4001,campus-hikes,Anyone up for a Sunday hike on Raven Ridge around 9am?,2026-02-11T16:44:00Z
+3032,anayasingh,4004,club-soccer,I'll be there at 4pm.,2026-02-11T16:46:00Z
+3009,mateoromero,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T16:46:59.832437Z
+3078,oliviamoore,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T16:48:59.832437Z
+3009,mateoromero,4001,campus-hikes,Want to pace group A on the {trail}?,2026-02-11T16:56:59.832437Z
+3080,masonsmith,4004,club-soccer,Practice 6pm at the quad—bring cones if you can.,2026-02-11T16:58:00Z
+3078,oliviamoore,4001,campus-hikes,"Yeah, I'll take the lead.",2026-02-11T16:59:59.832437Z
+3070,harukim,4003,makers-guild,That project sounds solid.,2026-02-11T17:02:00Z
+3058,yunachen,4004,club-soccer,Count me in.,2026-02-11T17:04:00Z
+3009,mateoromero,4001,campus-hikes,Want to pace group A on the {trail}?,2026-02-11T17:04:59.832437Z
+3089,emmadavis,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T17:05:13.331054Z
+3030,anayapatel,4001,campus-hikes,I'm in for Raven Ridge at 9am.,2026-02-11T17:06:00Z
+3006,mateolopez,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T17:06:13.331054Z
+3078,oliviamoore,4001,campus-hikes,"Yeah, I'll take the lead.",2026-02-11T17:08:59.832437Z
+3009,mateoromero,4001,campus-hikes,Did you pack extra water?,2026-02-11T17:10:59.832437Z
+3071,harulee,4001,campus-hikes,I'll bring extra water and snacks.,2026-02-11T17:12:00Z
+3089,emmadavis,4003,makers-guild,Your kerf test worked?,2026-02-11T17:13:13.331054Z
+3078,oliviamoore,4001,campus-hikes,"Yep, got a full extra bottle.",2026-02-11T17:13:59.832437Z
+3006,mateolopez,4003,makers-guild,"Yep, 0.2mm was perfect.",2026-02-11T17:16:13.331054Z
+3009,mateoromero,4001,campus-hikes,Sunrise photos tomorrow?,2026-02-11T17:18:59.832437Z
+3017,diegodiaz,4006,board-game-night,8pm works for me.,2026-02-11T17:19:00Z
+3078,oliviamoore,4001,campus-hikes,"Absolutely, I'll bring the tripod.",2026-02-11T17:20:59.832437Z
+3089,emmadavis,4003,makers-guild,Can you share your PETG profile?,2026-02-11T17:23:13.331054Z
+3050,minhokim,4003,makers-guild,"I'm free Friday afternoon, let's do it.",2026-02-11T17:25:00Z
+3006,mateolopez,4003,makers-guild,"Sure, I'll upload it.",2026-02-11T17:27:13.331054Z
+3070,harukim,4006,board-game-night,We can switch games after one round.,2026-02-11T17:35:00Z
+3089,emmadavis,4003,makers-guild,Your kerf test worked?,2026-02-11T17:35:13.331054Z
+3043,priyaiyer,4004,club-soccer,I'll keep score.,2026-02-11T17:36:00Z
+3006,mateolopez,4003,makers-guild,"Yep, 0.2mm was perfect.",2026-02-11T17:36:13.331054Z
+3089,emmadavis,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T17:38:13.331054Z
+3030,anayapatel,4001,campus-hikes,I'm in for Raven Ridge at 9am.,2026-02-11T17:40:00Z
+3006,mateolopez,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T17:41:13.331054Z
+3027,aaravsingh,4006,board-game-night,Table space is limited—RSVP here.,2026-02-11T17:42:00Z
+3071,harulee,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-11T17:43:00Z
+3089,emmadavis,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T17:43:13.331054Z
+3006,mateolopez,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T17:47:13.331054Z
+3089,emmadavis,4003,makers-guild,We should iterate the bracket tonight.,2026-02-11T17:50:13.331054Z
+3006,mateolopez,4003,makers-guild,"Agreed, I can CAD it.",2026-02-11T17:54:13.331054Z
+3095,avasmith,4003,makers-guild,That project sounds solid.,2026-02-11T17:56:00Z
+3089,emmadavis,4003,makers-guild,Your kerf test worked?,2026-02-11T17:58:13.331054Z
+3006,mateolopez,4003,makers-guild,"Yep, 0.2mm was perfect.",2026-02-11T18:00:13.331054Z
+3050,minhokim,4006,board-game-night,I'll bring snacks.,2026-02-11T18:04:00Z
+3043,priyaiyer,4004,club-soccer,I'll keep score.,2026-02-11T18:06:00Z
+3089,emmadavis,4003,makers-guild,Can you share your PETG profile?,2026-02-11T18:08:13.331054Z
+3006,mateolopez,4003,makers-guild,"Sure, I'll upload it.",2026-02-11T18:12:13.331054Z
+3089,emmadavis,4003,makers-guild,Can you share your PETG profile?,2026-02-11T18:15:13.331054Z
+3065,kenjikim,4001,campus-hikes,Sunday works for me—see you at 9am.,2026-02-11T18:17:00Z
+3017,diegodiaz,4006,board-game-night,Table space is limited—RSVP here.,2026-02-11T18:19:00Z
+3006,mateolopez,4003,makers-guild,"Sure, I'll upload it.",2026-02-11T18:19:13.331054Z
+3073,haruchen,4003,makers-guild,Project idea: campus kiosk panel. Thoughts?,2026-02-11T18:23:00Z
+3099,avadavis,4004,club-soccer,I'll be there at 6pm.,2026-02-11T18:23:00Z
+3050,minhokim,4003,makers-guild,We should order parts together.,2026-02-11T18:48:00Z
+3051,minholee,4001,campus-hikes,I'm in for Raven Ridge at 9am.,2026-02-11T18:49:00Z
+3074,harupark,4004,club-soccer,I'll be there at 6pm.,2026-02-11T18:53:00Z
+3099,avadavis,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T18:59:00Z
+3095,avasmith,4003,makers-guild,I can share my PETG profile.,2026-02-11T19:00:00Z
+3009,mateoromero,4001,campus-hikes,I'm in for Raven Ridge at 9am.,2026-02-11T19:16:00Z
+3080,masonsmith,4004,club-soccer,Let's warm up 10 min early.,2026-02-11T19:20:00Z
+3051,minholee,4001,campus-hikes,Sunday works for me—see you at 9am.,2026-02-11T19:23:00Z
+3027,aaravsingh,4006,board-game-night,Hosting Azul at 7pm. Who's in?,2026-02-11T19:23:00Z
+3015,diegogarcia,4001,campus-hikes,Anyone up for a Saturday hike on Cedar Pass around 9am?,2026-02-11T19:28:00Z
+3084,masondavis,4003,makers-guild,I can share my PETG profile.,2026-02-11T19:28:00Z
+3050,minhokim,4006,board-game-night,Count me in for Azul.,2026-02-11T19:28:00Z
+3074,harupark,4004,club-soccer,I can bring cones.,2026-02-11T19:45:00Z
+3051,minholee,4001,campus-hikes,Saturday works for me—see you at 9am.,2026-02-11T19:46:00Z
+3089,emmadavis,4003,makers-guild,I'll bring calipers and a spare nozzle.,2026-02-11T19:54:00Z
+3043,priyaiyer,4004,club-soccer,Count me in.,2026-02-11T19:55:00Z
+3003,sofiaortiz,4006,board-game-night,We can switch games after one round.,2026-02-11T20:01:00Z
+3053,minhochen,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T20:06:00Z
+3065,kenjikim,4004,club-soccer,I can bring cones.,2026-02-11T20:10:00Z
+3058,yunachen,4004,club-soccer,I can bring cones.,2026-02-11T20:16:00Z
+3030,anayapatel,4001,campus-hikes,I'm in for Cedar Pass at 9am.,2026-02-11T20:17:00Z
+3095,avasmith,4003,makers-guild,That project sounds solid.,2026-02-11T20:21:00Z
+3078,oliviamoore,4001,campus-hikes,Saturday works for me—see you at 9am.,2026-02-11T20:27:00Z
+3089,emmadavis,4003,makers-guild,I can share my PETG profile.,2026-02-11T20:28:00Z
+3071,harulee,4001,campus-hikes,I'm in for Cedar Pass at 9am.,2026-02-11T20:31:00Z
+3043,priyaiyer,4004,club-soccer,Pickup game at field A 5pm. Need one more!,2026-02-11T20:38:00Z
+3045,rohanpatel,4006,board-game-night,Count me in for Azul.,2026-02-11T20:46:00Z
+3099,avadavis,4004,club-soccer,Count me in.,2026-02-11T20:59:00Z
+3051,minholee,4001,campus-hikes,I'll bring extra water and snacks.,2026-02-11T21:00:00Z
+3006,mateolopez,4003,makers-guild,We should order parts together.,2026-02-11T21:08:00Z
+3099,avadavis,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T21:18:00Z
+3073,haruchen,4003,makers-guild,"I'm free tomorrow morning, let's do it.",2026-02-11T21:29:00Z
+3027,aaravsingh,4006,board-game-night,Hosting Wingspan at 8pm. Who's in?,2026-02-11T21:33:00Z
+3009,mateoromero,4001,campus-hikes,I'll bring extra water and snacks.,2026-02-11T21:35:00Z
+3058,yunachen,4004,club-soccer,Let's warm up 10 min early.,2026-02-11T21:39:00Z
+3065,kenjikim,4004,club-soccer,I'll keep score.,2026-02-11T21:46:00Z
+3017,diegodiaz,4006,board-game-night,I'll bring snacks.,2026-02-11T21:47:00Z
+3058,yunachen,4004,club-soccer,Let's warm up 10 min early.,2026-02-11T21:57:00Z
+3051,minholee,4001,campus-hikes,Count me in for Cedar Pass.,2026-02-11T22:05:00Z
+3084,masondavis,4003,makers-guild,CNC is free Friday afternoon. Anyone want a slot?,2026-02-11T22:08:00Z
+3078,oliviamoore,4001,campus-hikes,Saturday works for me—see you at 9am.,2026-02-11T22:12:00Z
+3027,aaravsingh,4006,board-game-night,I'll bring sleeves for cards.,2026-02-11T22:18:00Z
+3099,avadavis,4006,board-game-night,I'll bring snacks.,2026-02-11T22:24:00Z
+3080,masonsmith,4004,club-soccer,I'll be there at 5pm.,2026-02-11T22:31:00Z
+3006,mateolopez,4003,makers-guild,That project sounds solid.,2026-02-11T22:37:00Z
+3065,kenjikim,4004,club-soccer,I'll keep score.,2026-02-11T22:37:00Z
+3050,minhokim,4006,board-game-night,Count me in for Wingspan.,2026-02-11T22:44:00Z
+3030,anayapatel,4001,campus-hikes,Count me in for Cedar Pass.,2026-02-11T22:51:00Z
+3037,ishaansingh,4006,board-game-night,I'll bring snacks.,2026-02-11T22:54:00Z
+3074,harupark,4004,club-soccer,I can bring cones.,2026-02-11T22:59:00Z
+3084,masondavis,4003,makers-guild,That project sounds solid.,2026-02-11T23:07:00Z
+3078,oliviamoore,4001,campus-hikes,I'm in for Cedar Pass at 9am.,2026-02-11T23:19:00Z
+3099,avadavis,4006,board-game-night,I'll bring snacks.,2026-02-11T23:20:00Z
+3060,meikim,4003,makers-guild,I'll post photos after the cut.,2026-02-11T23:24:00Z
+3030,anayapatel,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-11T23:27:00Z
+3001,sofialopez,4004,club-soccer,Count me in.,2026-02-11T23:35:00Z
+3094,noahdavis,4003,makers-guild,I'll post photos after the cut.,2026-02-11T23:40:00Z
+3099,avadavis,4004,club-soccer,I'll keep score.,2026-02-11T23:50:00Z
+3070,harukim,4006,board-game-night,Count me in for Wingspan.,2026-02-11T23:51:00Z
+3081,masonbrown,4001,campus-hikes,Thinking Raven Ridge on Sunday at 9am. Who's in?,2026-02-11T23:52:00Z
+3029,aaravgupta,4003,makers-guild,"I'm free Friday afternoon, let's do it.",2026-02-12T00:07:00Z
+3030,anayapatel,4001,campus-hikes,Can we meet by the trailhead parking lot?,2026-02-12T00:16:00Z
+3089,emmadavis,4003,makers-guild,That project sounds solid.,2026-02-12T00:20:00Z
+3051,minholee,4001,campus-hikes,I'm in for Raven Ridge at 9am.,2026-02-12T00:22:00Z
+3027,aaravsingh,4006,board-game-night,We can switch games after one round.,2026-02-12T00:27:00Z
+3051,minholee,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-12T00:29:00Z
+3099,avadavis,4006,board-game-night,Game night 7:30pm—thinking Wingspan.,2026-02-12T00:31:00Z
+3017,diegodiaz,4006,board-game-night,I'll bring sleeves for cards.,2026-02-12T00:38:00Z
+3078,oliviamoore,4001,campus-hikes,Sunday works for me—see you at 9am.,2026-02-12T00:44:00Z
+3053,minhochen,4006,board-game-night,7:30pm works for me.,2026-02-12T00:48:00Z
+3006,mateolopez,4003,makers-guild,3D printer is free after 5pm. Anyone want a slot?,2026-02-12T00:53:00Z
+3080,masonsmith,4004,club-soccer,Count me in.,2026-02-12T01:05:00Z
+3099,avadavis,4006,board-game-night,Table space is limited—RSVP here.,2026-02-12T01:11:00Z
+3071,harulee,4001,campus-hikes,Weather looks good—layers recommended.,2026-02-12T01:20:00Z
+3078,oliviamoore,4001,campus-hikes,Weather looks good—layers recommended.,2026-02-12T01:24:00Z
+3094,noahdavis,4003,makers-guild,We should order parts together.,2026-02-12T01:24:00Z
+3006,mateolopez,4003,makers-guild,That project sounds solid.,2026-02-12T01:38:00Z
+3001,sofialopez,4004,club-soccer,Scrimmage tonight at field B.,2026-02-12T01:42:00Z
+3050,minhokim,4006,board-game-night,I'll bring snacks.,2026-02-12T01:45:00Z
+3071,harulee,4001,campus-hikes,Meetup spot: trailhead lot. Sound good?,2026-02-12T01:47:00Z
+3024,camilaromero,4006,board-game-night,Dice trays needed?,2026-02-12T01:54:20.362833Z
+3049,rohangupta,4006,board-game-night,I have two.,2026-02-12T01:58:20.362833Z
+3024,camilaromero,4006,board-game-night,Dice trays needed?,2026-02-12T02:00:20.362833Z
+3029,aaravgupta,4003,makers-guild,"I'm free after 5pm, let's do it.",2026-02-12T02:03:00Z
+3049,rohangupta,4006,board-game-night,I have two.,2026-02-12T02:04:20.362833Z
+3071,harulee,4001,campus-hikes,I'll be 10 minutes early.,2026-02-12T02:06:00Z
+3024,camilaromero,4006,board-game-night,I'll bring Wingspan—interested?,2026-02-12T02:09:20.362833Z
+3049,rohangupta,4006,board-game-night,"Absolutely, love that one.",2026-02-12T02:10:20.362833Z
+3024,camilaromero,4006,board-game-night,Teach me Azul scoring?,2026-02-12T02:12:20.362833Z
+3073,haruchen,4003,makers-guild,I can share my PETG profile.,2026-02-12T02:13:00Z
+3049,rohangupta,4006,board-game-night,"Sure, it's quick.",2026-02-12T02:13:20.362833Z
+3080,masonsmith,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-12T02:14:00Z
+3053,minhochen,4006,board-game-night,I'll bring sleeves for cards.,2026-02-12T02:15:00Z
+3024,camilaromero,4006,board-game-night,Teach me Azul scoring?,2026-02-12T02:17:20.362833Z
+3049,rohangupta,4006,board-game-night,"Sure, it's quick.",2026-02-12T02:18:20.362833Z
+3024,camilaromero,4006,board-game-night,Dice trays needed?,2026-02-12T02:21:20.362833Z
+3049,rohangupta,4006,board-game-night,I have two.,2026-02-12T02:22:20.362833Z
+3024,camilaromero,4006,board-game-night,Teach me Azul scoring?,2026-02-12T02:29:20.362833Z
+3017,diegodiaz,4006,board-game-night,Table space is limited—RSVP here.,2026-02-12T02:30:00Z
+3049,rohangupta,4006,board-game-night,"Sure, it's quick.",2026-02-12T02:31:20.362833Z
+3071,harulee,4001,campus-hikes,I'll bring a first-aid kit too.,2026-02-12T02:33:00Z
+3058,yunachen,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-12T02:44:00Z
+3006,mateolopez,4003,makers-guild,That project sounds solid.,2026-02-12T02:45:00Z
+3043,priyaiyer,4004,club-soccer,I can bring cones.,2026-02-12T02:49:00Z
+3029,aaravgupta,4003,makers-guild,That project sounds solid.,2026-02-12T02:59:00Z
+3050,minhokim,4006,board-game-night,I'll bring snacks.,2026-02-12T03:09:00Z
+3073,haruchen,4003,makers-guild,I'll post photos after the cut.,2026-02-12T03:16:00Z
+3065,kenjikim,4004,club-soccer,Count me in.,2026-02-12T03:25:00Z
+3053,minhochen,4006,board-game-night,Hosting Coup at 7pm. Who's in?,2026-02-12T03:33:00Z
+3029,aaravgupta,4003,makers-guild,"I'm free after 5pm, let's do it.",2026-02-12T03:36:00Z
+3080,masonsmith,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-12T03:54:00Z
+3053,minhochen,4006,board-game-night,7pm works for me.,2026-02-12T04:07:00Z
+3073,haruchen,4003,makers-guild,I'll post photos after the cut.,2026-02-12T04:08:00Z
+3043,priyaiyer,4004,club-soccer,I'll be there at 6pm.,2026-02-12T04:16:00Z
+3059,yunapark,4004,club-soccer,Count me in.,2026-02-12T04:39:00Z
+3032,anayasingh,4004,club-soccer,Count me in.,2026-02-12T04:46:00Z
+3059,yunapark,4004,club-soccer,Scrimmage tonight at field A.,2026-02-12T05:22:00Z
+3080,masonsmith,4004,club-soccer,I'll be there at 6pm.,2026-02-12T06:00:00Z
+3080,masonsmith,4004,club-soccer,You on defense or midfield?,2026-02-12T06:12:24.188430Z
+3001,sofialopez,4004,club-soccer,Midfield—I'll cover the left.,2026-02-12T06:14:24.188430Z
+3080,masonsmith,4004,club-soccer,Bringing cones?,2026-02-12T06:21:24.188430Z
+3001,sofialopez,4004,club-soccer,"Yep, got three.",2026-02-12T06:22:24.188430Z
+3080,masonsmith,4004,club-soccer,Bringing cones?,2026-02-12T06:30:24.188430Z
+3032,anayasingh,4004,club-soccer,Count me in.,2026-02-12T06:33:00Z
+3001,sofialopez,4004,club-soccer,"Yep, got three.",2026-02-12T06:34:24.188430Z
+3080,masonsmith,4004,club-soccer,Bringing cones?,2026-02-12T06:38:24.188430Z
+3001,sofialopez,4004,club-soccer,"Yep, got three.",2026-02-12T06:40:24.188430Z
+3080,masonsmith,4004,club-soccer,Warmup jog before kickoff?,2026-02-12T06:45:24.188430Z
+3001,sofialopez,4004,club-soccer,"For sure, 10 minutes.",2026-02-12T06:47:24.188430Z
+3080,masonsmith,4004,club-soccer,Warmup jog before kickoff?,2026-02-12T06:51:24.188430Z
+3001,sofialopez,4004,club-soccer,"For sure, 10 minutes.",2026-02-12T06:52:24.188430Z
+3001,sofialopez,4004,club-soccer,Count me in.,2026-02-12T06:57:00Z
+3080,masonsmith,4004,club-soccer,Bringing cones?,2026-02-12T07:00:24.188430Z
+3001,sofialopez,4004,club-soccer,"Yep, got three.",2026-02-12T07:03:24.188430Z
+3058,yunachen,4004,club-soccer,I'll be there at 6pm.,2026-02-12T07:05:00Z
+3080,masonsmith,4004,club-soccer,Warmup jog before kickoff?,2026-02-12T07:10:24.188430Z
+3001,sofialopez,4004,club-soccer,"For sure, 10 minutes.",2026-02-12T07:12:24.188430Z
+3080,masonsmith,4004,club-soccer,You on defense or midfield?,2026-02-12T07:15:24.188430Z
+3001,sofialopez,4004,club-soccer,Midfield—I'll cover the left.,2026-02-12T07:18:24.188430Z
+3080,masonsmith,4004,club-soccer,Bringing cones?,2026-02-12T07:24:24.188430Z
+3001,sofialopez,4004,club-soccer,"Yep, got three.",2026-02-12T07:25:24.188430Z
+3051,minholee,4004,club-soccer,I'll keep score.,2026-02-12T07:27:00Z
+3065,kenjikim,4004,club-soccer,Count me in.,2026-02-12T08:07:00Z
+3001,sofialopez,4004,club-soccer,Let's warm up 10 min early.,2026-02-12T08:23:00Z
+3065,kenjikim,4004,club-soccer,Practice 4pm at the quad—bring cones if you can.,2026-02-12T08:30:00Z
+3059,yunapark,4004,club-soccer,Count me in.,2026-02-12T08:40:00Z
+3051,minholee,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-12T08:47:00Z
+3080,masonsmith,4004,club-soccer,Grass is wet—cleats recommended.,2026-02-12T09:12:00Z
+3058,yunachen,4004,club-soccer,I can bring cones.,2026-02-12T09:18:00Z
+3051,minholee,4004,club-soccer,I can bring cones.,2026-02-12T09:39:00Z
+3059,yunapark,4004,club-soccer,Practice 4pm at the quad—bring cleats if you can.,2026-02-12T10:03:00Z
+3071,harulee,4004,club-soccer,You on defense or midfield?,2026-02-12T10:36:05.396869Z
+3051,minholee,4004,club-soccer,Let's warm up 10 min early.,2026-02-12T10:38:00Z
+3022,camiladiaz,4004,club-soccer,Midfield—I'll cover the left.,2026-02-12T10:39:05.396869Z
+3071,harulee,4004,club-soccer,Warmup jog before kickoff?,2026-02-12T10:41:05.396869Z
+3022,camiladiaz,4004,club-soccer,"For sure, 10 minutes.",2026-02-12T10:45:05.396869Z
+3071,harulee,4004,club-soccer,Warmup jog before kickoff?,2026-02-12T10:51:05.396869Z
+3022,camiladiaz,4004,club-soccer,"For sure, 10 minutes.",2026-02-12T10:53:05.396869Z
+3071,harulee,4004,club-soccer,Bringing cones?,2026-02-12T10:57:05.396869Z
+3022,camiladiaz,4004,club-soccer,"Yep, got three.",2026-02-12T10:58:05.396869Z
+3071,harulee,4004,club-soccer,Warmup jog before kickoff?,2026-02-12T11:04:05.396869Z
+3022,camiladiaz,4004,club-soccer,"For sure, 10 minutes.",2026-02-12T11:06:05.396869Z
+3071,harulee,4004,club-soccer,Bringing cones?,2026-02-12T11:09:05.396869Z
+3022,camiladiaz,4004,club-soccer,"Yep, got three.",2026-02-12T11:11:05.396869Z
+3071,harulee,4004,club-soccer,Bringing cones?,2026-02-12T11:13:05.396869Z
+3001,sofialopez,4004,club-soccer,Count me in.,2026-02-12T11:14:00Z
+3022,camiladiaz,4004,club-soccer,"Yep, got three.",2026-02-12T11:15:05.396869Z
+3071,harulee,4004,club-soccer,Bringing cones?,2026-02-12T11:17:05.396869Z
+3022,camiladiaz,4004,club-soccer,"Yep, got three.",2026-02-12T11:21:05.396869Z
+3051,minholee,4004,club-soccer,Count me in.,2026-02-12T11:23:00Z
+3071,harulee,4004,club-soccer,Bringing cones?,2026-02-12T11:28:05.396869Z
+3022,camiladiaz,4004,club-soccer,"Yep, got three.",2026-02-12T11:30:05.396869Z
+3071,harulee,4004,club-soccer,Bringing cones?,2026-02-12T11:33:05.396869Z
+3022,camiladiaz,4004,club-soccer,"Yep, got three.",2026-02-12T11:34:05.396869Z
+3001,sofialopez,4004,club-soccer,I'll be there at 4pm.,2026-02-12T11:57:00Z
+3051,minholee,4004,club-soccer,Count me in.,2026-02-12T12:35:00Z
