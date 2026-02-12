@@ -175,7 +175,7 @@ const SQL_LAB_ITEMS = [
         This app hashes passwords before sending them, so sign up users in the chat app for stored passwords to match.
       </div>
     `,
-    required: "SELECT password FROM users WHERE username = $1;"
+    required: "SELECT password FROM users WHERE username = $1; -- if your DB has a different schema you must match this to your schema."
   },
   {
     key: "user_register",
@@ -1723,6 +1723,15 @@ function renderChannels(list) {
           toast(`Joined #${ch.name}`);
         }
         await loadChannels();
+        if (!ch.is_member) {
+          const joined = state.channels.find(c => c.id === ch.id) || ch;
+          setActiveChannel(joined);
+          state.lastSeenByChannel[String(ch.id)] = new Date().toISOString();
+          saveLocal("lastSeenByChannel", state.lastSeenByChannel);
+          await loadMessages(ch.id);
+          startPolling();
+          closeSidebarDrawer();
+        }
       } catch (err) {
         const rawMsg = err.message || String(err);
         const displayMsg = maybeAddSqlTraceHint(rawMsg, err);
@@ -1818,12 +1827,15 @@ async function loadChannels() {
   // the channels SQL was changed and previously the UI had no joined
   // channels (so no activeChannelId); when the student fixes the SQL and
   // returns to Chat we must show messages.
+  const activeJoined = state.activeChannelId
+    ? state.channels.find(c => c.id === state.activeChannelId && c.is_member)
+    : null;
   const firstJoined = state.channels.find(c => c.is_member);
-  if (firstJoined) {
-    if (state.activeChannelId !== firstJoined.id) {
-      setActiveChannel(firstJoined);
-      await loadMessages(firstJoined.id);
-    }
+  if (activeJoined) {
+    startPolling();
+  } else if (firstJoined) {
+    setActiveChannel(firstJoined);
+    await loadMessages(firstJoined.id);
     startPolling();
   } else {
     // If there are no joined channels, clear any previously active channel
