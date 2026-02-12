@@ -8,6 +8,10 @@ Add the following only for milestone 3. Place them before the other sanity check
     - `select body, created_at from chat_inbox limit 0;`,
     - `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
 
+### CTE sequencing (channels_list)
+
+Before the course teaches CTEs, keep `SQL_CONTRACT.channels_list.firstWords` set to `["select"]` so the frontend expects a `SELECT` start. Once CTEs are covered in lecture, update it to `["with", "select"]` to allow `WITH` queries.
+
 ### superuser
 
 in .env set after milestone 1:
