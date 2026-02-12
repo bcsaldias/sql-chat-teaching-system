@@ -183,15 +183,39 @@
       white-space: normal;
     }
 
-    .btn-warn {
-      border-color: color-mix(in srgb, var(--accent2) 60%, var(--border));
-      color: var(--accent2);
-      background: color-mix(in srgb, var(--accent2) 12%, transparent);
-      box-shadow: 0 8px 18px color-mix(in srgb, var(--accent2) 18%, transparent);
+    .btn-soft-warn {
+      border-color: color-mix(in srgb, var(--accent2) 40%, var(--border));
+      color: color-mix(in srgb, var(--accent2) 85%, #5f1d1d);
+      background: color-mix(in srgb, var(--accent2) 8%, transparent);
+      box-shadow: 0 6px 14px color-mix(in srgb, var(--accent2) 10%, transparent);
     }
 
-    .btn-warn:hover {
-      background: color-mix(in srgb, var(--accent2) 18%, transparent);
+    .btn-soft-warn:hover {
+      background: color-mix(in srgb, var(--accent2) 12%, transparent);
+    }
+
+    .toggleDetails summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 650;
+      color: var(--text);
+    }
+
+    .toggleDetails summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .toggleDetails .toggleHint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .toggleDetails .toggleBody {
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -239,36 +263,34 @@
       </section>
 
       <section class="card">
-        <h3>CSV Source</h3>
+        <h3>Preview Default Files</h3>
         <div class="mutedSmall" style="margin-bottom:10px;">
-          Required files: <code>users.csv</code>, <code>channels.csv</code>, <code>members.csv</code>, <code>messages.csv</code>.
-        </div>
-        <div class="grid2">
-          <div class="field">
-            <label>Users CSV</label>
-            <input id="csvUsersFile" type="file" accept=".csv,text/csv" />
-            <div id="csvUsersLabel" class="mutedSmall" style="margin-top:6px;">Using default users.csv.</div>
-          </div>
-          <div class="field">
-            <label>Channels CSV</label>
-            <input id="csvChannelsFile" type="file" accept=".csv,text/csv" />
-            <div id="csvChannelsLabel" class="mutedSmall" style="margin-top:6px;">Using default channels.csv.</div>
-          </div>
-        </div>
-        <div class="grid2">
-          <div class="field">
-            <label>Members CSV</label>
-            <input id="csvMembersFile" type="file" accept=".csv,text/csv" />
-            <div id="csvMembersLabel" class="mutedSmall" style="margin-top:6px;">Using default members.csv.</div>
-          </div>
-          <div class="field">
-            <label>Messages CSV</label>
-            <input id="csvMessagesFile" type="file" accept=".csv,text/csv" />
-            <div id="csvMessagesLabel" class="mutedSmall" style="margin-top:6px;">Using default messages.csv.</div>
-          </div>
+          Preview uses the default CSV files in <code>data/populate_db/*.csv</code>.
         </div>
         <div class="row">
-          <button id="useDefaultsBtn" class="btn btn-ghost" type="button">Use default files</button>
+          <button id="previewBtn" class="btn btn-soft-warn" type="button">Preview CSV</button>
+          <div id="previewMsg" class="msg"></div>
+        </div>
+        <div class="inlineRow" style="margin-top:10px;">
+          <label class="mutedSmall">Preview file</label>
+          <select id="previewSelect" class="plainSelect">
+            <option value="users">users.csv</option>
+            <option value="channels">channels.csv</option>
+            <option value="members">members.csv</option>
+            <option value="messages">messages.csv</option>
+          </select>
+        </div>
+        <div id="previewSummary" class="mutedSmall" style="margin-top:10px;">Preview not loaded yet.</div>
+        <div class="previewTableWrap">
+          <table class="previewTable">
+            <thead>
+              <tr id="previewHeader"></tr>
+            </thead>
+            <tbody id="previewBody"></tbody>
+          </table>
+        </div>
+        <div class="mutedSmall" style="margin-top:10px;">
+          Want to use custom files? Upload them in the CSV Source section below.
         </div>
       </section>
 
@@ -279,7 +301,7 @@
           <p>If there is an error loading, you can do it manually.</p>
         </div>
         <div class="row">
-          <button id="schemaBtn" class="btn btn-ghost btn-warn" type="button">Load DB schema suggestions</button>
+          <button id="schemaBtn" class="btn btn-soft-warn" type="button">Load DB schema suggestions</button>
           <div id="schemaMsg" class="msg"></div>
         </div>
         <div class="mappingTableWrap">
@@ -400,28 +422,50 @@
       </section>
 
       <section class="card">
+        <details class="toggleDetails" id="csvSourceToggle">
+          <summary>
+            <span>CSV Source (Custom Files)</span>
+            <span class="toggleHint">Optional</span>
+          </summary>
+          <div class="toggleBody">
+            <div class="mutedSmall" style="margin-bottom:10px;">
+              Required files: <code>users.csv</code>, <code>channels.csv</code>, <code>members.csv</code>, <code>messages.csv</code>.
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label>Users CSV</label>
+                <input id="csvUsersFile" type="file" accept=".csv,text/csv" />
+                <div id="csvUsersLabel" class="mutedSmall" style="margin-top:6px;">Using default users.csv.</div>
+              </div>
+              <div class="field">
+                <label>Channels CSV</label>
+                <input id="csvChannelsFile" type="file" accept=".csv,text/csv" />
+                <div id="csvChannelsLabel" class="mutedSmall" style="margin-top:6px;">Using default channels.csv.</div>
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label>Members CSV</label>
+                <input id="csvMembersFile" type="file" accept=".csv,text/csv" />
+                <div id="csvMembersLabel" class="mutedSmall" style="margin-top:6px;">Using default members.csv.</div>
+              </div>
+              <div class="field">
+                <label>Messages CSV</label>
+                <input id="csvMessagesFile" type="file" accept=".csv,text/csv" />
+                <div id="csvMessagesLabel" class="mutedSmall" style="margin-top:6px;">Using default messages.csv.</div>
+              </div>
+            </div>
+            <div class="row">
+              <button id="useDefaultsBtn" class="btn btn-ghost" type="button">Use default files</button>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="card">
         <div class="row">
-          <button id="previewBtn" class="btn btn-ghost" type="button">Preview CSV</button>
           <button id="runBtn" class="btn btn-primary" type="button">Populate DB</button>
           <div id="populateMsg" class="msg"></div>
-        </div>
-        <div class="inlineRow" style="margin-top:10px;">
-          <label class="mutedSmall">Preview file</label>
-          <select id="previewSelect" class="plainSelect">
-            <option value="users">users.csv</option>
-            <option value="channels">channels.csv</option>
-            <option value="members">members.csv</option>
-            <option value="messages">messages.csv</option>
-          </select>
-        </div>
-        <div id="previewSummary" class="mutedSmall" style="margin-top:10px;">Preview not loaded yet.</div>
-        <div class="previewTableWrap">
-          <table class="previewTable">
-            <thead>
-              <tr id="previewHeader"></tr>
-            </thead>
-            <tbody id="previewBody"></tbody>
-          </table>
         </div>
       </section>
     </div>

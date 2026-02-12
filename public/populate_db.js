@@ -20,6 +20,7 @@ const hashToggle = el("hashToggle");
 const previewBtn = el("previewBtn");
 const runBtn = el("runBtn");
 const populateMsg = el("populateMsg");
+const previewMsg = el("previewMsg");
 const schemaBtn = el("schemaBtn");
 const schemaMsg = el("schemaMsg");
 const previewSummary = el("previewSummary");
@@ -95,6 +96,13 @@ function setMsg(text, ok = false) {
   if (!text) populateMsg.className = "msg";
 }
 
+function setPreviewMsg(text, ok = false) {
+  if (!previewMsg) return;
+  previewMsg.textContent = text || "";
+  previewMsg.className = "msg " + (ok ? "ok" : "err");
+  if (!text) previewMsg.className = "msg";
+}
+
 function setSchemaMsg(text, ok = false) {
   if (!schemaMsg) return;
   schemaMsg.textContent = text || "";
@@ -151,9 +159,30 @@ function escapeHtml(value) {
 }
 
 function highlightKeywords(html) {
-  return String(html)
+  return highlightReferenceColumns(String(html))
     .replace(/\bPRIMARY KEY\b/gi, '<span class="schemaKeyword">$&</span>')
     .replace(/\bREFERENCES\b/gi, '<span class="schemaKeyword">$&</span>');
+}
+
+function highlightReferenceColumns(html) {
+  return String(html).replace(
+    /(REFERENCES\s+[^\s(]+\s*\()([^)]+)(\))/gi,
+    (match, start, cols, end) => {
+      const highlighted = cols
+        .split(/(\s*,\s*)/)
+        .map((part) => {
+          if (/^\s*,\s*$/.test(part)) return part;
+          const trimmed = part.trim();
+          if (!trimmed) return part;
+          return part.replace(
+            trimmed,
+            `<span class="schemaKeyword">${trimmed}</span>`
+          );
+        })
+        .join("");
+      return `${start}${highlighted}${end}`;
+    }
+  );
 }
 
 function formatDefinition(def) {
@@ -453,7 +482,7 @@ function renderPreviewTable(fileKey) {
 }
 
 async function handlePreview() {
-  setMsg("");
+  setPreviewMsg("");
   previewBtn.disabled = true;
   try {
     const data = await api("/api/populate_db/preview", "POST", buildPayload());
@@ -478,9 +507,9 @@ async function handlePreview() {
     previewCache = data;
     previewSummary.textContent = buildSummary(data);
     renderPreviewTable(previewSelect?.value || "users");
-    setMsg("Preview loaded.", true);
+    setPreviewMsg("Preview loaded.", true);
   } catch (err) {
-    setMsg(err?.message || String(err), false);
+    setPreviewMsg(err?.message || String(err), false);
   } finally {
     previewBtn.disabled = false;
   }
