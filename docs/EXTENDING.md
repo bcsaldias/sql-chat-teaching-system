@@ -23,7 +23,9 @@ This app is simple to run, but extensions work best when you follow the shared "
 1. Update `/api/test_schema` in `src/server.js` so the checks match the new required tables/columns.
 2. If channel/user IDs change types or names, update schema introspection in `src/utils.js`
    (`loadChannelMembershipKeys`, `parseChannelId`) so IDs are parsed correctly.
-3. Revisit any SQL templates that depend on column names or PK/FK structure.
+3. Review the schema alias lists in `src/server.js` (`CHANNEL_NAME_ALIASES`, `CHANNEL_DESC_ALIASES`, `USER_PASSWORD_ALIASES`)
+   and update them as needed for your cohort/deployment.
+4. Revisit any SQL templates that depend on column names or PK/FK structure.
 
 ## Add a new UI feature (not a SQL template)
 1. Decide if it needs a new API route or can reuse existing data.
