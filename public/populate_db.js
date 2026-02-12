@@ -21,6 +21,7 @@ const previewBtn = el("previewBtn");
 const runBtn = el("runBtn");
 const populateMsg = el("populateMsg");
 const previewMsg = el("previewMsg");
+const brandSubEl = el("brandSub");
 const schemaBtn = el("schemaBtn");
 const schemaMsg = el("schemaMsg");
 const previewSummary = el("previewSummary");
@@ -35,6 +36,8 @@ const tableDefs = el("tableDefs");
 const themeSelect = el("themeSelect");
 
 const THEME_KEY = "info330_theme";
+const BRAND_SUB_DEFAULT = "UW INFO 330 • SQL-driven messaging";
+const DB_USER_KEY = "info330_db_user";
 const csvText = {
   users: null,
   channels: null,
@@ -125,6 +128,16 @@ function trimCell(value, max = 80) {
 
 function normalizeHeader(value) {
   return String(value ?? "").trim().toLowerCase();
+}
+
+function getDbUserFromSession() {
+  return sessionStorage.getItem(DB_USER_KEY);
+}
+
+function setBrandSubFromSession() {
+  if (!brandSubEl) return;
+  const dbUser = getDbUserFromSession();
+  brandSubEl.textContent = dbUser ? `UW INFO 330 – SQL chat for ${dbUser}` : BRAND_SUB_DEFAULT;
 }
 
 function looksLikeSha512Hex(value) {
@@ -591,3 +604,5 @@ if (themeSelect) {
     sessionStorage.setItem(THEME_KEY, next);
   });
 }
+
+setBrandSubFromSession();
