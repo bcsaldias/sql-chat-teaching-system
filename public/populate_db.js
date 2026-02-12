@@ -38,6 +38,7 @@ const themeSelect = el("themeSelect");
 const THEME_KEY = "info330_theme";
 const BRAND_SUB_DEFAULT = "UW INFO 330 • SQL-driven messaging";
 const DB_USER_KEY = "info330_db_user";
+const POPULATE_CONFIRM_WINDOW_MS = 60_000;
 const csvText = {
   users: null,
   channels: null,
@@ -45,6 +46,7 @@ const csvText = {
   messages: null
 };
 let previewCache = null;
+let lastPopulateAt = null;
 
 function updateFkModeUI() {
   const mode = fkModeSelect?.value || "name";
@@ -530,6 +532,12 @@ async function handlePreview() {
 
 async function handleRun() {
   setMsg("");
+  if (lastPopulateAt && (Date.now() - lastPopulateAt) < POPULATE_CONFIRM_WINDOW_MS) {
+    const ok = window.confirm(
+      "You just populated the DB. Insert the data again? This may create duplicates.\n\nClick OK to load anyways, or Cancel to abort."
+    );
+    if (!ok) return;
+  }
   runBtn.disabled = true;
   try {
     const data = await api("/api/populate_db/run", "POST", buildPayload());
@@ -540,6 +548,7 @@ async function handleRun() {
       `messages ${stats.messages?.inserted ?? 0}/${stats.messages?.attempted ?? 0}`;
     previewSummary.textContent = summary;
     setMsg("Populate complete.", true);
+    lastPopulateAt = Date.now();
   } catch (err) {
     setMsg(err?.message || String(err), false);
   } finally {
