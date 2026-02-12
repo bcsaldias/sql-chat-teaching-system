@@ -1,5 +1,9 @@
 # Deployment
 
+## Prereqs
+
+- Run the database setup/maintenance scripts in `scripts/SCRIPTS.md` before starting the server.
+
 ## PM2 (recommended)
 
 ```bash
