@@ -114,6 +114,47 @@ const sqlEditors = new Map();
 const MAX_SQL_LEN = 600; // to make sure students don't go too long.
 const SQL_LEN_WARN = Math.floor(MAX_SQL_LEN * 0.9);
 
+function toWordMap(value) {
+  const out = {};
+  if (!value) return out;
+  if (typeof value === "string") {
+    value.split(/\s+/).forEach((w) => {
+      const k = String(w || "").trim().toLowerCase();
+      if (k) out[k] = true;
+    });
+    return out;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((w) => {
+      const k = String(w || "").trim().toLowerCase();
+      if (k) out[k] = true;
+    });
+    return out;
+  }
+  if (typeof value === "object") {
+    Object.keys(value).forEach((k) => {
+      const key = String(k || "").trim().toLowerCase();
+      if (key) out[key] = true;
+    });
+  }
+  return out;
+}
+
+function getSqlModeOptions() {
+  if (!window.CodeMirror || typeof window.CodeMirror.resolveMode !== "function") {
+    return "text/x-sql";
+  }
+  if (getSqlModeOptions._cached) return getSqlModeOptions._cached;
+  const resolved = window.CodeMirror.resolveMode("text/x-sql") || {};
+  const keywords = toWordMap(resolved.keywords);
+  keywords.with = true; // ensure CTE keyword is highlighted
+  const builtin = toWordMap(resolved.builtin);
+  const atoms = toWordMap(resolved.atoms);
+  const mode = { ...resolved, name: "sql", keywords, builtin, atoms };
+  getSqlModeOptions._cached = mode;
+  return mode;
+}
+
 const SQL_LAB_GROUPS = [
   { id: "auth", title: "Auth & Users" },
   { id: "channels", title: "Channels & Membership" },
@@ -626,7 +667,7 @@ function renderSqlLab(templates) {
 
       if (window.CodeMirror) {
         const editor = window.CodeMirror.fromTextArea(ta, {
-          mode: "text/x-sql",
+          mode: getSqlModeOptions(),
           lineNumbers: false,
           lineWrapping: true,
           viewportMargin: Infinity
