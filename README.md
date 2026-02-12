@@ -14,7 +14,7 @@ If you run this at larger scale, watch your Postgres `max_connections` and use s
 - `src/server.js` — Express server + API routes
 - `src/utils.js` — helpers (SQL lab items, schema introspection, etc.)
 - `public/` — front-end (`index.html`, `app.js`, `styles.css`)
-- `scripts/` — instructor/admin utilities for DB ecosystem setup (see `SCRIPTS.md`)
+- `scripts/` — instructor/admin utilities for DB ecosystem setup (see `scripts/SCRIPTS.md`)
 - `config/pm2/ecosystem.config.js` — PM2 process config
 - `docs/DEPLOYMENT.md` — deployment notes (PM2, env)
 
