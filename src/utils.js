@@ -9,6 +9,7 @@ const SQL_CONTRACT = {
     update_password: { firstWords: ["update"] },
     channels_list: {
         firstWords: ["with", "select"],
+        // allowing CTE and simple nested queries
         expectedCols: [
             { name: "id" },
             { name: "name" },
@@ -28,7 +29,10 @@ const SQL_CONTRACT = {
             { name: "created_at", type: "timestamp" }
         ]
     },
-    message_post: { firstWords: ["insert", "select"] },
+    message_post: {
+        firstWords: ["insert", "select"]
+        // allowing insert or select to insert through a function
+    },
     channel_members_list: { firstWords: ["select"], expectedCols: [{ name: "username" }] },
     channel_create: { firstWords: ["insert"] }
 };
