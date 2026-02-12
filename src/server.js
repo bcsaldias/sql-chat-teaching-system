@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
 const { registerInstructorRoutes } = require("./instructor.js");
+const { registerPopulateDbRoutes } = require("./populate_db.js");
 require("dotenv").config();
 
 const app = express();
@@ -175,6 +176,14 @@ function sqlErrorExtra(key, err) {
   return { sqlKey: key, sqlError: true };
 }
 
+// prevents sql injection
+const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
+function qIdent(name) {
+  const n = String(name || "").trim();
+  if (!IDENT_RE.test(n)) throw new Error(`Unsafe identifier: ${n}`);
+  return `"${n.replace(/"/g, '""')}"`;
+}
+
 function dbRoute(handler, errorFactory) {
   return async (req, res, next) => {
     try {
@@ -213,6 +222,15 @@ registerInstructorRoutes(app, {
   publicDir: path.join(__dirname, "..", "public"),
   submissionsDir: SUBMISSIONS_DIR,
   progressLogPath: process.env.SQL_PROGRESS_LOG
+});
+
+registerPopulateDbRoutes(app, {
+  requireGroupLogin,
+  dbRoute,
+  dbError,
+  withDb,
+  qIdent,
+  publicDir: path.join(__dirname, "..", "public")
 });
 
 // Schema cache
@@ -941,15 +959,6 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
 
   return res.json({ ok: true });
 }, (e) => dbError("Incorrect Schema.", String(e.message || e))));
-
-// prevents sql injection
-const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
-function qIdent(name) {
-  const n = String(name || "").trim();
-  if (!IDENT_RE.test(n)) throw new Error(`Unsafe identifier: ${n}`);
-  return `"${n.replace(/"/g, '""')}"`;
-}
-
 
 // =====================================================
 // Password reset
