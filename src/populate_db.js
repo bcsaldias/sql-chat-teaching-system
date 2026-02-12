@@ -303,6 +303,21 @@ function buildCreateTableStatement(schema) {
   return `CREATE TABLE ${schema.name} (\n${lines.join(",\n")}\n);`;
 }
 
+async function bumpSequence(client, table, column, qIdent) {
+  if (!table || !column) return false;
+  const { rows } = await client.query(
+    "SELECT pg_get_serial_sequence($1, $2) AS seq;",
+    [table, column]
+  );
+  const seq = rows[0]?.seq;
+  if (!seq) return false;
+  const tableIdent = qIdent(table);
+  const colIdent = qIdent(column);
+  const sql = `SELECT setval($1, GREATEST((SELECT COALESCE(MAX(${colIdent}), 0) FROM ${tableIdent}), 1), true);`;
+  await client.query(sql, [seq]);
+  return true;
+}
+
 function buildHeaderIndex(headers) {
   const index = new Map();
   headers.forEach((h, i) => {
@@ -714,15 +729,32 @@ function registerPopulateDbRoutes(app, options = {}) {
     const { payloads, sources } = loadCsvPayloads(req.body || {}, defaultCsvPaths);
     const mapping = buildMapping(req.body || {});
     const seedData = buildSeedData(payloads, mapping, req.body?.options || {});
+    const hashPasswords = req.body?.options?.hashPasswords !== false;
 
     const files = {};
     for (const [key, payload] of Object.entries(payloads)) {
-      const sampleLimit = Math.min(5, payload.rows.length);
+      const sampleLimit = Math.min(10, payload.rows.length);
       files[key] = {
         headers: payload.headers,
         sampleRows: payload.rows.slice(0, sampleLimit),
         rowCount: payload.rows.length
       };
+    }
+
+    if (hashPasswords && files.users?.sampleRows?.length) {
+      const usersIndex = buildHeaderIndex(payloads.users.headers);
+      const passwordCol = mapping.csv.password;
+      const passwordIdx = resolveCsvIndex(usersIndex, passwordCol);
+      if (passwordIdx !== null) {
+        files.users.sampleRows = files.users.sampleRows.map((row) => {
+          const next = row.slice();
+          const raw = String(next[passwordIdx] ?? "");
+          if (raw && !looksLikeSha512Hex(raw)) {
+            next[passwordIdx] = hashPassword(raw);
+          }
+          return next;
+        });
+      }
     }
 
     res.json({
@@ -752,15 +784,23 @@ function registerPopulateDbRoutes(app, options = {}) {
     const { useChannelId, useUserId } = getPkModes(req.body?.options || {});
 
     const db = mapping.db;
-    const usersTable = qIdent(requireValue(db.users.table, "Users table"));
-    const usersIdCol = useUserId ? qIdent(requireValue(db.users.id, "Users.id column")) : null;
-    const usersUsernameCol = qIdent(requireValue(db.users.username, "Users.username column"));
-    const usersPasswordCol = qIdent(requireValue(db.users.password, "Users.password column"));
+    const usersTableRaw = requireValue(db.users.table, "Users table");
+    const usersIdRaw = useUserId ? requireValue(db.users.id, "Users.id column") : null;
+    const usersUsernameRaw = requireValue(db.users.username, "Users.username column");
+    const usersPasswordRaw = requireValue(db.users.password, "Users.password column");
+    const usersTable = qIdent(usersTableRaw);
+    const usersIdCol = usersIdRaw ? qIdent(usersIdRaw) : null;
+    const usersUsernameCol = qIdent(usersUsernameRaw);
+    const usersPasswordCol = qIdent(usersPasswordRaw);
 
-    const channelsTable = qIdent(requireValue(db.channels.table, "Channels table"));
-    const channelsIdCol = useChannelId ? qIdent(requireValue(db.channels.id, "Channels.id column")) : null;
-    const channelsNameCol = qIdent(requireValue(db.channels.name, "Channels.name column"));
-    const channelsDescCol = qIdent(requireValue(db.channels.description, "Channels.description column"));
+    const channelsTableRaw = requireValue(db.channels.table, "Channels table");
+    const channelsIdRaw = useChannelId ? requireValue(db.channels.id, "Channels.id column") : null;
+    const channelsNameRaw = requireValue(db.channels.name, "Channels.name column");
+    const channelsDescRaw = requireValue(db.channels.description, "Channels.description column");
+    const channelsTable = qIdent(channelsTableRaw);
+    const channelsIdCol = channelsIdRaw ? qIdent(channelsIdRaw) : null;
+    const channelsNameCol = qIdent(channelsNameRaw);
+    const channelsDescCol = qIdent(channelsDescRaw);
 
     const membersTable = qIdent(requireValue(db.members.table, "Members table"));
     const membersUsernameCol = qIdent(requireValue(db.members.username, "Members.username column"));
@@ -826,6 +866,13 @@ function registerPopulateDbRoutes(app, options = {}) {
             : [message.username, message.channelValue, message.body];
           const r = await client.query(sql, params);
           if (r.rowCount) stats.messages.inserted += 1;
+        }
+
+        if (usersIdRaw) {
+          await bumpSequence(client, usersTableRaw, usersIdRaw, qIdent);
+        }
+        if (channelsIdRaw) {
+          await bumpSequence(client, channelsTableRaw, channelsIdRaw, qIdent);
         }
 
         await client.query("COMMIT");

@@ -115,6 +115,22 @@ function trimCell(value, max = 80) {
   return s.slice(0, max - 3) + "...";
 }
 
+function normalizeHeader(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function looksLikeSha512Hex(value) {
+  return /^[a-f0-9]{128}$/i.test(String(value ?? ""));
+}
+
+async function sha512Hex(value) {
+  const data = new TextEncoder().encode(String(value ?? ""));
+  const digest = await crypto.subtle.digest("SHA-512", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (ch) => {
     switch (ch) {
@@ -363,8 +379,8 @@ async function loadSchemaSuggestions() {
 function buildSummary(data) {
   const rows = data?.counts?.rows || {};
   const entities = data?.counts?.entities || {};
-  return `Rows: users ${rows.users ?? 0}, channels ${rows.channels ?? 0}, members ${rows.members ?? 0}, messages ${rows.messages ?? 0}` +
-    ` • Entities: users ${entities.users ?? 0}, channels ${entities.channels ?? 0}, members ${entities.members ?? 0}, messages ${entities.messages ?? 0}`;
+  return `Rows: users ${rows.users ?? 0}, channels ${rows.channels ?? 0}, members ${rows.members ?? 0}, messages ${rows.messages ?? 0}`;
+    // ` • Entities: users ${entities.users ?? 0}, channels ${entities.channels ?? 0}, members ${entities.members ?? 0}, messages ${entities.messages ?? 0}`;
 }
 
 function renderPreviewTable(fileKey) {
@@ -390,20 +406,44 @@ function renderPreviewTable(fileKey) {
     return;
   }
 
-  headers.forEach((h) => {
+  const hideUserId = (userPkSelect?.value || "username") !== "id";
+  const hideChannelId = (fkModeSelect?.value || "name") !== "id";
+  const userIdCol = normalizeHeader(el("csvUserId")?.value || "user_id");
+  const channelIdCol = normalizeHeader(el("csvChannelId")?.value || "channel_id");
+  const passwordCol = normalizeHeader(el("csvPassword")?.value || "password");
+  const showHashNote = hashToggle?.checked && fileKey === "users";
+  const visibleIndexes = [];
+
+  headers.forEach((h, idx) => {
+    const headerKey = normalizeHeader(h);
+    if (hideUserId && headerKey && headerKey === userIdCol) return;
+    if (hideChannelId && headerKey && headerKey === channelIdCol) return;
+    visibleIndexes.push(idx);
+  });
+
+  if (visibleIndexes.length === 0) {
+    previewBody.innerHTML = `<tr><td class="mutedSmall">No visible columns for this preview.</td></tr>`;
+    return;
+  }
+
+  visibleIndexes.forEach((idx) => {
     const th = document.createElement("th");
-    th.textContent = h || "—";
+    let label = headers[idx] || "—";
+    if (showHashNote && normalizeHeader(label) === passwordCol) {
+      label = `${label} (as indicated, pwds being hashed)`;
+    }
+    th.textContent = label;
     previewHeader.appendChild(th);
   });
 
   if (sampleRows.length === 0) {
-    previewBody.innerHTML = `<tr><td colspan="${headers.length}" class="mutedSmall">No rows found.</td></tr>`;
+    previewBody.innerHTML = `<tr><td colspan="${visibleIndexes.length}" class="mutedSmall">No rows found.</td></tr>`;
     return;
   }
 
   for (const row of sampleRows) {
     const tr = document.createElement("tr");
-    headers.forEach((_, idx) => {
+    visibleIndexes.forEach((idx) => {
       const td = document.createElement("td");
       td.textContent = trimCell(row?.[idx] ?? "");
       tr.appendChild(td);
@@ -417,6 +457,24 @@ async function handlePreview() {
   previewBtn.disabled = true;
   try {
     const data = await api("/api/populate_db/preview", "POST", buildPayload());
+    if (hashToggle?.checked && data?.files?.users?.sampleRows?.length) {
+      const users = data.files.users;
+      const headers = Array.isArray(users.headers) ? users.headers : [];
+      const pwdCol = normalizeHeader(el("csvPassword")?.value || "password");
+      const pwdIdx = headers.findIndex((h) => normalizeHeader(h) === pwdCol);
+      if (pwdIdx !== -1 && crypto?.subtle) {
+        const nextRows = [];
+        for (const row of users.sampleRows) {
+          const next = row.slice();
+          const raw = String(next[pwdIdx] ?? "");
+          if (raw && !looksLikeSha512Hex(raw)) {
+            next[pwdIdx] = await sha512Hex(raw);
+          }
+          nextRows.push(next);
+        }
+        users.sampleRows = nextRows;
+      }
+    }
     previewCache = data;
     previewSummary.textContent = buildSummary(data);
     renderPreviewTable(previewSelect?.value || "users");
