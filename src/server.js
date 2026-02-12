@@ -860,6 +860,28 @@ app.listen(port, () => {
 // Schema check
 // =====================================================
 
+const CHANNEL_NAME_ALIASES = ["name", "channel_name", "channelname", "cname"];
+const CHANNEL_DESC_ALIASES = ["description", "channel_description", "channel_desc", "desc", "cdesc"];
+const USER_PASSWORD_ALIASES = ["password", "password_hash", "password_digest", "pwd"];
+
+async function findFirstColumnByAliases(client, table, aliases) {
+  const list = (aliases || [])
+    .map((c) => String(c || "").trim().toLowerCase())
+    .filter(Boolean);
+  if (list.length === 0) return null;
+  const { rows } = await client.query(
+    `select column_name
+     from information_schema.columns
+     where table_schema = 'public'
+       and table_name = $1
+       and lower(column_name) = any($2::text[])
+     order by array_position($2::text[], lower(column_name))
+     limit 1;`,
+    [table, list]
+  );
+  return rows[0]?.column_name || null;
+}
+
 app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const { dbUser, dbPass } = req.session;
   const info = await ensureChatSchemaInfo(req);
@@ -869,20 +891,41 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const usersPkCol = qIdent(info.users_pk);
   const usersFkCol = qIdent(info.membership_users_fk);
 
-  const sanityChecks = [
-    `select ${usersPkCol}, password from users limit 0;`,
-    `select ${channelsPkCol}, name, description from channels limit 0;`,
-    `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
-    `select body, created_at from chat_inbox limit 0;`,
-    // `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
-  ];
+  await withDb(dbUser, dbPass, async (client) => {
+    const channelsNameRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_NAME_ALIASES);
+    if (!channelsNameRaw) {
+      throw new Error(
+        `Channels table must include a name column (${CHANNEL_NAME_ALIASES.join(", ")}). `
+      );
+    }
+    const channelsDescRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_DESC_ALIASES);
+    if (!channelsDescRaw) {
+      throw new Error(
+        `Channels table must include a description column (${CHANNEL_DESC_ALIASES.join(", ")}). `
+      );
+    }
+    const passwordRaw = await findFirstColumnByAliases(client, "users", USER_PASSWORD_ALIASES);
+    if (!passwordRaw) {
+      throw new Error(
+        `Users table must include a password column (${USER_PASSWORD_ALIASES.join(", ")}). `
+      );
+    }
+    const channelsNameCol = qIdent(channelsNameRaw);
+    const channelsDescCol = qIdent(channelsDescRaw);
+    const passwordCol = qIdent(passwordRaw);
+    const sanityChecks = [
+      `select ${usersPkCol}, ${passwordCol} from users limit 0;`,
+      `select ${channelsPkCol}, ${channelsNameCol}, ${channelsDescCol} from channels limit 0;`,
+      `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
+      // `select body, created_at from chat_inbox limit 0;`,
+      // `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
+    ];
 
-  for (const checkQuery of sanityChecks) {
-    console.log("Testing", checkQuery);
-    await withDb(dbUser, dbPass, async (client) => {
+    for (const checkQuery of sanityChecks) {
+      console.log("Testing", checkQuery);
       await client.query(checkQuery);
-    });
-  }
+    }
+  });
 
   return res.json({ ok: true });
 }, (e) => dbError("Incorrect Schema.", String(e.message || e))));
