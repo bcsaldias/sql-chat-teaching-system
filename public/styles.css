@@ -421,7 +421,10 @@ textarea:focus {
 }
 
 .btn-primary:hover {
-  filter: brightness(1.03);
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+  filter: none;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px color-mix(in srgb, var(--accent2) 22%, transparent);
 }
 
 .btn-primary:active {

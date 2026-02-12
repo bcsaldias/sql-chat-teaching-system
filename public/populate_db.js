@@ -24,6 +24,10 @@ const previewMsg = el("previewMsg");
 const brandSubEl = el("brandSub");
 const schemaBtn = el("schemaBtn");
 const schemaMsg = el("schemaMsg");
+const populateConfirm = el("populateConfirm");
+const populateConfirmOk = el("populateConfirmOk");
+const populateConfirmCancel = el("populateConfirmCancel");
+const populateConfirmAck = el("populateConfirmAck");
 const previewSummary = el("previewSummary");
 const previewHeader = el("previewHeader");
 const previewBody = el("previewBody");
@@ -47,6 +51,50 @@ const csvText = {
 };
 let previewCache = null;
 let lastPopulateAt = null;
+
+function confirmPopulateAgain() {
+  if (!populateConfirm || !populateConfirmOk || !populateConfirmCancel || !populateConfirmAck) {
+    return Promise.resolve(window.confirm(
+      "You just populated the DB. Insert the data again? This may create duplicates.\n\nClick OK to load anyways, or Cancel to abort."
+    ));
+  }
+
+  return new Promise((resolve) => {
+    const close = (result) => {
+      populateConfirm.classList.add("hidden");
+      populateConfirm.removeEventListener("click", onBackdrop);
+      populateConfirmCancel.removeEventListener("click", onCancel);
+      populateConfirmOk.removeEventListener("click", onOk);
+      populateConfirmAck.removeEventListener("change", onAck);
+      document.removeEventListener("keydown", onKey);
+      resolve(result);
+    };
+
+    const onBackdrop = (e) => {
+      if (e.target === populateConfirm) close(false);
+    };
+    const onCancel = () => close(false);
+    const onOk = () => close(true);
+    const onKey = (e) => {
+      if (e.key === "Escape") close(false);
+    };
+    const onAck = () => {
+      populateConfirmOk.disabled = !populateConfirmAck.checked;
+    };
+
+    populateConfirmAck.checked = false;
+    onAck();
+
+    populateConfirm.addEventListener("click", onBackdrop);
+    populateConfirmCancel.addEventListener("click", onCancel);
+    populateConfirmOk.addEventListener("click", onOk);
+    populateConfirmAck.addEventListener("change", onAck);
+    document.addEventListener("keydown", onKey);
+
+    populateConfirm.classList.remove("hidden");
+    populateConfirmCancel.focus();
+  });
+}
 
 function updateFkModeUI() {
   const mode = fkModeSelect?.value || "name";
@@ -533,9 +581,7 @@ async function handlePreview() {
 async function handleRun() {
   setMsg("");
   if (lastPopulateAt && (Date.now() - lastPopulateAt) < POPULATE_CONFIRM_WINDOW_MS) {
-    const ok = window.confirm(
-      "You just populated the DB. Insert the data again? This may create duplicates.\n\nClick OK to load anyways, or Cancel to abort."
-    );
+    const ok = await confirmPopulateAgain();
     if (!ok) return;
   }
   runBtn.disabled = true;

@@ -471,6 +471,23 @@
     </div>
   </div>
 
+  <div id="populateConfirm" class="modalBackdrop hidden" role="dialog" aria-modal="true" aria-labelledby="populateConfirmTitle">
+    <div class="modalCard">
+      <div id="populateConfirmTitle" class="modalTitle">Populate Again?</div>
+      <div class="modalSub">
+        You just populated the DB. Running it again may create duplicates.
+      </div>
+      <label class="check" style="margin-top:6px;">
+        <input id="populateConfirmAck" type="checkbox" />
+        I understand this may create duplicates.
+      </label>
+      <div class="modalRow">
+        <button id="populateConfirmCancel" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="populateConfirmOk" class="btn btn-soft-warn" type="button" disabled>Load anyways</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/populate_db.js"></script>
 </body>
 
