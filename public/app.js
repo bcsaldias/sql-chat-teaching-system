@@ -265,7 +265,7 @@ const SQL_LAB_ITEMS = [
     group: "messages",
     description: `
       <div><b>What happens:</b> user clicks <code>Send</code></div>
-      <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b>, <code>$2</code> = <b>username</b>, <code>$3</code> = <b>body</b></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b>, <code>$3</code> = <b>body</b></div>
       <div><b>Must do:</b> insert a message</div>
     `,
     // <div><b>Must return:</b> inserted <b>message id</b></div>
