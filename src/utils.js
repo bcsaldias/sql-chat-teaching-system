@@ -207,6 +207,14 @@ async function loadChatSchemaInfo(client) {
         membership_users_fk_type,
     } = await loadChannelMembershipKeys(client);
 
+    const messages_table = await resolveMessagesTableName(client);
+    const {
+        messages_channels_fk,
+        messages_channels_fk_type,
+        messages_users_fk,
+        messages_users_fk_type,
+    } = await loadMessagesKeys(client, messages_table);
+
     return {
         channels_pk,
         channels_pk_type,
@@ -216,7 +224,85 @@ async function loadChatSchemaInfo(client) {
         membership_channels_fk_type,
         membership_users_fk,
         membership_users_fk_type,
+        messages_table,
+        messages_channels_fk,
+        messages_channels_fk_type,
+        messages_users_fk,
+        messages_users_fk_type
     }
+}
+
+async function resolveMessagesTableName(client) {
+    const aliases = ["chat_inbox", "messages"];
+    const { rows } = await client.query(
+        `select table_name
+         from information_schema.tables
+         where table_schema = 'public'
+           and table_name = any($1::text[])
+         order by array_position($1::text[], table_name)
+         limit 1;`,
+        [aliases]
+    );
+    return rows[0]?.table_name || null;
+}
+
+async function loadMessagesKeys(client, tableName) {
+    const name = String(tableName || "").trim();
+    if (!name) {
+        return {
+            messages_channels_fk: null,
+            messages_channels_fk_type: null,
+            messages_users_fk: null,
+            messages_users_fk_type: null
+        };
+    }
+
+    const { rows } = await client.query(`
+    SELECT
+      msg_chan_fk.col AS messages_channels_fk,
+      msg_chan_fk.typ AS messages_channels_fk_type,
+      msg_user_fk.col AS messages_users_fk,
+      msg_user_fk.typ AS messages_users_fk_type
+    FROM (SELECT 1) base
+    LEFT JOIN LATERAL (
+      SELECT a.attname AS col, a.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN pg_class rt     ON rt.oid = c.confrelid
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum, ord) ON true
+      JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = k.attnum
+      WHERE n.nspname = 'public'
+        AND t.relname = $1
+        AND rt.relname = 'channels'
+        AND c.contype = 'f'
+      ORDER BY k.ord
+      LIMIT 1
+    ) msg_chan_fk ON true
+    LEFT JOIN LATERAL (
+      SELECT a.attname AS col, a.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN pg_class rt     ON rt.oid = c.confrelid
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum, ord) ON true
+      JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = k.attnum
+      WHERE n.nspname = 'public'
+        AND t.relname = $1
+        AND rt.relname = 'users'
+        AND c.contype = 'f'
+      ORDER BY k.ord
+      LIMIT 1
+    ) msg_user_fk ON true;
+  `, [name]);
+
+    const row = rows[0] || {};
+    return {
+        messages_channels_fk: row.messages_channels_fk || null,
+        messages_channels_fk_type: row.messages_channels_fk_type || null,
+        messages_users_fk: row.messages_users_fk || null,
+        messages_users_fk_type: row.messages_users_fk_type || null
+    };
 }
 
 async function loadChannelMembershipKeys(client) {

@@ -406,11 +406,21 @@ function getMergedTemplates(req) {
 }
 
 function getSql(req, key) {
-  if (isSuperUserReq(req)) return normalizeSingleStatement(SOLUTION_SQL[key] || "");
+  if (isSuperUserReq(req)) {
+    const base = SOLUTION_SQL[key] || "";
+    return normalizeSingleStatement(resolveSolutionSql(req, key, base));
+  }
   const custom = req.session?.sqlTemplates?.[key];
   const base = custom ?? DEFAULT_SQL[key];
   if (!base) throw new Error(`Unknown SQL template key: ${key}`);
   return normalizeSingleStatement(base);
+}
+
+function resolveSolutionSql(req, key, sql) {
+  if (key !== "messages_list" && key !== "message_post") return sql;
+  const table = String(req.session?.chatSchemaInfo?.messages_table || "").trim();
+  if (!table || table === "chat_inbox" || !IDENT_RE.test(table)) return sql;
+  return String(sql || "").replace(/\bchat_inbox\b/gi, table);
 }
 
 function expectedColsForKey(key) {
@@ -920,6 +930,21 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const channelsFkCol = qIdent(info.membership_channels_fk);
   const usersPkCol = qIdent(info.users_pk);
   const usersFkCol = qIdent(info.membership_users_fk);
+  const messagesTableRaw = info.messages_table;
+  if (!messagesTableRaw) {
+    throw new Error('Messages table must be named "chat_inbox" or "messages".');
+  }
+  const messagesTable = qIdent(messagesTableRaw);
+  const messagesChannelFkRaw = info.messages_channels_fk;
+  const messagesUserFkRaw = info.messages_users_fk;
+  if (!messagesChannelFkRaw) {
+    throw new Error(`Messages table must include a foreign key to channels.`);
+  }
+  if (!messagesUserFkRaw) {
+    throw new Error(`Messages table must include a foreign key to users.`);
+  }
+  const messagesChannelFkCol = qIdent(messagesChannelFkRaw);
+  const messagesUserFkCol = qIdent(messagesUserFkRaw);
 
   await withDb(dbUser, dbPass, async (client) => {
     const channelsNameRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_NAME_ALIASES);
@@ -948,7 +973,8 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
       `select ${channelsPkCol}, ${channelsNameCol}, ${channelsDescCol} from channels limit 0;`,
       `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
       // `select body, created_at from chat_inbox limit 0;`,
-      // `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
+      // `select ${usersFkCol}, ${channelsFkCol}, body, created_at from chat_inbox limit 0;`,
+      `select ${messagesUserFkCol}, ${messagesChannelFkCol} from ${messagesTable} limit 0;`,
     ];
 
     for (const checkQuery of sanityChecks) {

@@ -102,6 +102,33 @@ function pickFkFromSchema(schema, targetTable) {
   return match?.column_name || null;
 }
 
+async function tableExists(client, table) {
+  const name = String(table || "").trim();
+  if (!name) return false;
+  const { rows } = await client.query(
+    `select 1
+     from information_schema.tables
+     where table_schema = 'public'
+       and table_name = $1
+     limit 1;`,
+    [name]
+  );
+  return rows.length > 0;
+}
+
+async function resolveMessagesTable(client, preferred) {
+  const primary = String(preferred || "").trim();
+  const candidates = [];
+  if (primary) candidates.push(primary);
+  for (const name of [DEFAULT_MAPPING.db.messages.table, "messages"]) {
+    if (!candidates.includes(name)) candidates.push(name);
+  }
+  for (const name of candidates) {
+    if (await tableExists(client, name)) return name;
+  }
+  return primary || null;
+}
+
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -609,6 +636,8 @@ function registerPopulateDbRoutes(app, options = {}) {
     const warnings = [];
 
     await withDb(req.session.dbUser, req.session.dbPass, async (client) => {
+      const resolvedMessages = await resolveMessagesTable(client, tableNames.chat_inbox);
+      if (resolvedMessages) tableNames.chat_inbox = resolvedMessages;
       for (const [key, name] of Object.entries(tableNames)) {
         const schema = await getTableSchema(client, name);
         if (!schema) {
@@ -624,6 +653,7 @@ function registerPopulateDbRoutes(app, options = {}) {
 
   app.post("/api/populate_db/schema", requireGroupLogin, dbRoute(async (req, res) => {
     const tables = req.body?.tables || {};
+    const providedMessages = normalizeMaybe(tables.messages, null);
     const tableNames = {
       users: normalizeMaybe(tables.users, DEFAULT_MAPPING.db.users.table),
       channels: normalizeMaybe(tables.channels, DEFAULT_MAPPING.db.channels.table),
@@ -636,6 +666,11 @@ function registerPopulateDbRoutes(app, options = {}) {
     const warnings = [];
 
     await withDb(req.session.dbUser, req.session.dbPass, async (client) => {
+      const shouldResolveMessages = !providedMessages || providedMessages === DEFAULT_MAPPING.db.messages.table;
+      if (shouldResolveMessages) {
+        const resolvedMessages = await resolveMessagesTable(client, tableNames.messages);
+        if (resolvedMessages) tableNames.messages = resolvedMessages;
+      }
       columns.users = await getTableColumns(client, tableNames.users);
       columns.channels = await getTableColumns(client, tableNames.channels);
       columns.members = await getTableColumns(client, tableNames.members);
@@ -782,6 +817,7 @@ function registerPopulateDbRoutes(app, options = {}) {
     const { payloads } = loadCsvPayloads(req.body || {}, defaultCsvPaths);
     const mapping = buildMapping(req.body || {});
     const { useChannelId, useUserId } = getPkModes(req.body?.options || {});
+    const providedMessages = normalizeMaybe(req.body?.mapping?.db?.messages?.table, null);
 
     const db = mapping.db;
     const usersTableRaw = requireValue(db.users.table, "Users table");
@@ -806,7 +842,6 @@ function registerPopulateDbRoutes(app, options = {}) {
     const membersUsernameCol = qIdent(requireValue(db.members.username, "Members.username column"));
     const membersChannelCol = qIdent(requireValue(db.members.channel, "Members.channel column"));
 
-    const messagesTable = qIdent(requireValue(db.messages.table, "Messages table"));
     const messagesUsernameCol = qIdent(requireValue(db.messages.username, "Messages.username column"));
     const messagesChannelCol = qIdent(requireValue(db.messages.channel, "Messages.channel column"));
     const messagesBodyCol = qIdent(requireValue(db.messages.body, "Messages.body column"));
@@ -821,7 +856,16 @@ function registerPopulateDbRoutes(app, options = {}) {
       messages: { attempted: seedData.messages.length, inserted: 0 }
     };
 
+    const shouldResolveMessages = !providedMessages || providedMessages === DEFAULT_MAPPING.db.messages.table;
+
     await withDb(req.session.dbUser, req.session.dbPass, async (client) => {
+      let messagesTableRaw = requireValue(db.messages.table, "Messages table");
+      if (shouldResolveMessages) {
+        const resolvedMessages = await resolveMessagesTable(client, messagesTableRaw);
+        if (resolvedMessages) messagesTableRaw = resolvedMessages;
+      }
+      const messagesTable = qIdent(messagesTableRaw);
+
       await client.query("BEGIN");
       try {
         const insertUserSql = usersIdCol
