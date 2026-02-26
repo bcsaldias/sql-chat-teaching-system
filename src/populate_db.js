@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { DEFAULT_MESSAGES_TABLE, MESSAGES_TABLE_ALIASES } = require("./utils.js");
 
 const DEFAULT_MAPPING = {
   csv: {
@@ -21,7 +22,7 @@ const DEFAULT_MAPPING = {
     users: { table: "users", id: "user_id", username: "username", password: "password" },
     channels: { table: "channels", id: "channel_id", name: "name", description: "description" },
     members: { table: "channel_members", username: "username", channel: "channel" },
-    messages: { table: "chat_inbox", username: "username", channel: "channel_id", body: "body", created_at: "created_at" }
+    messages: { table: DEFAULT_MESSAGES_TABLE, username: "username", channel: "channel_id", body: "body", created_at: "created_at" }
   }
 };
 
@@ -120,7 +121,8 @@ async function resolveMessagesTable(client, preferred) {
   const primary = String(preferred || "").trim();
   const candidates = [];
   if (primary) candidates.push(primary);
-  for (const name of [DEFAULT_MAPPING.db.messages.table, "messages"]) {
+  const aliases = Array.isArray(MESSAGES_TABLE_ALIASES) ? MESSAGES_TABLE_ALIASES : [];
+  for (const name of aliases) {
     if (!candidates.includes(name)) candidates.push(name);
   }
   for (const name of candidates) {

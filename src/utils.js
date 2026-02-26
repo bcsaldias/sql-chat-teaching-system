@@ -2,6 +2,9 @@
 // SQL LAB SUPPORTING CODE
 // =====================================================
 
+const DEFAULT_MESSAGES_TABLE = "chat_inbox";
+const MESSAGES_TABLE_ALIASES = [DEFAULT_MESSAGES_TABLE, "messages"];
+
 // SQL contract (shared requirements)
 const SQL_CONTRACT = {
     user_login: { firstWords: ["select"], expectedCols: [{ name: "password" }] },
@@ -76,11 +79,11 @@ ORDER BY c.name;`,
     "member_check": "SELECT true FROM channel_members WHERE username = $1 AND channel = $2;",
     "messages_list": `SELECT
 username, body, created_at
-FROM chat_inbox
+FROM ${DEFAULT_MESSAGES_TABLE}
 WHERE channel_id = $1
 ORDER BY created_at ASC
 LIMIT 50;`,
-    "message_post": "INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);",
+    "message_post": `INSERT INTO ${DEFAULT_MESSAGES_TABLE}(username, channel_id, body) VALUES ($1, $2, $3);`,
     "channel_members_list": "SELECT username FROM channel_members WHERE channel = $1 ORDER BY username;",
     "channel_create": "INSERT INTO channels(name, description) VALUES ($1, $2);"
 };
@@ -233,7 +236,6 @@ async function loadChatSchemaInfo(client) {
 }
 
 async function resolveMessagesTableName(client) {
-    const aliases = ["chat_inbox", "messages"];
     const { rows } = await client.query(
         `select table_name
          from information_schema.tables
@@ -241,7 +243,7 @@ async function resolveMessagesTableName(client) {
            and table_name = any($1::text[])
          order by array_position($1::text[], table_name)
          limit 1;`,
-        [aliases]
+        [MESSAGES_TABLE_ALIASES]
     );
     return rows[0]?.table_name || null;
 }
@@ -376,6 +378,8 @@ async function loadChannelMembershipKeys(client) {
 
 
 module.exports = {
+    DEFAULT_MESSAGES_TABLE,
+    MESSAGES_TABLE_ALIASES,
     SQL_CONTRACT,
     DEFAULT_SQL,
     SOLUTION_SQL,

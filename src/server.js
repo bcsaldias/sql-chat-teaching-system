@@ -1,4 +1,13 @@
-const { SQL_CONTRACT, DEFAULT_SQL, SOLUTION_SQL, PGDATABASES_MAPPING, loadChatSchemaInfo, parseChannelId } = require('./utils.js');
+const {
+  SQL_CONTRACT,
+  DEFAULT_SQL,
+  SOLUTION_SQL,
+  PGDATABASES_MAPPING,
+  loadChatSchemaInfo,
+  parseChannelId,
+  DEFAULT_MESSAGES_TABLE,
+  MESSAGES_TABLE_ALIASES
+} = require('./utils.js');
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
@@ -419,8 +428,10 @@ function getSql(req, key) {
 function resolveSolutionSql(req, key, sql) {
   if (key !== "messages_list" && key !== "message_post") return sql;
   const table = String(req.session?.chatSchemaInfo?.messages_table || "").trim();
-  if (!table || table === "chat_inbox" || !IDENT_RE.test(table)) return sql;
-  return String(sql || "").replace(/\bchat_inbox\b/gi, table);
+  if (!table || table === DEFAULT_MESSAGES_TABLE || !IDENT_RE.test(table)) return sql;
+  const target = DEFAULT_MESSAGES_TABLE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`\\b${target}\\b`, "gi");
+  return String(sql || "").replace(re, table);
 }
 
 function expectedColsForKey(key) {
@@ -932,7 +943,11 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const usersFkCol = qIdent(info.membership_users_fk);
   const messagesTableRaw = info.messages_table;
   if (!messagesTableRaw) {
-    throw new Error('Messages table must be named "chat_inbox" or "messages".');
+    const aliases = Array.isArray(MESSAGES_TABLE_ALIASES) ? MESSAGES_TABLE_ALIASES : [];
+    const label = aliases.length
+      ? aliases.map((name) => `"${name}"`).join(" or ")
+      : `"${DEFAULT_MESSAGES_TABLE}"`;
+    throw new Error(`Messages table must be named ${label}.`);
   }
   const messagesTable = qIdent(messagesTableRaw);
   const messagesChannelFkRaw = info.messages_channels_fk;
