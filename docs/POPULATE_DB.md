@@ -23,7 +23,7 @@ Default table names and CSV headers are below. The UI lets you edit any of these
 | Users | `users` | `username`, `password` | `user_id` required if user PK mode is `id`. |
 | Channels | `channels` | `channel_name` | `channel_id` required if channel FK mode is `id`. `channel_description` is optional. |
 | Members | `channel_members` | `username`, `channel_name` | `channel_id` replaces `channel_name` in id mode. |
-| Messages | `chat_inbox` | `username`, `channel_name`, `message_body` | `channel_id` replaces `channel_name` in id mode. `message_created_at` is optional. |
+| Messages | `chat_inbox` (default) or `messages` | `username`, `channel_name`, `message_body` | `channel_id` replaces `channel_name` in id mode. `message_created_at` is optional. |
 
 Schema suggestions use existing column names, common aliases, and detected foreign keys to pre-fill the DB column mapping.
 
@@ -36,7 +36,7 @@ Schema suggestions use existing column names, common aliases, and detected forei
 - Password hashing is on by default and uses SHA-512. Values that already look like SHA-512 hex are left as-is.
 - Inserts happen inside a transaction.
 - `users`, `channels`, and `channel_members` use `ON CONFLICT DO NOTHING`.
-- `chat_inbox` messages always insert, so re-running will duplicate messages.
+- Messages always insert, so re-running will duplicate messages (applies to `chat_inbox` or `messages`).
 - If you populate again within 60 seconds, the UI asks for confirmation.
 - When inserting into id columns, the sequence is bumped to the max value after the insert.
 
