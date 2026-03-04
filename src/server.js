@@ -1,4 +1,13 @@
-const { SQL_CONTRACT, DEFAULT_SQL, SOLUTION_SQL, PGDATABASES_MAPPING, loadChatSchemaInfo, parseChannelId } = require('./utils.js');
+const {
+  SQL_CONTRACT,
+  DEFAULT_SQL,
+  SOLUTION_SQL,
+  PGDATABASES_MAPPING,
+  loadChatSchemaInfo,
+  parseChannelId,
+  DEFAULT_MESSAGES_TABLE,
+  MESSAGES_TABLE_ALIASES
+} = require('./utils.js');
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
@@ -6,6 +15,7 @@ const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
 const { registerInstructorRoutes } = require("./instructor.js");
+const { registerPopulateDbRoutes } = require("./populate_db.js");
 require("dotenv").config();
 
 const app = express();
@@ -175,6 +185,14 @@ function sqlErrorExtra(key, err) {
   return { sqlKey: key, sqlError: true };
 }
 
+// prevents sql injection
+const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
+function qIdent(name) {
+  const n = String(name || "").trim();
+  if (!IDENT_RE.test(n)) throw new Error(`Unsafe identifier: ${n}`);
+  return `"${n.replace(/"/g, '""')}"`;
+}
+
 function dbRoute(handler, errorFactory) {
   return async (req, res, next) => {
     try {
@@ -213,6 +231,15 @@ registerInstructorRoutes(app, {
   publicDir: path.join(__dirname, "..", "public"),
   submissionsDir: SUBMISSIONS_DIR,
   progressLogPath: process.env.SQL_PROGRESS_LOG
+});
+
+registerPopulateDbRoutes(app, {
+  requireGroupLogin,
+  dbRoute,
+  dbError,
+  withDb,
+  qIdent,
+  publicDir: path.join(__dirname, "..", "public")
 });
 
 // Schema cache
@@ -388,11 +415,23 @@ function getMergedTemplates(req) {
 }
 
 function getSql(req, key) {
-  if (isSuperUserReq(req)) return normalizeSingleStatement(SOLUTION_SQL[key] || "");
+  if (isSuperUserReq(req)) {
+    const base = SOLUTION_SQL[key] || "";
+    return normalizeSingleStatement(resolveSolutionSql(req, key, base));
+  }
   const custom = req.session?.sqlTemplates?.[key];
   const base = custom ?? DEFAULT_SQL[key];
   if (!base) throw new Error(`Unknown SQL template key: ${key}`);
   return normalizeSingleStatement(base);
+}
+
+function resolveSolutionSql(req, key, sql) {
+  if (key !== "messages_list" && key !== "message_post") return sql;
+  const table = String(req.session?.chatSchemaInfo?.messages_table || "").trim();
+  if (!table || table === DEFAULT_MESSAGES_TABLE || !IDENT_RE.test(table)) return sql;
+  const target = DEFAULT_MESSAGES_TABLE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`\\b${target}\\b`, "gi");
+  return String(sql || "").replace(re, table);
 }
 
 function expectedColsForKey(key) {
@@ -902,6 +941,25 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const channelsFkCol = qIdent(info.membership_channels_fk);
   const usersPkCol = qIdent(info.users_pk);
   const usersFkCol = qIdent(info.membership_users_fk);
+  const messagesTableRaw = info.messages_table;
+  if (!messagesTableRaw) {
+    const aliases = Array.isArray(MESSAGES_TABLE_ALIASES) ? MESSAGES_TABLE_ALIASES : [];
+    const label = aliases.length
+      ? aliases.map((name) => `"${name}"`).join(" or ")
+      : `"${DEFAULT_MESSAGES_TABLE}"`;
+    throw new Error(`Messages table must be named ${label}.`);
+  }
+  const messagesTable = qIdent(messagesTableRaw);
+  const messagesChannelFkRaw = info.messages_channels_fk;
+  const messagesUserFkRaw = info.messages_users_fk;
+  if (!messagesChannelFkRaw) {
+    throw new Error(`Messages table must include a foreign key to channels.`);
+  }
+  if (!messagesUserFkRaw) {
+    throw new Error(`Messages table must include a foreign key to users.`);
+  }
+  const messagesChannelFkCol = qIdent(messagesChannelFkRaw);
+  const messagesUserFkCol = qIdent(messagesUserFkRaw);
 
   await withDb(dbUser, dbPass, async (client) => {
     const channelsNameRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_NAME_ALIASES);
@@ -930,7 +988,8 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
       `select ${channelsPkCol}, ${channelsNameCol}, ${channelsDescCol} from channels limit 0;`,
       `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
       // `select body, created_at from chat_inbox limit 0;`,
-      // `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
+      // `select ${usersFkCol}, ${channelsFkCol}, body, created_at from chat_inbox limit 0;`,
+      `select ${messagesUserFkCol}, ${messagesChannelFkCol} from ${messagesTable} limit 0;`,
     ];
 
     for (const checkQuery of sanityChecks) {
@@ -941,15 +1000,6 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
 
   return res.json({ ok: true });
 }, (e) => dbError("Incorrect Schema.", String(e.message || e))));
-
-// prevents sql injection
-const IDENT_RE = /^[a-z_][a-z0-9_]*$/i;
-function qIdent(name) {
-  const n = String(name || "").trim();
-  if (!IDENT_RE.test(n)) throw new Error(`Unsafe identifier: ${n}`);
-  return `"${n.replace(/"/g, '""')}"`;
-}
-
 
 // =====================================================
 // Password reset

@@ -196,7 +196,7 @@ const SQL_LAB_ITEMS = [
     group: "auth",
     description: `
       <div><b>What happens:</b> user clicks <code>Reset password</code></div>
-      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>new_password_hash</b></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>new_password_hash</b>,  <code>$3</code> = <b>current_password_hash</b></div>
       <div><b>Must do:</b> UPDATE the user’s password in <code>users</code></div>
     `,
   },
@@ -265,7 +265,7 @@ const SQL_LAB_ITEMS = [
     group: "messages",
     description: `
       <div><b>What happens:</b> user clicks <code>Send</code></div>
-      <div><b>Parameters:</b> <code>$1</code> = <b>channel_pk</b>, <code>$2</code> = <b>username</b>, <code>$3</code> = <b>body</b></div>
+      <div><b>Parameters:</b> <code>$1</code> = <b>username</b>, <code>$2</code> = <b>channel_pk</b>, <code>$3</code> = <b>body</b></div>
       <div><b>Must do:</b> insert a message</div>
     `,
     // <div><b>Must return:</b> inserted <b>message id</b></div>

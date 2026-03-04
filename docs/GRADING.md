@@ -5,8 +5,8 @@ This section captures quick, low-risk checks we add to the grading workflow to c
 
 Add the following only for milestone 3. Place them before the other sanity check queries and keep the rest unchanged.
 
-    - `select body, created_at from chat_inbox limit 0;`,
-    - `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;`,
+    - `select body, created_at from chat_inbox limit 0;` (or `messages`)
+    - `select ${userFkCol}, ${chatFkCol}, body, created_at from chat_inbox limit 0;` (or `messages`)
 
 ### CTE sequencing (channels_list)
 

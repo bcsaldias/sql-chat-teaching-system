@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>INFO 330 • Populate DB</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="assets/db-icon.svg" type="image/svg+xml">
+  <style>
+    .previewTableWrap {
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+
+    .container > .card {
+      margin-bottom: 14px;
+    }
+
+    .previewTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .previewTable th,
+    .previewTable td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .previewTable th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .mappingTableWrap {
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+
+    .mappingTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .mappingTable th,
+    .mappingTable td {
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .mappingTable th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .mappingTable input {
+      min-width: 160px;
+    }
+
+    .mappingTable select {
+      min-width: 200px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      outline: none;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .plainSelect {
+      min-width: 200px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      outline: none;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .mappingTable input[disabled] {
+      background: var(--soft);
+      color: var(--muted2);
+    }
+
+    .schemaBlock {
+      margin: 10px 0 0;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--code-bg);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .schemaBlock strong {
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .schemaBlock .schemaKeyword {
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .mappingSection td {
+      padding-top: 14px;
+      padding-bottom: 10px;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--panel2);
+      border-top: 2px solid var(--border);
+    }
+
+    .mappingSection:first-of-type td {
+      border-top-width: 1px;
+    }
+
+    .inlineRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .inlineRow .btn {
+      flex: 0 0 auto;
+    }
+
+    .pillHint {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .check input {
+      accent-color: var(--accent);
+    }
+
+    .centerCell {
+      text-align: center;
+    }
+
+    .wideCheck {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      align-items: center;
+      gap: 6px;
+      width: min(100%, 520px);
+      margin: 0 auto;
+    }
+
+    .wideCheck input {
+      justify-self: center;
+    }
+
+    .wideCheck span {
+      min-width: 0;
+      text-align: left;
+      white-space: normal;
+    }
+
+    .btn-soft-warn {
+      border-color: color-mix(in srgb, var(--accent2) 40%, var(--border));
+      color: color-mix(in srgb, var(--accent2) 85%, #5f1d1d);
+      background: color-mix(in srgb, var(--accent2) 8%, transparent);
+      box-shadow: 0 6px 14px color-mix(in srgb, var(--accent2) 10%, transparent);
+    }
+
+    .btn-soft-warn:hover {
+      background: color-mix(in srgb, var(--accent2) 12%, transparent);
+    }
+
+    .toggleDetails summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 650;
+      color: var(--text);
+    }
+
+    .toggleDetails summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .toggleDetails .toggleHint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .toggleDetails .toggleBody {
+      margin-top: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="appShell">
+    <header class="topbar">
+      <div class="brand">
+        <img class="uwLogo" src="/assets/ischool_logo.jpg" alt="UW iSchool logo" />
+        <div>
+          <div class="brandTitle">Populate DB</div>
+          <div id="brandSub" class="brandSub">UW INFO 330 • SQL-driven messaging</div>
+        </div>
+      </div>
+      <div class="topbarRight">
+        <a class="btn btn-ghost" href="/">Back to app</a>
+        <select id="themeSelect" class="themeSelect" aria-label="Theme">
+          <option value="classic-light">☀️</option>
+          <option value="classic-dark">☄️</option>
+          <option value="studio-light">🌗</option>
+          <option value="studio-dark">🌒</option>
+        </select>
+      </div>
+    </header>
+
+    <div class="container">
+      <section class="card">
+        <h2>Populate DB</h2>
+        <p class="muted">
+          This tool loads CSV data into your group database in this order: users -> channels -> members -> messages.
+          You must already be logged in to your group DB in the main app so the session cookie is present.
+        </p>
+        <div class="inlineRow">
+          <span class="pillHint">Default seed files are used unless you upload custom CSVs below</span>
+          <span class="pillHint">Columns can be remapped below</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Your Table Definitions</h3>
+        <div class="mutedSmall">
+          These are loaded from your database schema.
+        </div>
+        <div id="tableDefs" class="schemaBlock">Loading table definitions…</div>
+      </section>
+
+      <section class="card">
+        <h3>Preview Default Files</h3>
+        <div class="mutedSmall" style="margin-bottom:10px;">
+          Preview uses the server's default seed files (you can upload custom files below).
+        </div>
+        <div class="row">
+          <button id="previewBtn" class="btn btn-soft-warn" type="button">Preview CSV</button>
+          <div id="previewMsg" class="msg"></div>
+        </div>
+        <div class="inlineRow" style="margin-top:10px;">
+          <label class="mutedSmall">Preview file</label>
+          <select id="previewSelect" class="plainSelect">
+            <option value="users">users.csv</option>
+            <option value="channels">channels.csv</option>
+            <option value="members">members.csv</option>
+            <option value="messages">messages.csv</option>
+          </select>
+        </div>
+        <div id="previewSummary" class="mutedSmall" style="margin-top:10px;">Preview not loaded yet.</div>
+        <div class="previewTableWrap">
+          <table class="previewTable">
+            <thead>
+              <tr id="previewHeader"></tr>
+            </thead>
+            <tbody id="previewBody"></tbody>
+          </table>
+        </div>
+        <div class="mutedSmall" style="margin-top:10px;">
+          Want to use custom files? Upload them in the CSV Source section below.
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Field Mapping</h3>
+        <div class="mutedSmall" style="margin-bottom:10px;">
+          <p>Use the table below to map each field. Left = description, middle = DB schema, right = CSV column.</p>
+          <p>If there is an error loading, you can do it manually.</p>
+        </div>
+        <div class="row">
+          <button id="schemaBtn" class="btn btn-soft-warn" type="button">Load DB schema suggestions</button>
+          <div id="schemaMsg" class="msg"></div>
+        </div>
+        <div class="mappingTableWrap">
+          <table class="mappingTable">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>DB schema</th>
+                <th>CSV column</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="mappingSection">
+                <td colspan="3">Users</td>
+              </tr>
+              <tr>
+                <td>User PK</td>
+                <td>
+                  <select id="userPkSelect">
+                    <option value="username">Username (VARCHAR)</option>
+                    <option value="id">User id (INT)</option>
+                  </select>
+                </td>
+                <td><input disabled placeholder="n/a" /></td>
+              </tr>
+              <tr id="userIdRow" class="hidden">
+                <td>Users.id</td>
+                <td><input id="dbUsersId" /></td>
+                <td><input id="csvUserId" value="user_id" /></td>
+              </tr>
+              <tr>
+                <td>Users.username</td>
+                <td><input id="dbUsersUsername" /></td>
+                <td><input id="csvUsername" value="username" /></td>
+              </tr>
+              <tr>
+                <td>Users.password</td>
+                <td><input id="dbUsersPassword" /></td>
+                <td><input id="csvPassword" value="password" /></td>
+              </tr>
+              <tr>
+                <td>Password handling</td>
+                <td class="centerCell">
+                  <label class="check wideCheck">
+                    <input id="hashToggle" type="checkbox" checked />
+                    <span>Hash passwords (SHA-512) before inserting.</span>
+                  </label>
+                </td>
+                <td><input disabled placeholder="n/a" /></td>
+              </tr>
+              <tr class="mappingSection">
+                <td colspan="3">Channels</td>
+              </tr>
+              <tr>
+                <td>Channel PK</td>
+                <td>
+                  <select id="fkModeSelect">
+                    <option value="name">Channel name (VARCHAR)</option>
+                    <option value="id">Channel id (INT)</option>
+                  </select>
+                </td>
+                <td><input disabled placeholder="n/a" /></td>
+              </tr>
+              <tr id="channelIdRow" class="hidden">
+                <td>Channels.id <span class="mutedSmall"></span></td>
+                <td><input id="dbChannelsId" /></td>
+                <td><input id="csvChannelId" value="channel_id" /></td>
+              </tr>
+              <tr>
+                <td>Channels.name</td>
+                <td><input id="dbChannelsName" /></td>
+                <td><input id="csvChannelName" value="channel_name" /></td>
+              </tr>
+              <tr>
+                <td>Channels.description <span class="mutedSmall">(optional)</span></td>
+                <td><input id="dbChannelsDesc" /></td>
+                <td><input id="csvChannelDesc" value="channel_description" /></td>
+              </tr>
+              <tr class="mappingSection">
+                <td colspan="3">Channel Members</td>
+              </tr>
+              <tr>
+                <td>Members.user FK</td>
+                <td><input id="dbMembersUsername" /></td>
+                <td><input id="csvMemberUsername" value="username" /></td>
+              </tr>
+              <tr>
+                <td>Members.channel FK</td>
+                <td><input id="dbMembersChannel" /></td>
+                <td><input id="csvMemberChannel" value="channel_name" /></td>
+              </tr>
+              <tr class="mappingSection">
+                <td colspan="3">Messages / chat_inbox table</td>
+              </tr>
+              <tr>
+                <td>Messages.username FK</td>
+                <td><input id="dbMessagesUsername" /></td>
+                <td><input id="csvMessageUsername" value="username" /></td>
+              </tr>
+              <tr>
+                <td>Messages.channel FK</td>
+                <td><input id="dbMessagesChannel" /></td>
+                <td><input id="csvMessageChannel" value="channel_name" /></td>
+              </tr>
+              <tr>
+                <td>Messages.body</td>
+                <td><input id="dbMessagesBody" /></td>
+                <td><input id="csvMessageBody" value="message_body" /></td>
+              </tr>
+              <tr>
+                <td>Messages.created_at <span class="mutedSmall"></span></td>
+                <td><input id="dbMessagesCreated" /></td>
+                <td><input id="csvMessageCreated" value="message_created_at" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <details class="toggleDetails" id="csvSourceToggle">
+          <summary>
+            <span>CSV Source (Custom Files)</span>
+            <span class="toggleHint">Optional</span>
+          </summary>
+          <div class="toggleBody">
+            <div class="mutedSmall" style="margin-bottom:10px;">
+              Required files: <code>users.csv</code>, <code>channels.csv</code>, <code>members.csv</code>, <code>messages.csv</code>.
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label>Users CSV</label>
+                <input id="csvUsersFile" type="file" accept=".csv,text/csv" />
+                <div id="csvUsersLabel" class="mutedSmall" style="margin-top:6px;">Using default users.csv.</div>
+              </div>
+              <div class="field">
+                <label>Channels CSV</label>
+                <input id="csvChannelsFile" type="file" accept=".csv,text/csv" />
+                <div id="csvChannelsLabel" class="mutedSmall" style="margin-top:6px;">Using default channels.csv.</div>
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label>Members CSV</label>
+                <input id="csvMembersFile" type="file" accept=".csv,text/csv" />
+                <div id="csvMembersLabel" class="mutedSmall" style="margin-top:6px;">Using default members.csv.</div>
+              </div>
+              <div class="field">
+                <label>Messages CSV</label>
+                <input id="csvMessagesFile" type="file" accept=".csv,text/csv" />
+                <div id="csvMessagesLabel" class="mutedSmall" style="margin-top:6px;">Using default messages.csv.</div>
+              </div>
+            </div>
+            <div class="row">
+              <button id="useDefaultsBtn" class="btn btn-ghost" type="button">Use default files</button>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="card">
+        <div class="row">
+          <button id="runBtn" class="btn btn-primary" type="button">Populate DB</button>
+          <div id="populateMsg" class="msg"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="populateConfirm" class="modalBackdrop hidden" role="dialog" aria-modal="true" aria-labelledby="populateConfirmTitle">
+    <div class="modalCard">
+      <div id="populateConfirmTitle" class="modalTitle">Populate Again?</div>
+      <div class="modalSub">
+        You just populated the DB. Running it again may create duplicates.
+      </div>
+      <label class="check" style="margin-top:6px;">
+        <input id="populateConfirmAck" type="checkbox" />
+        I understand this may create duplicates.
+      </label>
+      <div class="modalRow">
+        <button id="populateConfirmCancel" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="populateConfirmOk" class="btn btn-soft-warn" type="button" disabled>Load anyways</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/populate_db.js"></script>
+</body>
+
+</html>
