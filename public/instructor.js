@@ -166,7 +166,9 @@ async function loadExcludedConfig() {
     const effectiveList = excludedDbUsersOverride ? tempExcludedDbUsers : baseExcludedDbUsers;
     renderExcludedDbUsers(effectiveList, baseExcludedDbUsers, tempExcludedDbUsers, excludedDbUsersOverride);
   } catch {
-    // Keep current placeholder if config cannot be loaded.
+    if (excludedDbUsersNote && !excludedDbUsersOverride) {
+      excludedDbUsersNote.textContent = "Could not load excluded users config yet. Click Update report.";
+    }
   }
 }
 
