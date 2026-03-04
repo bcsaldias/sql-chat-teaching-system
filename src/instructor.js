@@ -12,6 +12,11 @@ function registerInstructorRoutes(app, options = {}) {
     options.submissionsDir || process.env.SQL_SUBMISSIONS_DIR || path.join(__dirname, "..", "submissions");
   const progressLogPath =
     options.progressLogPath || process.env.SQL_PROGRESS_LOG || path.join(submissionsDir, "progress_log.jsonl");
+  const configuredExcludedDbUsers = Array.isArray(options.excludedDbUsers)
+    ? options.excludedDbUsers.map((dbUser) => normalizeDbUser(dbUser)).filter(Boolean)
+    : parseDbUserList(process.env.INSTRUCTOR_EXCLUDED_DB_USERS);
+  const baseExcludedDbUsers = configuredExcludedDbUsers;
+  const excludedDbUsers = new Set(baseExcludedDbUsers);
 
   if (!requireGroupLogin || !dbRoute || !dbError) {
     throw new Error("registerInstructorRoutes requires requireGroupLogin, dbRoute, and dbError.");
@@ -34,6 +39,17 @@ function registerInstructorRoutes(app, options = {}) {
 
   function normalizePassedKeys(keys) {
     return Array.isArray(keys) ? keys.map(String).sort() : [];
+  }
+
+  function normalizeDbUser(dbUser) {
+    return String(dbUser || "").trim().toLowerCase();
+  }
+
+  function parseDbUserList(raw) {
+    return String(raw || "")
+      .split(",")
+      .map((dbUser) => normalizeDbUser(dbUser))
+      .filter(Boolean);
   }
 
   function isProgressDuplicate(prev, next) {
@@ -94,16 +110,14 @@ function registerInstructorRoutes(app, options = {}) {
     }
   }
 
-  function buildKeyStats(dbUserNeedle) {
+  function buildKeyStats(dbUserNeedle, excludedSet) {
     const out = [];
     for (const [key, set] of progressKeySets.entries()) {
       let count = 0;
-      if (!dbUserNeedle) {
-        count = set.size;
-      } else {
-        for (const dbUser of set) {
-          if (String(dbUser).toLowerCase().includes(dbUserNeedle)) count += 1;
-        }
+      for (const dbUser of set) {
+        const normalizedDbUser = normalizeDbUser(dbUser);
+        if (excludedSet.has(normalizedDbUser)) continue;
+        if (!dbUserNeedle || normalizedDbUser.includes(dbUserNeedle)) count += 1;
       }
       if (count > 0) out.push({ key, count });
     }
@@ -166,6 +180,12 @@ function registerInstructorRoutes(app, options = {}) {
     res.sendFile(path.join(publicDir, "instructor.html"));
   });
 
+  // Lightweight config for initial instructor page state.
+  app.get("/api/instructor/public-config", (_req, res) => {
+    const baseExcludedList = Array.from(excludedDbUsers).sort((a, b) => String(a).localeCompare(String(b)));
+    res.json({ ok: true, baseExcludedDbUsers: baseExcludedList });
+  });
+
   // Progress logging endpoints
   app.post("/api/progress", requireGroupLogin, dbRoute(async (req, res) => {
     const { passedCount, totalCount, passedKeys } = req.body || {};
@@ -197,10 +217,17 @@ function registerInstructorRoutes(app, options = {}) {
     loadProgressCache();
     const wantHistory = String(req.query?.history || "") === "1";
     const dbUserFilter = req.query?.dbUser ? String(req.query.dbUser) : null;
-    const dbUserNeedle = dbUserFilter ? dbUserFilter.toLowerCase() : null;
+    const dbUserNeedle = dbUserFilter ? dbUserFilter.trim().toLowerCase() : null;
+    const excludedOverrideEnabled = String(req.query?.excludeDbUsersOverride || "") === "1";
+    const overrideExcludedDbUsers = new Set(parseDbUserList(req.query?.excludeDbUsers));
+    const effectiveExcludedDbUsers = excludedOverrideEnabled
+      ? new Set(overrideExcludedDbUsers)
+      : new Set(excludedDbUsers);
     const matchesDbUser = (entry) => {
+      const dbUser = normalizeDbUser(entry.dbUser);
+      if (effectiveExcludedDbUsers.has(dbUser)) return false;
       if (!dbUserNeedle) return true;
-      return String(entry.dbUser || "").toLowerCase().includes(dbUserNeedle);
+      return dbUser.includes(dbUserNeedle);
     };
     const latest = Array.from(progressLatest.values())
       .filter(matchesDbUser)
@@ -208,10 +235,26 @@ function registerInstructorRoutes(app, options = {}) {
     const best = Array.from(progressBest.values())
       .filter(matchesDbUser)
       .sort((a, b) => String(a.dbUser).localeCompare(String(b.dbUser)));
-    const keyStats = buildKeyStats(dbUserNeedle);
+    const keyStats = buildKeyStats(dbUserNeedle, effectiveExcludedDbUsers);
     const sectionStats = buildSectionStats(dbUserNeedle, matchesDbUser);
+    const baseExcludedList = Array.from(excludedDbUsers).sort((a, b) => String(a).localeCompare(String(b)));
+    const overrideExcludedList = Array.from(overrideExcludedDbUsers).sort((a, b) => String(a).localeCompare(String(b)));
+    const excludedList = Array.from(effectiveExcludedDbUsers).sort((a, b) => String(a).localeCompare(String(b)));
 
-    if (!wantHistory) return res.json({ ok: true, latest, best, keyStats, sectionStats });
+    if (!wantHistory) {
+      return res.json({
+        ok: true,
+        latest,
+        best,
+        keyStats,
+        sectionStats,
+        excludedDbUsers: excludedList,
+        baseExcludedDbUsers: baseExcludedList,
+        tempExcludedDbUsers: overrideExcludedList,
+        overrideExcludedDbUsers: overrideExcludedList,
+        excludeDbUsersOverride: excludedOverrideEnabled,
+      });
+    }
 
     const limit = Math.max(1, Math.min(1000, Number(req.query?.limit || 200)));
     const history = [];
@@ -227,7 +270,19 @@ function registerInstructorRoutes(app, options = {}) {
         } catch { }
       }
     }
-    res.json({ ok: true, latest, best, history, keyStats, sectionStats });
+    res.json({
+      ok: true,
+      latest,
+      best,
+      history,
+      keyStats,
+      sectionStats,
+      excludedDbUsers: excludedList,
+      baseExcludedDbUsers: baseExcludedList,
+      tempExcludedDbUsers: overrideExcludedList,
+      overrideExcludedDbUsers: overrideExcludedList,
+      excludeDbUsersOverride: excludedOverrideEnabled,
+    });
   });
 }
 

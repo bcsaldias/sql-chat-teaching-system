@@ -12,6 +12,9 @@ const loadBtn = el("loadBtn");
 const clearBtn = el("clearBtn");
 const loadMsg = el("loadMsg");
 const summaryText = el("summaryText");
+const excludedDbUsersNote = el("excludedDbUsersNote");
+const excludedDbUsersInput = el("excludedDbUsersInput");
+const resetExcludedBtn = el("resetExcludedBtn");
 const latestRows = el("latestRows");
 const groupViewTitle = el("groupViewTitle");
 const keyStatsRows = el("keyStatsRows");
@@ -25,6 +28,8 @@ const themeSelect = el("themeSelect");
 
 const TOKEN_KEY = "info330_instructor_token";
 const THEME_KEY = "info330_theme";
+const TEMP_EXCLUDED_DB_USERS_KEY = "info330_temp_excluded_db_users";
+const EXCLUDED_DB_USERS_OVERRIDE_KEY = "info330_excluded_db_users_override";
 let autoTimer = null;
 let filterTimer = null;
 let latestCache = [];
@@ -32,6 +37,9 @@ let historyCache = [];
 let bestCache = [];
 let keyStatsCache = [];
 let sectionStatsCache = [];
+let tempExcludedDbUsers = [];
+let excludedDbUsersOverride = false;
+let baseExcludedDbUsers = [];
 
 function setMsg(text, ok = false) {
   loadMsg.textContent = text || "";
@@ -62,6 +70,39 @@ function buildProgressCell(passed, total) {
   return bar + label;
 }
 
+function parseDbUserList(raw) {
+  const seen = new Set();
+  const out = [];
+  const parts = String(raw || "").split(",");
+  for (const part of parts) {
+    const dbUser = part.trim().toLowerCase();
+    if (!dbUser || seen.has(dbUser)) continue;
+    seen.add(dbUser);
+    out.push(dbUser);
+  }
+  return out;
+}
+
+function saveTempExcludedDbUsers() {
+  if (!excludedDbUsersOverride) {
+    sessionStorage.removeItem(TEMP_EXCLUDED_DB_USERS_KEY);
+    sessionStorage.removeItem(EXCLUDED_DB_USERS_OVERRIDE_KEY);
+    return;
+  }
+  sessionStorage.setItem(EXCLUDED_DB_USERS_OVERRIDE_KEY, "1");
+  sessionStorage.setItem(TEMP_EXCLUDED_DB_USERS_KEY, tempExcludedDbUsers.join(","));
+}
+
+function stageExcludedOverrideFromInput() {
+  tempExcludedDbUsers = parseDbUserList(excludedDbUsersInput?.value || "");
+  excludedDbUsersOverride = true;
+  if (excludedDbUsersInput && document.activeElement !== excludedDbUsersInput) {
+    excludedDbUsersInput.value = tempExcludedDbUsers.join(", ");
+  }
+  saveTempExcludedDbUsers();
+  renderExcludedDbUsers(tempExcludedDbUsers, baseExcludedDbUsers, tempExcludedDbUsers, true);
+}
+
 function renderLatest(list) {
   latestRows.innerHTML = "";
   if (!Array.isArray(list) || list.length === 0) {
@@ -90,6 +131,43 @@ function renderCurrentView() {
   renderLatest(list);
   if (groupViewTitle) groupViewTitle.textContent = useBest ? "Best per group" : "Latest per group";
   summaryText.textContent = `${list.length} group${list.length === 1 ? "" : "s"} reporting • ${formatTime(new Date().toISOString())}`;
+}
+
+function renderExcludedDbUsers(list, baseList, overrideList, overrideEnabled) {
+  if (!excludedDbUsersNote) return;
+  const baseUsers = Array.isArray(baseList) ? baseList.map((s) => String(s || "").trim()).filter(Boolean) : [];
+  const users = Array.isArray(list) ? list.map((s) => String(s || "").trim()).filter(Boolean) : [];
+  const overrideUsers = Array.isArray(overrideList) ? overrideList.map((s) => String(s || "").trim()).filter(Boolean) : [];
+  if (overrideEnabled) {
+    const label = overrideUsers.length > 0 ? overrideUsers.join(", ") : "none";
+    excludedDbUsersNote.textContent = `Override active. Excluded (${overrideUsers.length}): ${label}`;
+    return;
+  }
+  if (baseUsers.length > 0) {
+    excludedDbUsersNote.textContent = `Excluded from .env (${baseUsers.length}): ${baseUsers.join(", ")}`;
+    return;
+  }
+  if (users.length > 0) {
+    excludedDbUsersNote.textContent = `Excluded from report (${users.length}): ${users.join(", ")}`;
+    return;
+  }
+  excludedDbUsersNote.textContent = "No excluded users configured in .env.";
+}
+
+async function loadExcludedConfig() {
+  try {
+    const r = await fetch("/api/instructor/public-config");
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data?.ok === false) return;
+    baseExcludedDbUsers = Array.isArray(data.baseExcludedDbUsers) ? data.baseExcludedDbUsers : [];
+    if (!excludedDbUsersOverride && excludedDbUsersInput) {
+      excludedDbUsersInput.value = baseExcludedDbUsers.join(", ");
+    }
+    const effectiveList = excludedDbUsersOverride ? tempExcludedDbUsers : baseExcludedDbUsers;
+    renderExcludedDbUsers(effectiveList, baseExcludedDbUsers, tempExcludedDbUsers, excludedDbUsersOverride);
+  } catch {
+    // Keep current placeholder if config cannot be loaded.
+  }
 }
 
 function renderKeyStats(list, totalGroups) {
@@ -175,6 +253,10 @@ function buildUrl() {
   if (Number.isFinite(limit) && limit > 0) params.set("limit", String(limit));
   const dbUser = dbUserInput.value.trim();
   if (dbUser) params.set("dbUser", dbUser);
+  if (excludedDbUsersOverride) {
+    params.set("excludeDbUsersOverride", "1");
+    if (tempExcludedDbUsers.length > 0) params.set("excludeDbUsers", tempExcludedDbUsers.join(","));
+  }
   const qs = params.toString();
   return qs ? `/api/instructor/progress?${qs}` : "/api/instructor/progress";
 }
@@ -202,6 +284,20 @@ async function loadProgress() {
     latestCache = latest;
     bestCache = Array.isArray(data.best) ? data.best : [];
     renderCurrentView();
+    const effectiveExcluded = Array.isArray(data.excludedDbUsers) ? data.excludedDbUsers : [];
+    const baseExcluded = Array.isArray(data.baseExcludedDbUsers) ? data.baseExcludedDbUsers : [];
+    const overrideExcluded = Array.isArray(data.overrideExcludedDbUsers)
+      ? data.overrideExcludedDbUsers
+      : (Array.isArray(data.tempExcludedDbUsers) ? data.tempExcludedDbUsers : tempExcludedDbUsers);
+    baseExcludedDbUsers = baseExcluded;
+    excludedDbUsersOverride = data.excludeDbUsersOverride === true;
+    tempExcludedDbUsers = excludedDbUsersOverride ? parseDbUserList(overrideExcluded.join(",")) : [];
+    if (excludedDbUsersInput) {
+      const editorList = excludedDbUsersOverride ? tempExcludedDbUsers : baseExcluded;
+      excludedDbUsersInput.value = editorList.join(", ");
+    }
+    saveTempExcludedDbUsers();
+    renderExcludedDbUsers(effectiveExcluded, baseExcluded, overrideExcluded, excludedDbUsersOverride);
     keyStatsCache = Array.isArray(data.keyStats) ? data.keyStats : [];
     renderKeyStats(keyStatsCache, latestCache.length);
     sectionStatsCache = Array.isArray(data.sectionStats) ? data.sectionStats : [];
@@ -251,8 +347,24 @@ highlightToggle?.addEventListener("change", () => {
 viewToggle?.addEventListener("change", () => {
   renderCurrentView();
 });
+resetExcludedBtn?.addEventListener("click", () => {
+  excludedDbUsersOverride = false;
+  tempExcludedDbUsers = [];
+  if (excludedDbUsersInput) excludedDbUsersInput.value = baseExcludedDbUsers.join(", ");
+  saveTempExcludedDbUsers();
+  renderExcludedDbUsers(baseExcludedDbUsers, baseExcludedDbUsers, [], false);
+  if (tokenInput.value.trim()) loadProgress();
+});
 tokenInput?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") loadProgress();
+});
+excludedDbUsersInput?.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  if (tokenInput.value.trim()) loadProgress();
+});
+excludedDbUsersInput?.addEventListener("input", () => {
+  stageExcludedOverrideFromInput();
 });
 dbUserInput?.addEventListener("input", () => {
   if (!tokenInput.value.trim()) return;
@@ -266,6 +378,14 @@ dbUserInput?.addEventListener("input", () => {
 // Restore token + theme
 const savedToken = sessionStorage.getItem(TOKEN_KEY);
 if (savedToken) tokenInput.value = savedToken;
+const savedExcludedOverride = sessionStorage.getItem(EXCLUDED_DB_USERS_OVERRIDE_KEY) === "1";
+if (savedExcludedOverride) {
+  excludedDbUsersOverride = true;
+  tempExcludedDbUsers = parseDbUserList(sessionStorage.getItem(TEMP_EXCLUDED_DB_USERS_KEY) || "");
+  if (excludedDbUsersInput) excludedDbUsersInput.value = tempExcludedDbUsers.join(", ");
+  renderExcludedDbUsers(tempExcludedDbUsers, [], tempExcludedDbUsers, true);
+}
+loadExcludedConfig();
 
 function applyTheme(theme) {
   const next = theme || "classic-light";

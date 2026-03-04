@@ -110,6 +110,37 @@
       gap: 10px;
       flex-wrap: wrap;
     }
+
+    .excludedBox {
+      margin-top: 10px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel2);
+    }
+
+    .excludedBox .mutedSmall {
+      line-height: 1.45;
+    }
+
+    .excludedEditor {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    .excludedEditor input {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .excludedTitle {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
   </style>
 </head>
 
@@ -165,6 +196,15 @@
           <div class="field">
             <label>History limit</label>
             <input id="historyLimit" type="number" min="1" max="1000" value="200" />
+          </div>
+        </div>
+
+        <div class="excludedBox">
+          <div class="mutedSmall excludedTitle">Temporary Excluded Users (Session Override)</div>
+          <div class="mutedSmall" id="excludedDbUsersNote">Loading excluded users...</div>
+          <div class="excludedEditor">
+            <input id="excludedDbUsersInput" placeholder="Override exclusions (comma-separated): grp01_ba, grp02_ba" />
+            <button id="resetExcludedBtn" class="btn btn-ghost" type="button">Reset to env</button>
           </div>
         </div>
 
