@@ -4,7 +4,7 @@ module.exports = {
       name: "info330",
       script: "src/server.js",
       cwd: __dirname + "/../..",
-      env_file: ".env",
+      env_file: __dirname + "/../../.env",
       env: {
         NODE_ENV: "development"
       },

@@ -5,7 +5,11 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "check:contract": "node scripts/check_contract.js"
+    "check:contract": "node scripts/check_contract.js",
+    "pm2:start": "pm2 start config/pm2/ecosystem.config.js --env production",
+    "pm2:restart": "pm2 restart info330 --update-env",
+    "pm2:logs": "pm2 logs info330",
+    "pm2:save": "pm2 save"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
