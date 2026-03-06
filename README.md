@@ -113,4 +113,4 @@ I run this when I’m setting up or resetting demo behavior for the course (inst
   I keep it `false` for normal operation. I only enable it when I explicitly want to test against the “solution/ground truth” behavior, and it only works with the db `demo`.
 
 ## Versions
-- INFO 330 — Winter 2026 (iSchool)
+- INFO 330 — Winter 2026 (iSchool), 45 groups (~135 students), belencsf@uw.edu
