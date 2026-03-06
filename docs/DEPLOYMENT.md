@@ -8,14 +8,14 @@
 
 ```bash
 npm install
-pm2 start src/server.js --name info330
+pm2 start config/pm2/ecosystem.config.js --env production
 pm2 save
 ```
 
-Or:
+Optional (one-off without ecosystem file):
 
 ```bash
-pm2 start config/pm2/ecosystem.config.js
+pm2 start src/server.js --name info330
 pm2 save
 ```
 
@@ -23,7 +23,7 @@ Common:
 
 ```bash
 pm2 logs info330
-pm2 restart info330
+pm2 restart info330 --update-env
 pm2 list
 ```
 
@@ -79,4 +79,4 @@ Notes:
 
 ## Notes
 
-- If you move the server entry file, update the PM2 start command accordingly.
+- If you move the server entry file, update `config/pm2/ecosystem.config.js`.

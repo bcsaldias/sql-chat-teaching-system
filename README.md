@@ -72,11 +72,11 @@ I create a `.env` file in the repo root (already present on the server). Use the
 From the repo root:
 
 - `npm install`
-- `pm2 start src/server.js --name info330`
+- `pm2 start config/pm2/ecosystem.config.js --env production`
 - `pm2 logs info330`
 
 If I change code and want a clean restart:
-- `pm2 restart info330`
+- `pm2 restart info330 --update-env`
 
 Then I open:
 - `http://localhost:3000`
