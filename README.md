@@ -22,7 +22,7 @@ What we provide:
 
 Important notes:
 - The working web app frontend is **completely agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Schema ERD`](#schema-erd) for details).
-  - This button only checks for the presence of referential constraints between tables, since other column names are flexible.
+  - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
 - In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
   - Students can validate query accuracy by interacting with the app, as errors will manifest in broken features (e.g., failed logins or missing messages).
   - Instructors should still manually verify the accuracy of student queries.
