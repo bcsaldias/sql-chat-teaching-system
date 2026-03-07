@@ -39,7 +39,13 @@ Implementation scope for students:
 - Beyond that check, students are expected to support only the SQL behavior defined in SQL Lab (query contract and required outputs).
 - Students are not required to implement features beyond what SQL Lab and the app contract exercise; adding unsupported schema/features is discouraged.
 
-## Public project description
+## SQL Lab Tab
+
+The SQL Lab tab is where students iteratively implement, test, and save the SQL queries that power core app behavior. It serves as the contract surface between backend SQL work and frontend functionality, so students should use it as the primary place to validate required outputs before moving on.
+
+![SQL Lab tab example](public/assets/sql-lab-tab-example.png)
+
+## Recommended Student Scaffolding
 
 This project can be scaffolded in milestones. One example handout is below.
 
