@@ -31,7 +31,9 @@ Important notes:
 
 Reference ERD for the baseline chat schema:
 
-![Basic ERD](public/assets/basic_erd_opt0.png)
+<p align="center">
+  <img src="public/assets/basic_erd_opt0.png" alt="Basic ERD" />
+</p>
 
 This ERD is a baseline teaching model, not a rigid requirement. The schema is intentionally flexible and can use natural keys (for example, channel name as PK) or surrogate keys (for example, `channel_id`/`user_id`), based on course coverage.
 
@@ -50,7 +52,9 @@ Implementation scope for students:
 
 The SQL Lab tab is where students iteratively implement, test, and save the SQL queries that power core app behavior. It serves as the contract surface between backend SQL work and frontend functionality, so students should use it as the primary place to validate required outputs before moving on.
 
-<img src="public/assets/sql-lab-tab-example.png" alt="SQL Lab tab example" width="600" />
+<p align="center">
+  <img src="public/assets/sql-lab-tab-example.png" alt="SQL Lab tab example" width="700" />
+</p>
 
 ## Recommended Student Scaffolding
 
@@ -68,7 +72,9 @@ Recommended scaffolding:
 - **Milestone 4**: Full implementation of the SQL Lab tab. Remind students to go back to Milestone 1, where they explained what is needed. Then clean up columns that students realize are not part of the intended data flow (fixing mistakes from Milestone 1).
   - Milestone 4 progress can be tracked at `/instructor` using the instructor token.
   - Instructor dashboard preview (Milestone 4 tracking):
-    ![Instructor dashboard preview](public/assets/instructor-dashboard.png)
+    <p align="center">
+      ![Instructor dashboard preview](public/assets/instructor-dashboard.png)
+    </p>
 - **Milestone 5**: DB population and business queries, including updates to some column types to meet new data-load requirements.
 - **Milestone 6**: Reflection.
 
