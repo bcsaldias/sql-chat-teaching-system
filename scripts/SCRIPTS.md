@@ -1,6 +1,6 @@
 # Scripts
 
-Instructor/admin utilities for provisioning and monitoring the INFO 330 project databases.
+Instructor/admin utilities for provisioning, monitoring, and maintaining course project databases.
 This file supplements [`../docs/HANDOFF.md`](../docs/HANDOFF.md). Use
 [`../docs/HANDOFF.md`](../docs/HANDOFF.md) for the canonical first-run setup order,
 and use this file as a script catalog plus ad hoc reference.

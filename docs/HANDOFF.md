@@ -242,6 +242,14 @@ Last course context in this repo:
 
 Treat this as a baseline and update naming, credentials, and mapping for future terms.
 
+## Course customization
+
+Some UI copy, documentation, and links in this repo still reference UW / INFO 330.
+Before reusing this project for another course or institution, search the repo for
+course-specific terms such as `INFO 330`, `UW`, `University of Washington`,
+`Information School`, `belencsf`, and `@uw.edu`, then update branding, links, and
+contact information as needed.
+
 ## Instructor-ready checklist
 
 Use this before opening the project to students.
