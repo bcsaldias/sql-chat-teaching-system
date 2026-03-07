@@ -14,8 +14,9 @@ Most apps people use every day (TikTok, Discord, Slack, Facebook Messenger, iMes
 
 In this project, students build the database backend using only SQL. A pre-built web app connects to each group's schema and works only if SQL objects are correct. Before milestone work begins, verify each group can connect to their database from both a DB client (pgAdmin/`psql`) and the web app.
 
-    Important: Neither the database schema nor the SQL queries that drive frontend data views
-    (for example, loading channels and messages) are pre-implemented; those are student deliverables.
+    Important: Neither the database schema nor the SQL queries that drive frontend data
+    views (for example, loading channels and messages) are pre-implemented; those are
+    student deliverables.
 
 What success looks like: students can open the app, sign up, log in, join channels, post messages, and see those messages appear correctly because the database is doing the work.
 
