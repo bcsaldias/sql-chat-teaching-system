@@ -2,7 +2,7 @@
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE.md)
 ![Node 18+](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)
-![Course Project](https://img.shields.io/badge/Type-Course%20Project-6c757d)
+![Teaching App](https://img.shields.io/badge/Purpose-Teaching%20App-8a5cf6)
 
 This repository contains a reusable SQL-powered chat teaching app, plus instructor tooling for provisioning group databases, monitoring usage, and grading support.
 
