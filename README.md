@@ -43,7 +43,7 @@ Implementation scope for students:
 
 The SQL Lab tab is where students iteratively implement, test, and save the SQL queries that power core app behavior. It serves as the contract surface between backend SQL work and frontend functionality, so students should use it as the primary place to validate required outputs before moving on.
 
-![SQL Lab tab example](public/assets/sql-lab-tab-example.png)
+<img src="public/assets/sql-lab-tab-example.png" alt="SQL Lab tab example" width="600" />
 
 ## Recommended Student Scaffolding
 
