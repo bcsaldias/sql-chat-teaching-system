@@ -52,7 +52,7 @@ Implementation scope for students:
 - `Test Schema` does not validate full query semantics, business logic, or end-to-end UI behavior.
 - Code references: backend route [`GET /api/test_schema` in `src/server.js`](src/server.js#L936), frontend trigger [`testSchemaBtn` click handler in `public/app.js`](public/app.js#L389), and button markup [`Test Schema` in `public/index.html`](public/index.html#L217).
 - Beyond that check, students are expected to support only the SQL behavior defined in SQL Lab (query contract and required outputs).
-- Students are not required to implement features beyond what SQL Lab and the app contract exercise; adding unsupported schema/features is discouraged.
+- Students are not required to implement features beyond what SQL Lab Tab and the system contract exercise; adding unsupported schema/features is discouraged.
 
 ## SQL Lab Tab
 
