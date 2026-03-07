@@ -66,7 +66,7 @@ Recommended scaffolding:
 - **Milestone 6**: Reflection.
 
 Public link:
-- Milestone details: [Student-facing Google Doc](https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE)
+- Milestone details: <a href="https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE" target="_blank" rel="noopener noreferrer">Student-facing Google Doc</a>
 - `Test Schema` should be adapted to the specific expectations of each milestone.
 
 
