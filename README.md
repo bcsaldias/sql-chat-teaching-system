@@ -20,6 +20,12 @@ What we provide:
 - One private database per group, along with group login credentials.
 - Two client environments for connecting to the same database: the INFO 330 SQL Chat App and pgAdmin.
 
+Important notes:
+- The working web app frontend is **completely agnostic** to the database schema and only connects to the database when the student clicks the `Test Schema` button. This button is designed as a sanity check for students before they start implementing features and as a way to mitigate risks in the learning process by ensuring basic schema structure is in place.
+- In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
+  - Students can validate query accuracy by interacting with the app, as errors will manifest in broken features (e.g., failed logins or missing messages).
+  - Instructors should still manually verify the accuracy of student queries.
+
 ## Schema ERD
 
 Reference ERD for the baseline chat schema:
@@ -32,7 +38,7 @@ Students may use supported column-name variants and should alias query outputs t
 
 Implementation scope for students:
 
-- The frontend includes a lightweight sanity check via the `Test Schema` button (the schema-check step). Instructors can adjust this step as scaffolding evolves.
+- The frontend includes a lightweight sanity check via the `Test Schema` button (the schema-check step). Instructors can adjust this step as scaffolding evolves. Adjust `Test Schema` in `src/server.js` at [L987](src/server.js#L987) to match milestone expectations.
 - `Test Schema` validates baseline structure only: core tables, key columns, and required foreign-key relationships must be discoverable (including supported alias names), and basic `SELECT ... LIMIT 0` probes must execute successfully.
 - `Test Schema` does not validate full query semantics, business logic, or end-to-end UI behavior.
 - Code references: backend route [`GET /api/test_schema` in `src/server.js`](src/server.js#L936), frontend trigger [`testSchemaBtn` click handler in `public/app.js`](public/app.js#L389), and button markup [`Test Schema` in `public/index.html`](public/index.html#L217).
@@ -369,6 +375,7 @@ Use this before opening the project to students.
 - [ ] `src/utils.js` `PGDATABASES_MAPPING` matches this term's group usernames/database names.
 - [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`).
 - [ ] `ALLOW_SUPERUSER_MODE=false` re-confirmed immediately before opening student access.
+- [ ] Adjust `sanityChecks` in `src/server.js` at [L987](src/server.js#L987) to match milestone expectations.
 - [ ] Internal health endpoints pass on the server (`http://localhost:3000/health`, `http://localhost:3000/status`).
 - [ ] Public health endpoints pass via Nginx/TLS (`https://<your-hostname>/health`, `https://<your-hostname>/status`).
 - [ ] Post-deploy smoke test completed on the public URL.
