@@ -51,10 +51,11 @@ Implementation scope for students:
 ## SQL Lab Tab
 
 The SQL Lab tab is where students iteratively implement, test, and save the SQL queries that power core app behavior. It serves as the contract surface between backend SQL work and frontend functionality, so students should use it as the primary place to validate required outputs before moving on.
-
 <p align="center">
   <img src="public/assets/sql-lab-tab-example.png" alt="SQL Lab tab example" width="700" />
 </p>
+
+When students achieve **11/11** passing queries, their complete SQL implementation is automatically saved to the server's `submissions/` directory *for review and monitoring*. These might not be students' final versions, since some queries will pass the test but be incorrect. Therefore, instructors should still ask students to submit what they decide is their final version for grading.
 
 ## Recommended Student Scaffolding
 
@@ -66,15 +67,15 @@ Recommended scaffolding:
 - **Milestone 2**: Full implementation and simple inserts for `users`, `channels`, and `channel_members`.
   - Milestone 2 `Test Schema` scope: only three tables checked.
     
-    <img src="public/assets/check-schema-flag.png" alt="Test Schema" width="320" />
+    <p align="center">
+      <img src="public/assets/check-schema-flag.png" alt="Test Schema" width="320" />
+    </p>
 - **Milestone 3**: Full implementation and simple inserts for `messages` (can also be named `chat_inbox`). Include index implementations.
   - Milestone 3 `Test Schema` scope: all four tables checked.
 - **Milestone 4**: Full implementation of the SQL Lab tab. Remind students to go back to Milestone 1, where they explained what is needed. Then clean up columns that students realize are not part of the intended data flow (fixing mistakes from Milestone 1).
   - Milestone 4 progress can be tracked at `/instructor` using the instructor token.
   - Instructor dashboard preview (Milestone 4 tracking):
-    <p align="center">
       ![Instructor dashboard preview](public/assets/instructor-dashboard.png)
-    </p>
 - **Milestone 5**: DB population and business queries, including updates to some column types to meet new data-load requirements.
 - **Milestone 6**: Reflection.
 

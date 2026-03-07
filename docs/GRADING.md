@@ -27,6 +27,10 @@ As you see, these sanityChecks only check for the presence of referential constr
 
 Before the course teaches CTEs, keep `SQL_CONTRACT.channels_list.firstWords` set to `["select"]` so the frontend expects a `SELECT` start. Once CTEs are covered in lecture, update it to `["with", "select"]` to allow `WITH` queries.
 
+### Student Submissions
+
+When students achieve **11/11** passing queries, their complete SQL implementation is automatically saved to the server's `submissions/` directory *for review and monitoring*. These might not be students' final versions, since some queries will pass the test but be incorrect. Therefore, instructors should still ask students to submit what they decide is their final version for grading.
+
 ### superuser
 
 in .env set after milestone 1:
