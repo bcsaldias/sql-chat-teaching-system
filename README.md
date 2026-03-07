@@ -21,7 +21,8 @@ What we provide:
 - Two client environments for connecting to the same database: the INFO 330 SQL Chat App and pgAdmin.
 
 Important notes:
-- The working web app frontend is **completely agnostic** to the database schema and only connects to the database when the student clicks the `Test Schema` button. This button is designed as a sanity check for students before they start implementing features and as a way to mitigate risks in the learning process by ensuring basic schema structure is in place.
+- The working web app frontend is **completely agnostic** to the database schema. It only probes the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Schema ERD`](#schema-erd) for details).
+  - This button is designed as a sanity check for students before they start implementing features and as a way to mitigate risks in the learning process by ensuring basic schema structure is in place.
 - In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
   - Students can validate query accuracy by interacting with the app, as errors will manifest in broken features (e.g., failed logins or missing messages).
   - Instructors should still manually verify the accuracy of student queries.
