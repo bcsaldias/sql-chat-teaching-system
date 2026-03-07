@@ -1,10 +1,10 @@
-# SQL Chat Teaching App
+# SQL Chat Teaching System
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE.md)
 ![Node 18+](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)
-![Teaching App](https://img.shields.io/badge/Purpose-Teaching%20App-8a5cf6)
+![Teaching System](https://img.shields.io/badge/Purpose-Teaching%20System-8a5cf6)
 
-This repository contains a reusable SQL-powered chat teaching app, plus instructor tooling for provisioning group databases, monitoring usage, and grading support.
+This repository contains a reusable SQL-powered chat teaching system: a student-facing app, instructor/admin tooling, and deployment/runbook materials needed to run the project in a course setting.
 
 Students log in with their group database username/password in the app UI. The app behavior depends on the SQL and schema they implement in their own group database.
 
@@ -26,7 +26,7 @@ What we provide:
 - One private database per group, along with group login credentials.
 - Two client environments for connecting to the same database: the SQL Chat App and pgAdmin.
 
-## App Agnostic to Schema
+## Student-Facing App Agnostic to Schema
 - The working web app frontend is **completely agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Schema ERD`](#schema-erd) for details).
   - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
 - In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
