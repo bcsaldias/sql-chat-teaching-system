@@ -20,7 +20,7 @@ What we provide:
 - One private database per group, along with group login credentials.
 - Two client environments for connecting to the same database: the INFO 330 SQL Chat App and pgAdmin.
 
-Important notes:
+## App Agnostic to Schema
 - The working web app frontend is **completely agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Schema ERD`](#schema-erd) for details).
   - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
 - In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
