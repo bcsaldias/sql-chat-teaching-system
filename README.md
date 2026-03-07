@@ -4,7 +4,7 @@
 ![Node 18+](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)
 ![Course Project](https://img.shields.io/badge/Type-Course%20Project-6c757d)
 
-This repository contains the INFO 330 SQL-powered chat app, plus instructor tooling for provisioning group databases, monitoring usage, and grading support.
+This repository contains a reusable SQL-powered chat teaching app, plus instructor tooling for provisioning group databases, monitoring usage, and grading support.
 
 Students log in with their group database username/password in the app UI. The app behavior depends on the SQL and schema they implement in their own group database.
 
@@ -22,7 +22,7 @@ What we provide:
 
 - A working web app that reads and posts messages to each group's database schema.
 - One private database per group, along with group login credentials.
-- Two client environments for connecting to the same database: the INFO 330 SQL Chat App and pgAdmin.
+- Two client environments for connecting to the same database: the SQL Chat App and pgAdmin.
 
 ## App Agnostic to Schema
 - The working web app frontend is **completely agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Schema ERD`](#schema-erd) for details).
