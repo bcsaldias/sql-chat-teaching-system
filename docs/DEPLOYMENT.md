@@ -1,37 +1,31 @@
-# Deployment
+# Deployment Reference
 
-## Prereqs
+This file supplements [`HANDOFF.md`](HANDOFF.md). Use [`HANDOFF.md`](HANDOFF.md)
+for first-time server setup and deployment order. Use this file for day-to-day PM2
+operations, health checks, and `/status` interpretation.
 
-- Run the database setup/maintenance scripts in `scripts/SCRIPTS.md` before starting the server.
+## PM2 Operations
 
-## PM2 (recommended)
-
-```bash
-npm install
-pm2 start config/pm2/ecosystem.config.js --env production
-pm2 save
-```
-
-Optional (one-off without ecosystem file):
+`npm` wrappers from `package.json`:
 
 ```bash
-pm2 start src/server.js --name info330
-pm2 save
+npm run pm2:logs
+npm run pm2:restart
+npm run pm2:save
 ```
 
-Common:
+Raw PM2 commands:
 
 ```bash
 pm2 logs info330
 pm2 restart info330 --update-env
 pm2 list
+pm2 save
 ```
 
-Restart PM2 after code or env changes.
-
-## Environment
-
-- Ensure `.env` exists on the server.
+Notes:
+- Initial server start is documented in [`HANDOFF.md`](HANDOFF.md).
+- Ensure `.env` exists on the server before restarting with updated env values.
 
 ## Verify
 

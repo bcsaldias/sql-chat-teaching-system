@@ -1,4 +1,4 @@
-# Deployment and Architecture
+# Deployment and Architecture (Instructor Handoff)
 
 ## Why isolation is per-database
 
@@ -19,19 +19,20 @@ Tradeoff: more roles/databases to manage and more total DB connections. Tune poo
 - `data/populate_db/`: default CSV seed files for `/populate_db`
 - `submissions/`: SQL snapshots and progress logs
 
-## Complete document index
+## Key document index
 
-All markdown docs currently in this repo:
+Key markdown docs for instructors:
 
 - `HANDOFF.md` (this file)
 - [`../README.md`](../README.md): project overview and root entry point
-- [`DEPLOYMENT.md`](DEPLOYMENT.md): PM2 deployment, health/status verification, status field meanings
+- [`DEPLOYMENT.md`](DEPLOYMENT.md): supplementary PM2 operations, health/status verification, status field meanings
 - [`SETTINGS.md`](SETTINGS.md): SQL contract alignment rules between server/client
 - [`EXTENDING.md`](EXTENDING.md): how to add SQL Lab items, API routes, instructor features
 - [`POPULATE_DB.md`](POPULATE_DB.md): populate tool behavior, CSV format, mapping rules
 - [`GRADING.md`](GRADING.md): grading-oriented checks and milestone-specific notes
+- [`DOCKER_OPTION.md`](DOCKER_OPTION.md): isolated note on a future Docker deployment path
 - [`TODO.md`](TODO.md): internal backlog notes
-- [`../scripts/SCRIPTS.md`](../scripts/SCRIPTS.md): admin script catalog and execution examples
+- [`../scripts/SCRIPTS.md`](../scripts/SCRIPTS.md): supplementary admin script catalog and ad hoc execution examples
 
 ## Prerequisites (new instructor)
 
@@ -161,46 +162,14 @@ sudo systemctl reload nginx
 
 Students should use your HTTPS URL (for example: `https://<your-hostname>`).
 
-## PM2 command reference
+## Runtime verification and day-to-day operations
 
-Use these commands after initial setup for day-to-day server operations. Initial start is in setup step 6.
+After initial start, use [`DEPLOYMENT.md`](DEPLOYMENT.md) for:
 
-`npm` wrappers from `package.json`:
-
-```bash
-npm run pm2:logs
-npm run pm2:restart
-npm run pm2:save
-```
-
-What each wrapper runs:
-
-- `npm run pm2:restart` -> `pm2 restart info330 --update-env` (`info330` is the app name in `config/pm2/ecosystem.config.js`)
-- `npm run pm2:logs` -> `pm2 logs info330`
-- `npm run pm2:save` -> `pm2 save`
-
-Deployment details and verification are documented in [`DEPLOYMENT.md`](DEPLOYMENT.md).
-
-## Verify runtime health (server)
-
-Internal checks (on server):
-
-```bash
-curl -s http://localhost:3000/health
-curl -s http://localhost:3000/status
-```
-
-Public checks (student-facing URL):
-
-```bash
-curl -s https://<your-hostname>/health
-curl -s https://<your-hostname>/status
-```
-
-Expected:
-
-- `/health` returns `{"ok":true}` when app is up
-- `/status` returns build/runtime/db diagnostics (see [`DEPLOYMENT.md`](DEPLOYMENT.md))
+- PM2 day-to-day commands (`logs`, `restart`, `save`, `list`)
+- internal `/health` and `/status` checks
+- public health/status checks through Nginx
+- `/status` field meanings and debug guidance
 
 ## Post-deploy smoke test (student-facing)
 
@@ -247,18 +216,8 @@ Related docs:
 ## Common operations
 
 For SQL contract changes, follow [`EXTENDING.md`](EXTENDING.md) (includes the contract checker workflow).
-
-Tail PM2 logs:
-
-```bash
-npm run pm2:logs
-```
-
-Monitor DB usage (admin):
-
-```bash
-psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -v ON_ERROR_STOP=1 -f scripts/monitor_usage.sql
-```
+For PM2 runtime commands and health checks, use [`DEPLOYMENT.md`](DEPLOYMENT.md).
+For DB monitoring/admin scripts, use [`../scripts/SCRIPTS.md`](../scripts/SCRIPTS.md).
 
 ## Common pitfalls
 

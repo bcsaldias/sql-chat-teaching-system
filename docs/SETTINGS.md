@@ -1,6 +1,9 @@
 # Settings Alignment Guide
 
-This project has a few places where server and client settings must stay in sync. Use this guide to add or change SQL templates, SQL lab items, or related endpoints.
+This file is the source-of-truth reference for SQL contract and alignment rules.
+Use it when changing SQL templates, SQL lab items, or related endpoints. Use
+[`EXTENDING.md`](EXTENDING.md) for the step-by-step code-change workflow and
+[`HANDOFF.md`](HANDOFF.md) for deployment and instructor operations.
 
 ## SQL contract (source of truth)
 - **Location**: `src/utils.js` → `SQL_CONTRACT` defines required first words + expected columns.
@@ -29,4 +32,6 @@ This project has a few places where server and client settings must stay in sync
 - **Why this matters for beginners**: first-time coders anchor on the first error they see; if it points to the wrong place, they lose time and confidence. Tagging SQL errors keeps feedback accurate and reduces random trial-and-error.
 
 ## Extending checklist
-See `docs/EXTENDING.md` for the step-by-step checklist when adding new SQL Lab items or API routes. This doc focuses on the contract rules and alignment requirements.
+See [`EXTENDING.md`](EXTENDING.md) for the step-by-step checklist when adding new
+SQL Lab items or API routes. This doc focuses on the contract rules and alignment
+requirements.

@@ -1,11 +1,13 @@
 # How to Extend This Project
 
-This app is simple to run, but extensions work best when you follow the shared "contract" between server, client, and SQL templates. The steps below keep everything aligned.
+This file is the step-by-step workflow for extending the app. Use
+[`SETTINGS.md`](SETTINGS.md) for the source-of-truth contract/alignment rules and
+[`HANDOFF.md`](HANDOFF.md) for deployment and instructor operations.
 
 ## Start here
-- Contract rules: `docs/SETTINGS.md`
+- Contract rules: [`SETTINGS.md`](SETTINGS.md)
 - Entry points: `src/server.js`, `public/app.js`, `src/utils.js`
-- Deployment/runtime: `docs/DEPLOYMENT.md`, `README.md`
+- Deployment/runtime: [`HANDOFF.md`](HANDOFF.md), [`DEPLOYMENT.md`](DEPLOYMENT.md)
 
 ## Add a new SQL Lab item + API route
 1. Add a key in `src/utils.js` -> `SQL_CONTRACT` (first word, expected columns).

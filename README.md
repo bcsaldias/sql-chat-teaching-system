@@ -1,4 +1,4 @@
-# INFO 330 Project App (Instructor Handoff)
+# Database and Data Modeling Chat App Project
 
 This repository contains the INFO 330 SQL-powered chat app, plus instructor tooling for provisioning group databases, monitoring usage, and grading support.
 
@@ -99,9 +99,9 @@ checklists now live in [`docs/HANDOFF.md`](docs/HANDOFF.md).
 
 Quick links:
 
-- [`docs/HANDOFF.md`](docs/HANDOFF.md): full handoff runbook, architecture notes, and instructor checklist
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): PM2 deployment and health/status reference
-- [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md): admin SQL/shell scripts for DB provisioning and monitoring
+- [`docs/HANDOFF.md`](docs/HANDOFF.md): primary handoff runbook, architecture notes, and instructor checklist
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): supplementary PM2 and health/status reference
+- [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md): supplementary admin script catalog and monitoring reference
 - [`docs/SETTINGS.md`](docs/SETTINGS.md): SQL contract alignment rules
 - [`docs/EXTENDING.md`](docs/EXTENDING.md): adding SQL Lab items, routes, and instructor features
 - [`docs/POPULATE_DB.md`](docs/POPULATE_DB.md): populate/import tool behavior

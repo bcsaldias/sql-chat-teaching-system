@@ -1,6 +1,8 @@
 # Populate DB
 
 This tool seeds a group database with sample data from CSVs. It is available at `/populate_db` after you log in with a group database username and password.
+This file is feature-specific reference for `/populate_db`; use
+[`HANDOFF.md`](HANDOFF.md) for deployment and instructor workflow.
 
 ## Where it lives
 - Server routes: `src/populate_db.js` (registered in `src/server.js`)

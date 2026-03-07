@@ -1,11 +1,17 @@
+# Grading Notes
 
-### sanityChecks
+This file supplements [`HANDOFF.md`](HANDOFF.md) and focuses only on grading-specific
+checks and course-timing adjustments. Use [`HANDOFF.md`](HANDOFF.md) for deployment
+and instructor operations, and use [`SETTINGS.md`](SETTINGS.md) /
+[`EXTENDING.md`](EXTENDING.md) for SQL contract changes.
+
+## sanityChecks
 
 This section captures quick, low-risk checks we add to the grading workflow to confirm database schema and query shape before running deeper tests. The goal is to catch missing tables/columns early with a fast, non-destructive query.
 
-#### Running Sanity Checks
+### Running Sanity Checks
 
-The sanity checks are implemented in the server code at [src/server.js#L987](src/server.js#L987).
+The sanity checks are implemented in the server code at [src/server.js#L987](../src/server.js#L987).
 
 In the grading workflow, run these checks first to verify schema integrity before proceeding to deeper tests.
 
@@ -23,15 +29,11 @@ As you see, these sanityChecks only check for the presence of referential constr
     ];
 ```
 
-### CTE sequencing (channels_list)
+## CTE sequencing (channels_list)
 
 Before the course teaches CTEs, keep `SQL_CONTRACT.channels_list.firstWords` set to `["select"]` so the frontend expects a `SELECT` start. Once CTEs are covered in lecture, update it to `["with", "select"]` to allow `WITH` queries.
 
-### Student Submissions
-
-When students achieve **11/11** passing queries, their complete SQL implementation is automatically saved to the server's `submissions/` directory *for review and monitoring*. These might not be students' final versions, since some queries will pass the test but be incorrect. Therefore, instructors should still ask students to submit what they decide is their final version for grading.
-
-### superuser
+## superuser
 
 in .env set after milestone 1:
 ```
