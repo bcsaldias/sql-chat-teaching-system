@@ -1,116 +1,290 @@
-# INFO 330 Project App (Winter 2026)
+# INFO 330 Project App (Instructor Handoff)
 
-Author: Belén Saldías (bcsaldias)
+This repository contains the INFO 330 SQL-powered chat app, plus instructor tooling for provisioning group databases, monitoring usage, and grading support.
 
-I use this repo as the starter app + instructor tooling for the INFO 330 project. Students connect using their **group database username/password** on the login page, and then implement the SQL required by the project so the UI features work.
+Students log in with their group database username/password in the app UI. The app behavior depends on the SQL and schema they implement in their own group database.
 
-## Different DB vs different schemas (isolation)
-I originally tried separate schemas per group, but pgAdmin (which we use for the class) still exposes other schemas via the public catalog. Even with GRANTs locked down, students could still **see names** they didn’t own, which is confusing in a teaching context.
-To avoid cross‑group visibility, each group now gets its **own database**. This is heavier (more roles/databases to manage) but gives clearer isolation and simpler mental models for students (“your whole DB is yours”).
-If you run this at larger scale, watch your Postgres `max_connections` and use small per‑group pools to avoid connection storms.
+## Why isolation is per-database
 
-## Repo map
+Each group gets a separate PostgreSQL database (not just a separate schema). This avoids cross-group catalog visibility in pgAdmin and simplifies the student mental model.
 
-- `src/server.js` — Express server + API routes
-- `src/utils.js` — helpers (SQL lab items, schema introspection, etc.)
-- `public/` — front-end (`index.html`, `app.js`, `styles.css`)
-- `scripts/` — instructor/admin utilities for DB ecosystem setup (see `scripts/SCRIPTS.md`)
-- `config/pm2/ecosystem.config.js` — PM2 process config
-- `docs/DEPLOYMENT.md` — deployment notes (PM2, env)
+Tradeoff: more roles/databases to manage and more total DB connections. Tune pool sizes and monitor connection usage in production.
 
-## Docs (start here)
-- `docs/SETTINGS.md` — SQL contract + error tagging rules
-- `docs/EXTENDING.md` — how to add SQL keys, routes, and UI wiring
-- `docs/POPULATE_DB.md` — populate DB tool and CSV mapping
-- `docs/GRADING.md` — grading workflow and checks
-- `docs/DEPLOYMENT.md` — deployment notes (PM2, env)
+## Repository map
 
-## Client-side constraints (deterrents)
-These are UI-level deterrents (not security guarantees):
+- `src/server.js`: Express app and API routes
+- `src/utils.js`: SQL contract, default/solution SQL, DB user -> DB mapping
+- `src/instructor.js`: instructor-only routes and progress logging
+- `src/populate_db.js`: seed/import routes for CSV-driven data population
+- `public/`: frontend pages (`index.html`, `instructor.html`, `populate_db.html`) and JS/CSS
+- `scripts/`: admin SQL/shell utilities for provisioning and monitoring
+- `config/pm2/ecosystem.config.js`: PM2 runtime config
+- `config/nginx/site.conf`: optional Nginx reverse proxy example
+- `data/populate_db/`: default CSV seed files for `/populate_db`
+- `submissions/`: SQL snapshots and progress logs
 
-- SQL Lab: copy/cut blocked inside the panel.
-- SQL Lab: right-click/context menu disabled.
-- SQL Lab: static instructions/chips/required/meta text are non-selectable (textareas remain editable).
-- SQL Lab: printing disabled (Ctrl/Cmd+P blocked; File → Print shows a “Printing disabled in SQL Lab” page).
-- Chat tab: right-click/context menu disabled.
+## Complete document index
 
-## Quick start (local)
+All markdown docs currently in this repo:
 
-### 1) Configure `.env`
-Create a `.env` file in the repo root. Typical values:
+- `README.md` (this file)
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): PM2 deployment, health/status verification, status field meanings
+- [`docs/SETTINGS.md`](docs/SETTINGS.md): SQL contract alignment rules between server/client
+- [`docs/EXTENDING.md`](docs/EXTENDING.md): how to add SQL Lab items, API routes, instructor features
+- [`docs/POPULATE_DB.md`](docs/POPULATE_DB.md): populate tool behavior, CSV format, mapping rules
+- [`docs/GRADING.md`](docs/GRADING.md): grading-oriented checks and milestone-specific notes
+- [`docs/TODO.md`](docs/TODO.md): internal backlog notes
+- [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md): admin script catalog and execution examples
+- [`handout-option.md`](handout-option.md): local copy of student-facing project handout content
 
-- `PGHOST=is-info330.ischool.uw.edu`
-- `PGPORT=5433`
-- `SESSION_SECRET=...`
-- `PORT=3000`
-- `ALLOW_SUPERUSER_MODE=false`
-- `PG_POOL_MAX=3`
-- `PG_POOL_IDLE_MS=30000`
-- `PG_POOL_CONN_MS=5000`
+## Public project description
 
-### 2) Install + run
-From the repo root:
+- Public student handout (Google Doc):
+  - https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE/edit?tab=t.0
 
-- `npm install`
-- `npm start` (or `node src/server.js`)
+## Prerequisites (new instructor)
 
-Then open:
-- `http://localhost:3000`
+- Node.js 18+ and npm
+- PostgreSQL connectivity to your course DB host
+- `psql` client (for running setup scripts)
+- PostgreSQL role with enough privileges to create roles/databases for course setup
+- PM2 (required for recommended server deployment)
+- Nginx (required for recommended HTTPS student-facing deployment)
+- Valid TLS/SSL certificate and private key for your server hostname
 
-## Student handout
-Project description for students:
-- https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE/edit?tab=t.0
+## Server setup for a new term (student-facing)
 
-## Instructor quick start (my flow)
+### 1) Install dependencies
 
-### 1) Configure `.env`
-I create a `.env` file in the repo root (already present on the server). Use the same values as in **Quick start (local)**. I only turn `ALLOW_SUPERUSER_MODE` on for specific demos/tests.
+```bash
+npm install
+```
 
-> Students do **not** set `PGHOST`/`PGPORT` in their browser. They only enter their DB username/password on the login page.
+### 2) Provision roles/databases (admin step)
 
-### 2) Install + run
-From the repo root:
+Run the core setup scripts (details in [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md)):
 
-- `npm install`
-- `pm2 start config/pm2/ecosystem.config.js --env production`
-- `pm2 logs info330`
+```bash
+psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -v ON_ERROR_STOP=1 -f scripts/db_setup.sql
+psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -v ON_ERROR_STOP=1 -f scripts/setting_demo.sql
+```
 
-If I change code and want a clean restart:
-- `pm2 restart info330 --update-env`
+Optional hardening pass:
 
-Then I open:
-- `http://localhost:3000`
+```bash
+PGHOST="$PGHOST" PGPORT="$PGPORT" PGUSER="$PGUSER" ./scripts/lock_schemas.sh
+```
 
-## Demo accounts / teaching flow
-- `demo`: shows the intended behavior quickly (everything working).
-- `test0`: shows what breaks without required SQL (useful for demos).
+### 3) Update DB mapping if your cohort naming changed
 
-## Instructor tooling (brief)
-- SQL Lab status, error hints, and progress logging are covered in `docs/SETTINGS.md`.
-- Extending the instructor dashboard is covered in `docs/EXTENDING.md`.
+This app uses a static username-to-database mapping in `src/utils.js` (`PGDATABASES_MAPPING`).
 
+If your group usernames/database names differ from the current `grpXX_section` pattern, update that mapping before running the app.
 
-## Feature flags and env toggles
+### 4) Configure environment
 
-- **`ALLOW_SUPERUSER_MODE`**: When `true`, logging into the DB as `demo` causes the server to run **solution SQL** (from `src/utils.js`) instead of student templates. Useful for demos.
+Create `.env` from `.env.example`, then edit it:
 
+```bash
+cp .env.example .env
+```
 
-## Running instructor scripts
+Minimum values to set for a new deployment:
 
-### `scripts/db_setup.sql`
-I run this when I’m doing initial environment/DB provisioning (roles/databases/permissions). This is **instructor/admin-only**.
+- `PGHOST`
+- `PGPORT`
+- `PORT` (default `3000`; must match your reverse-proxy upstream)
+- `NODE_ENV=production`
+- `SESSION_SECRET` (new random value)
+- `HEALTHCHECK_DB_USER`
+- `HEALTHCHECK_DB_PASS`
+- `INSTRUCTOR_TOKEN` (new random value if you use instructor endpoints)
 
-### `scripts/setting_demo.sql`
-I run this when I’m setting up or resetting demo behavior for the course (instructor/admin-only).
+Important:
 
+- Rotate secrets/tokens/passwords for your own deployment.
+- Keep `ALLOW_SUPERUSER_MODE=false` for normal operation.
+- `SQL_SUBMISSIONS_DIR` and `SQL_PROGRESS_LOG` can stay at defaults unless you need custom paths.
 
-## Common gotchas I watch for
+### 5) Start app on the server (PM2)
 
-- **“Login works but nothing loads”**  
-  Usually means students created tables in the wrong **database**, or they’re missing required constraints (FKs, PKs, CHECKs), or their column names don’t match what the app expects.
+```bash
+pm2 start config/pm2/ecosystem.config.js --env production
+pm2 save
+pm2 startup
+```
 
-- **`ALLOW_SUPERUSER_MODE`**
-  I keep it `false` for normal operation. I only enable it when I explicitly want to test against the “solution/ground truth” behavior, and it only works with the db `demo`.
+Run the command printed by `pm2 startup` so PM2 restarts on server reboot.
 
-## Versions
-- INFO 330 — Winter 2026 (iSchool), 45 groups (~135 students), belencsf@uw.edu
+### 6) Configure Nginx + HTTPS
+
+Use `config/nginx/site.conf` as a template:
+
+- set your server hostname
+- install a valid TLS certificate for that hostname (for example, Let's Encrypt)
+- set `ssl_certificate` and `ssl_certificate_key` paths
+- proxy traffic to `http://127.0.0.1:3000`
+- enable HTTP -> HTTPS redirect
+- keep port `3000` private (only Nginx should be public)
+
+Then validate and reload:
+
+```bash
+nginx -t
+sudo systemctl reload nginx
+```
+
+Students should use your HTTPS URL (for example: `https://<your-hostname>`).
+
+## PM2 command reference
+
+Use these commands after initial setup for day-to-day server operations.
+
+Canonical start command (uses the PM2 config file directly):
+
+```bash
+pm2 start config/pm2/ecosystem.config.js --env production
+```
+
+`npm` wrappers from `package.json`:
+
+```bash
+npm run pm2:start
+npm run pm2:logs
+npm run pm2:restart
+npm run pm2:save
+```
+
+What each wrapper runs:
+
+- `npm run pm2:start` -> `pm2 start config/pm2/ecosystem.config.js --env production`
+- `npm run pm2:restart` -> `pm2 restart info330 --update-env` (`info330` is the app name in `config/pm2/ecosystem.config.js`)
+- `npm run pm2:logs` -> `pm2 logs info330`
+- `npm run pm2:save` -> `pm2 save`
+
+Deployment details and verification are documented in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+## Verify runtime health (server)
+
+Internal checks (on server):
+
+```bash
+curl -s http://localhost:3000/health
+curl -s http://localhost:3000/status
+```
+
+Public checks (student-facing URL):
+
+```bash
+curl -s https://<your-hostname>/health
+curl -s https://<your-hostname>/status
+```
+
+Expected:
+
+- `/health` returns `{"ok":true}` when app is up
+- `/status` returns build/runtime/db diagnostics (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md))
+
+## Optional local development run
+
+If you are only testing changes locally (not student-facing):
+
+```bash
+npm start
+```
+
+Open `http://localhost:3000`.
+
+## Instructor workflow quick start
+
+1. Start app.
+2. Log in with a group DB user on the main page.
+3. Use SQL Lab to validate query contract progress.
+4. Use `/instructor` for instructor views (requires `INSTRUCTOR_TOKEN`).
+5. Use `/populate_db` to seed sample data when needed.
+
+Related docs:
+
+- SQL contract and error tagging: [`docs/SETTINGS.md`](docs/SETTINGS.md)
+- Extension patterns: [`docs/EXTENDING.md`](docs/EXTENDING.md)
+- Populate tool details: [`docs/POPULATE_DB.md`](docs/POPULATE_DB.md)
+- Grading-oriented checks: [`docs/GRADING.md`](docs/GRADING.md)
+
+## Student-facing handout sources
+
+- Primary handout draft in repo: [`handout-option.md`](handout-option.md)
+- Public shared handout link: see **Public project description** above.
+
+## Common operations
+
+Run contract checker:
+
+```bash
+npm run check:contract
+```
+
+Tail PM2 logs:
+
+```bash
+npm run pm2:logs
+```
+
+Monitor DB usage (admin):
+
+```bash
+psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -v ON_ERROR_STOP=1 -f scripts/monitor_usage.sql
+```
+
+## Common pitfalls
+
+- Login succeeds but app features fail: usually schema/query contract mismatch, missing constraints, or wrong database.
+- `status` endpoints fail DB stats: healthcheck user/password in `.env` are wrong or user lacks access.
+- Unexpected demo behavior: `ALLOW_SUPERUSER_MODE` enabled when it should be disabled.
+- New term users cannot log in: `PGDATABASES_MAPPING` not updated for new cohort naming.
+
+## Notes on config files
+
+- PM2 config: `config/pm2/ecosystem.config.js`
+- Nginx reverse proxy example: `config/nginx/site.conf`
+
+If you use Nginx/TLS, adjust hostnames and certificate paths for your environment.
+
+## Version context
+
+Last course context in this repo:
+
+- INFO 330, Winter 2026
+- 60 groups (sections `ba`, `bb`, `ca`, `cb`) plus `demo` and `test0`
+
+Treat this as a baseline and update naming, credentials, and mapping for future terms.
+
+## Instructor-ready checklist
+
+Use this before opening the project to students.
+
+### Core readiness (server deployment)
+
+- [ ] `npm install` completed with no errors.
+- [ ] DB provisioning scripts ran successfully: `scripts/db_setup.sql`, `scripts/setting_demo.sql`, optional `scripts/lock_schemas.sh`.
+- [ ] `src/utils.js` `PGDATABASES_MAPPING` matches this term's group usernames/database names.
+- [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`).
+- [ ] Health endpoints pass: `GET /health` returns `{"ok":true}` and `GET /status` returns expected runtime + DB stats fields.
+- [ ] Instructor login flow works with a real group DB user/password.
+- [ ] SQL Lab loads and can save/run templates.
+- [ ] `/populate_db` page loads and can preview default CSVs.
+- [ ] `/instructor` page is accessible with `INSTRUCTOR_TOKEN`.
+- [ ] Demo behavior verified intentionally (only if needed for class demos).
+- [ ] Public student handout link is current and shared with students.
+
+### Server readiness (PM2 + Nginx + TLS)
+
+- [ ] PM2 started from config file: `pm2 start config/pm2/ecosystem.config.js --env production`.
+- [ ] PM2 process `info330` is online and logs are clean (`pm2 logs info330`).
+- [ ] PM2 persistence configured (`pm2 save` and `pm2 startup` run for reboot survival).
+- [ ] Nginx site config adapted from `config/nginx/site.conf` with correct hostname and certificate paths.
+- [ ] TLS certificate is valid (not expired), matches the hostname, and key/cert paths resolve correctly.
+- [ ] App port (`3000`) is not publicly exposed; traffic goes through Nginx only.
+- [ ] `nginx -t` passes and Nginx reload succeeds.
+- [ ] HTTPS is active and HTTP redirects to HTTPS.
+- [ ] Reverse proxy works end-to-end (`https://<host>/health` returns `{"ok":true}`).
+- [ ] Server deployment checks in `docs/DEPLOYMENT.md` have been run.
