@@ -79,9 +79,16 @@ Recommended scaffolding:
 - **Milestone 5**: DB population and business queries, including updates to some column types to meet new data-load requirements.
 - **Milestone 6**: Reflection.
 
-Public link:
-- Milestone details: <a href="https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE" target="_blank" rel="noopener noreferrer">Student-facing Google Doc</a>
-- `Test Schema` should be adapted to the specific expectations of each milestone.
+## Student Handout
+
+Share the student-facing project details with your class.
+
+**Handout Versions**:
+
+| Version | Term and Context | Course | Instructor | Students | Link | Notes |
+|---------|---|---|---|---|---|---|
+| V0 | Winter 2026, University of Washington | INFO 330 B | belencsf@uw.edu | 65 | <a href="https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE" target="_blank" rel="noopener noreferrer">Handout</a> | Initial release
+| V0 | Winter 2026, University of Washington | INFO 330 C | belencsf@uw.edu | 65 | <a href="https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE" target="_blank" rel="noopener noreferrer">Handout</a> | Initial release
 
 
 
