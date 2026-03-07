@@ -1,3 +1,5 @@
+This notice is informational and does not add restrictions beyond GPLv3.
+
 Copyright (c) 2026 Belén Saldías
 
 This project is licensed under the GNU GPL v3. See `LICENSE.md`.
