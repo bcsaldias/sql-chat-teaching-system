@@ -19,7 +19,7 @@ Tradeoff: more roles/databases to manage and more total DB connections. Tune poo
 - `public/`: frontend pages (`index.html`, `instructor.html`, `populate_db.html`) and JS/CSS
 - `scripts/`: admin SQL/shell utilities for provisioning and monitoring
 - `config/pm2/ecosystem.config.js`: PM2 runtime config
-- `config/nginx/site.conf`: optional Nginx reverse proxy example
+- `config/nginx/site.conf`: Nginx reverse proxy config template
 - `data/populate_db/`: default CSV seed files for `/populate_db`
 - `submissions/`: SQL snapshots and progress logs
 
@@ -50,7 +50,7 @@ All markdown docs currently in this repo:
 - PostgreSQL role with enough privileges to create roles/databases for course setup
 - PM2 (required for recommended server deployment)
 - Nginx (required for recommended HTTPS student-facing deployment)
-- Valid TLS/SSL certificate and private key for your server hostname
+- Valid TLS certificate and private key for your server hostname
 
 ## Server setup for a new term (student-facing)
 
@@ -60,7 +60,19 @@ All markdown docs currently in this repo:
 npm install
 ```
 
-### 2) Provision roles/databases (admin step)
+### 2) Define admin DB connection variables
+
+Set these in your shell before running provisioning scripts:
+
+```bash
+export PGHOST=your-db-host
+export PGPORT=your-db-port
+export PGUSER=your-admin-user
+```
+
+You can also inline values directly in each `psql` command instead of exporting.
+
+### 3) Provision roles/databases (admin step)
 
 Run the core setup scripts (details in [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md)):
 
@@ -75,13 +87,13 @@ Optional hardening pass:
 PGHOST="$PGHOST" PGPORT="$PGPORT" PGUSER="$PGUSER" ./scripts/lock_schemas.sh
 ```
 
-### 3) Update DB mapping if your cohort naming changed
+### 4) Update DB mapping if your cohort naming changed
 
 This app uses a static username-to-database mapping in `src/utils.js` (`PGDATABASES_MAPPING`).
 
 If your group usernames/database names differ from the current `grpXX_section` pattern, update that mapping before running the app.
 
-### 4) Configure environment
+### 5) Configure environment
 
 Create `.env` from `.env.example`, then edit it:
 
@@ -106,7 +118,7 @@ Important:
 - Keep `ALLOW_SUPERUSER_MODE=false` for normal operation.
 - `SQL_SUBMISSIONS_DIR` and `SQL_PROGRESS_LOG` can stay at defaults unless you need custom paths.
 
-### 5) Start app on the server (PM2)
+### 6) Start app on the server (PM2)
 
 ```bash
 pm2 start config/pm2/ecosystem.config.js --env production
@@ -116,7 +128,7 @@ pm2 startup
 
 Run the command printed by `pm2 startup` so PM2 restarts on server reboot.
 
-### 6) Configure Nginx + HTTPS
+### 7) Configure Nginx + HTTPS
 
 Use `config/nginx/site.conf` as a template:
 
@@ -125,6 +137,7 @@ Use `config/nginx/site.conf` as a template:
 - set `ssl_certificate` and `ssl_certificate_key` paths
 - proxy traffic to `http://127.0.0.1:3000`
 - enable HTTP -> HTTPS redirect
+- allow inbound `80/443` in firewall/security groups
 - keep port `3000` private (only Nginx should be public)
 
 Then validate and reload:
@@ -138,18 +151,11 @@ Students should use your HTTPS URL (for example: `https://<your-hostname>`).
 
 ## PM2 command reference
 
-Use these commands after initial setup for day-to-day server operations.
-
-Canonical start command (uses the PM2 config file directly):
-
-```bash
-pm2 start config/pm2/ecosystem.config.js --env production
-```
+Use these commands after initial setup for day-to-day server operations. Initial start is in setup step 6.
 
 `npm` wrappers from `package.json`:
 
 ```bash
-npm run pm2:start
 npm run pm2:logs
 npm run pm2:restart
 npm run pm2:save
@@ -157,7 +163,6 @@ npm run pm2:save
 
 What each wrapper runs:
 
-- `npm run pm2:start` -> `pm2 start config/pm2/ecosystem.config.js --env production`
 - `npm run pm2:restart` -> `pm2 restart info330 --update-env` (`info330` is the app name in `config/pm2/ecosystem.config.js`)
 - `npm run pm2:logs` -> `pm2 logs info330`
 - `npm run pm2:save` -> `pm2 save`
@@ -187,7 +192,7 @@ Expected:
 
 ## Optional local development run
 
-If you are only testing changes locally (not student-facing):
+If you are testing or prototyping changes locally (not student-facing):
 
 ```bash
 npm start
@@ -209,11 +214,6 @@ Related docs:
 - Extension patterns: [`docs/EXTENDING.md`](docs/EXTENDING.md)
 - Populate tool details: [`docs/POPULATE_DB.md`](docs/POPULATE_DB.md)
 - Grading-oriented checks: [`docs/GRADING.md`](docs/GRADING.md)
-
-## Student-facing handout sources
-
-- Primary handout draft in repo: [`handout-option.md`](handout-option.md)
-- Public shared handout link: see **Public project description** above.
 
 ## Common operations
 
@@ -245,9 +245,9 @@ psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -v ON_ERROR_STOP=1 -f scripts/monito
 ## Notes on config files
 
 - PM2 config: `config/pm2/ecosystem.config.js`
-- Nginx reverse proxy example: `config/nginx/site.conf`
+- Nginx reverse proxy template: `config/nginx/site.conf`
 
-If you use Nginx/TLS, adjust hostnames and certificate paths for your environment.
+Adjust Nginx hostnames and certificate paths for your environment.
 
 ## Version context
 
@@ -268,7 +268,8 @@ Use this before opening the project to students.
 - [ ] DB provisioning scripts ran successfully: `scripts/db_setup.sql`, `scripts/setting_demo.sql`, optional `scripts/lock_schemas.sh`.
 - [ ] `src/utils.js` `PGDATABASES_MAPPING` matches this term's group usernames/database names.
 - [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`).
-- [ ] Health endpoints pass: `GET /health` returns `{"ok":true}` and `GET /status` returns expected runtime + DB stats fields.
+- [ ] Internal health endpoints pass on the server (`http://localhost:3000/health`, `http://localhost:3000/status`).
+- [ ] Public health endpoints pass via Nginx/TLS (`https://<your-hostname>/health`, `https://<your-hostname>/status`).
 - [ ] Instructor login flow works with a real group DB user/password.
 - [ ] SQL Lab loads and can save/run templates.
 - [ ] `/populate_db` page loads and can preview default CSVs.
@@ -283,8 +284,9 @@ Use this before opening the project to students.
 - [ ] PM2 persistence configured (`pm2 save` and `pm2 startup` run for reboot survival).
 - [ ] Nginx site config adapted from `config/nginx/site.conf` with correct hostname and certificate paths.
 - [ ] TLS certificate is valid (not expired), matches the hostname, and key/cert paths resolve correctly.
-- [ ] App port (`3000`) is not publicly exposed; traffic goes through Nginx only.
+- [ ] Firewall/security groups allow inbound `80/443` and do not expose `3000` publicly.
+- [ ] Nginx upstream targets local app port (`127.0.0.1:3000`) only.
 - [ ] `nginx -t` passes and Nginx reload succeeds.
 - [ ] HTTPS is active and HTTP redirects to HTTPS.
-- [ ] Reverse proxy works end-to-end (`https://<host>/health` returns `{"ok":true}`).
+- [ ] Reverse proxy works end-to-end (`https://<your-hostname>/health` returns `{"ok":true}`).
 - [ ] Server deployment checks in `docs/DEPLOYMENT.md` have been run.
