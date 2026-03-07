@@ -30,7 +30,6 @@ Key markdown docs for instructors:
 - [`EXTENDING.md`](EXTENDING.md): how to add SQL Lab items, API routes, instructor features
 - [`POPULATE_DB.md`](POPULATE_DB.md): populate tool behavior, CSV format, mapping rules
 - [`GRADING.md`](GRADING.md): grading-oriented checks and milestone-specific notes
-- [`DOCKER_OPTION.md`](DOCKER_OPTION.md): isolated note on a future Docker deployment path
 - [`TODO.md`](TODO.md): internal backlog notes
 - [`../scripts/SCRIPTS.md`](../scripts/SCRIPTS.md): supplementary admin script catalog and ad hoc execution examples
 

@@ -112,4 +112,3 @@ Quick links:
 - [`docs/EXTENDING.md`](docs/EXTENDING.md): adding SQL Lab items, routes, and instructor features
 - [`docs/POPULATE_DB.md`](docs/POPULATE_DB.md): populate/import tool behavior
 - [`docs/GRADING.md`](docs/GRADING.md): grading workflow and milestone notes
-- [`docs/DOCKER_OPTION.md`](docs/DOCKER_OPTION.md): isolated note on a future Docker path
