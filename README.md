@@ -35,7 +35,7 @@ Reference ERD for the baseline chat schema:
   <img src="public/assets/basic_erd_opt0.png" alt="Basic ERD" />
 </p>
 
-This ERD is a baseline teaching model, not a rigid requirement. The schema is intentionally flexible and can use natural keys (for example, channel name as PK) or surrogate keys (for example, `channel_id`/`user_id`), based on course coverage.
+This ERD is a baseline teaching model, not a rigid requirement. The schema is intentionally flexible and can use natural keys (for example, channel name as PK) or surrogate keys (for example, `channel_id`/`user_id`), based on course coverage and instructor priorities.
 
 Students may use supported column-name variants and should alias query outputs to SQL Lab contract names (for example, `SELECT channel_name AS name`).
 
