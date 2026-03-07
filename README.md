@@ -1,4 +1,8 @@
-# Database and Data Modeling Chat App Project
+# SQL Chat Teaching App
+
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE.md)
+![Node 18+](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)
+![Course Project](https://img.shields.io/badge/Type-Course%20Project-6c757d)
 
 This repository contains the INFO 330 SQL-powered chat app, plus instructor tooling for provisioning group databases, monitoring usage, and grading support.
 
