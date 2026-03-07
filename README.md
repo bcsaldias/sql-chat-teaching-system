@@ -320,11 +320,7 @@ Related docs:
 
 ## Common operations
 
-Run contract checker:
-
-```bash
-npm run check:contract
-```
+For SQL contract changes, follow [`docs/EXTENDING.md`](docs/EXTENDING.md) (includes the contract checker workflow).
 
 Tail PM2 logs:
 
