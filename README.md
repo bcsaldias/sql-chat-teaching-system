@@ -8,7 +8,7 @@ Students log in with their group database username/password in the app UI. The a
 
 Most apps people use every day (TikTok, Discord, Slack, Facebook Messenger, iMessage) feel like "frontend apps." Underneath, they rely on a database that: stores messages reliably (data persists, even if the app reloads), prevents bad data (constraints, foreign keys, check rules), and returns results in the exact format the app expects (column names, types, and ordering matter).
 
-In this project, students build the database backend using only SQL. A pre-built web app connects to each group's schema and works only if SQL objects are correct.
+In this project, students build the database backend using only SQL. A pre-built web app connects to each group's schema and works only if SQL objects are correct. Before milestone work begins, verify each group can connect to their database from both a DB client (pgAdmin/`psql`) and the web app.
 
     Important: Neither the database schema nor the SQL queries that drive frontend data views (for example, loading channels and messages) are pre-implemented; those are student deliverables.
 
@@ -283,11 +283,12 @@ Run this once after each deploy/restart:
 
 1. Open `https://<your-hostname>` and confirm the login page loads without console/network errors.
 2. Log in with a known group DB account and confirm the main app shell loads.
-3. Open SQL Lab and run a safe read-only query template; confirm the request succeeds and UI updates.
-4. Open `/populate_db` and confirm the page loads, default CSVs are visible, and preview works.
-5. Open `/instructor` and confirm instructor data loads when `INSTRUCTOR_TOKEN` is provided.
-6. Call `https://<your-hostname>/status` and verify `ok: true` plus expected DB stats fields.
-7. Check PM2 logs for startup/runtime errors:
+3. Verify the same group credentials can connect via pgAdmin (or `psql`) and via the web app login.
+4. Open SQL Lab and run a safe read-only query template; confirm the request succeeds and UI updates.
+5. Open `/populate_db` and confirm the page loads, default CSVs are visible, and preview works.
+6. Open `/instructor` and confirm instructor data loads when `INSTRUCTOR_TOKEN` is provided.
+7. Call `https://<your-hostname>/status` and verify `ok: true` plus expected DB stats fields.
+8. Check PM2 logs for startup/runtime errors:
 
 ```bash
 pm2 logs info330 --lines 100
@@ -372,6 +373,7 @@ Use this before opening the project to students.
 - [ ] Public health endpoints pass via Nginx/TLS (`https://<your-hostname>/health`, `https://<your-hostname>/status`).
 - [ ] Post-deploy smoke test completed on the public URL.
 - [ ] Instructor login flow works with a real group DB user/password.
+- [ ] Verified a real group account can connect from a DB client (pgAdmin/`psql`) and from the web app.
 - [ ] SQL Lab loads and can save/run templates.
 - [ ] `/populate_db` page loads and can preview default CSVs.
 - [ ] `/instructor` page is accessible with `INSTRUCTOR_TOKEN`.
