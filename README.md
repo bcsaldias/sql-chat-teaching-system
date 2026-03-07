@@ -190,6 +190,22 @@ Expected:
 - `/health` returns `{"ok":true}` when app is up
 - `/status` returns build/runtime/db diagnostics (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md))
 
+## Post-deploy smoke test (student-facing)
+
+Run this once after each deploy/restart:
+
+1. Open `https://<your-hostname>` and confirm the login page loads without console/network errors.
+2. Log in with a known group DB account and confirm the main app shell loads.
+3. Open SQL Lab and run a safe read-only query template; confirm the request succeeds and UI updates.
+4. Open `/populate_db` and confirm the page loads, default CSVs are visible, and preview works.
+5. Open `/instructor` and confirm instructor data loads when `INSTRUCTOR_TOKEN` is provided.
+6. Call `https://<your-hostname>/status` and verify `ok: true` plus expected DB stats fields.
+7. Check PM2 logs for startup/runtime errors:
+
+```bash
+pm2 logs info330 --lines 100
+```
+
 ## Optional local development run
 
 If you are testing or prototyping changes locally (not student-facing):
@@ -270,6 +286,7 @@ Use this before opening the project to students.
 - [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`).
 - [ ] Internal health endpoints pass on the server (`http://localhost:3000/health`, `http://localhost:3000/status`).
 - [ ] Public health endpoints pass via Nginx/TLS (`https://<your-hostname>/health`, `https://<your-hostname>/status`).
+- [ ] Post-deploy smoke test completed on the public URL.
 - [ ] Instructor login flow works with a real group DB user/password.
 - [ ] SQL Lab loads and can save/run templates.
 - [ ] `/populate_db` page loads and can preview default CSVs.
