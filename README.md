@@ -127,7 +127,6 @@ All markdown docs currently in this repo:
 - [`docs/GRADING.md`](docs/GRADING.md): grading-oriented checks and milestone-specific notes
 - [`docs/TODO.md`](docs/TODO.md): internal backlog notes
 - [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md): admin script catalog and execution examples
-- [`handout-option.md`](handout-option.md): local copy of student-facing project handout content
 
 ## Prerequisites (new instructor)
 
