@@ -93,12 +93,23 @@ This app uses a static username-to-database mapping in `src/utils.js` (`PGDATABA
 
 If your group usernames/database names differ from the current `grpXX_section` pattern, update that mapping before running the app.
 
+- Every DB username used by the app must exist in `PGDATABASES_MAPPING`.
+- Unmapped DB users can cause DB selection/login/status failures.
+- If you will use demo mode, ensure `demo` is also mapped.
+
 ### 5) Configure environment
 
 Create `.env` from `.env.example`, then edit it:
 
 ```bash
 cp .env.example .env
+```
+
+Generate strong secrets (example):
+
+```bash
+openssl rand -hex 32   # SESSION_SECRET
+openssl rand -hex 32   # INSTRUCTOR_TOKEN
 ```
 
 Minimum values to set for a new deployment:
@@ -111,12 +122,22 @@ Minimum values to set for a new deployment:
 - `HEALTHCHECK_DB_USER`
 - `HEALTHCHECK_DB_PASS`
 - `INSTRUCTOR_TOKEN` (new random value if you use instructor endpoints)
+- `REAL_DEMO_PASSWORD` (required if you will use `ALLOW_SUPERUSER_MODE=true`)
 
 Important:
 
-- Rotate secrets/tokens/passwords for your own deployment.
-- Keep `ALLOW_SUPERUSER_MODE=false` for normal operation.
+- Rotate all secrets/tokens/passwords for your deployment.
+- Keep `ALLOW_SUPERUSER_MODE=false` during normal student-facing operation.
 - `SQL_SUBMISSIONS_DIR` and `SQL_PROGRESS_LOG` can stay at defaults unless you need custom paths.
+
+Demo mode (optional):
+
+- Provision the demo DB first (run [`scripts/setting_demo.sql`](scripts/setting_demo.sql) and load demo tables/query definitions, e.g., from `solutions/solution_channel_name_pk`).
+- Keep `demo` access instructor-only; use it only for intentional live demos.
+- Superuser solution mode is triggered by `ALLOW_SUPERUSER_MODE=true` and logged-in DB user `demo`.
+- If app login uses DB credentials `demo/demo` in superuser mode, the app authenticates to PostgreSQL with `REAL_DEMO_PASSWORD` and executes `SOLUTION_SQL` from [`src/utils.js`](src/utils.js).
+- Set the actual PostgreSQL password for role `demo` to `REAL_DEMO_PASSWORD` (not `demo`) so direct pgAdmin/psql login with `demo/demo` fails.
+- If `ALLOW_SUPERUSER_MODE=true` but `REAL_DEMO_PASSWORD` is missing/incorrect, demo login requests will fail DB authentication.
 
 ### 6) Start app on the server (PM2)
 
@@ -284,6 +305,7 @@ Use this before opening the project to students.
 - [ ] DB provisioning scripts ran successfully: `scripts/db_setup.sql`, `scripts/setting_demo.sql`, optional `scripts/lock_schemas.sh`.
 - [ ] `src/utils.js` `PGDATABASES_MAPPING` matches this term's group usernames/database names.
 - [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`).
+- [ ] `ALLOW_SUPERUSER_MODE=false` re-confirmed immediately before opening student access.
 - [ ] Internal health endpoints pass on the server (`http://localhost:3000/health`, `http://localhost:3000/status`).
 - [ ] Public health endpoints pass via Nginx/TLS (`https://<your-hostname>/health`, `https://<your-hostname>/status`).
 - [ ] Post-deploy smoke test completed on the public URL.
