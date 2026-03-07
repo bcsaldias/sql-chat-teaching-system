@@ -198,7 +198,7 @@ Important:
 
 Demo mode (optional):
 
-- Provision the demo DB first (run [`scripts/setting_demo.sql`](scripts/setting_demo.sql) and load demo tables/query definitions, e.g., from `solutions/solution_channel_name_pk`).
+- Provision the demo DB first (run [`scripts/setting_demo.sql`](scripts/setting_demo.sql) and load demo tables/query definitions, e.g., from `solutions/demo_solution_channel_name_pk`).
 - Keep `demo` access instructor-only; use it only for intentional live demos.
 - Superuser solution mode is triggered by `ALLOW_SUPERUSER_MODE=true` and logged-in DB user `demo`.
 - If app login uses DB credentials `demo/demo` in superuser mode, the app authenticates to PostgreSQL with `REAL_DEMO_PASSWORD` and executes `SOLUTION_SQL` from [`src/utils.js`](src/utils.js).

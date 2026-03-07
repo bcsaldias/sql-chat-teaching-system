@@ -58,7 +58,7 @@ function buildDefaultSql(contract) {
 // Default SQL templates
 const DEFAULT_SQL = buildDefaultSql(SQL_CONTRACT);
 
-// solution for solutions/solution_channel_name_pk, used in demo.
+// solution for solutions/demo_solution_channel_name_pk, used in demo.
 const SOLUTION_SQL = {
     "user_login": "SELECT password FROM users WHERE username = $1;",
     "user_register": "INSERT INTO users(username, password) VALUES ($1, $2);",
