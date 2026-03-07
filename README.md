@@ -4,6 +4,22 @@ This repository contains the INFO 330 SQL-powered chat app, plus instructor tool
 
 Students log in with their group database username/password in the app UI. The app behavior depends on the SQL and schema they implement in their own group database.
 
+## Project context
+
+Most apps people use every day (TikTok, Discord, Slack, Facebook Messenger, iMessage) feel like "frontend apps." Underneath, they rely on a database that: stores messages reliably (data persists, even if the app reloads), prevents bad data (constraints, foreign keys, check rules), and returns results in the exact format the app expects (column names, types, and ordering matter).
+
+In this project, students build the database backend using only SQL. A pre-built web app connects to each group's schema and works only if SQL objects are correct.
+
+    Important: Neither the database schema nor the SQL queries that drive frontend data views (for example, loading channels and messages) are pre-implemented; those are student deliverables.
+
+What success looks like: students can open the app, sign up, log in, join channels, post messages, and see those messages appear correctly because the database is doing the work.
+
+What we provide:
+
+- A working web app that reads and posts messages to each group's database schema.
+- One private database per group, along with group login credentials.
+- Two client environments for connecting to the same database: the INFO 330 SQL Chat App and pgAdmin.
+
 ## Schema ERD
 
 Reference ERD for the baseline chat schema:
@@ -47,7 +63,9 @@ Public link:
 - Milestone details: [Student-facing Google Doc](https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE)
 - `Test Schema` should be adapted to the specific expectations of each milestone.
 
----
+
+
+<br><br>
 
 # Deployment and Architecture
 
