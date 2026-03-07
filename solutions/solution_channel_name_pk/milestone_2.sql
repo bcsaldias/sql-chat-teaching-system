@@ -2,15 +2,13 @@
 -- For example, channel_id might be name in channels table.
 -- There is some flexibility in how the students model their channels (id vs name unique).
 
--- Instead of the UI depending on channels_pk dynamically (channel[channels_pk]),
--- I am requiring that templates return a stable alias:
--- channels_list must return: id, name, description, is_member, user_count
--- messages_list must return: username, body, created_at
--- This is relevant for milestone 4
+-- I am requiring that students' frontend queries return a stable alias. For example,
+-- instead of channels_list returning name, I am requiring it to return id. This is relevant
+-- for milestone 4 when students will need to use the channel id to query for messages in that channel.
 
 -- SQL schema for user authentication system
 CREATE TABLE users (
- username TEXT PRIMARY KEY,
+ username VARCHAR(30) PRIMARY KEY,
  password VARCHAR(128) NOT NULL,
  CONSTRAINT users_username_not_blank CHECK (length(btrim(username)) > 0)
  -- OPTIONAL: Enforce password length of exactly 128 characters
@@ -19,8 +17,8 @@ CREATE TABLE users (
 
 -- SQL schema for channels
 CREATE TABLE channels (
- name TEXT PRIMARY KEY,
- description TEXT,
+ name VARCHAR(30) PRIMARY KEY,
+ description VARCHAR(150),
  CONSTRAINT channels_name_not_blank CHECK (length(name) > 0)
 );
 
@@ -28,9 +26,9 @@ CREATE TABLE channels (
 
 -- SQL schema for channel membership
 CREATE TABLE channel_members (
- username  TEXT NOT NULL REFERENCES users(username),
- channel TEXT NOT NULL REFERENCES channels(name),
- joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+ username  VARCHAR(30) NOT NULL REFERENCES users(username),
+ channel VARCHAR(30) NOT NULL REFERENCES channels(name),
+ joined_at TIMESTAMPTZ NOT NULL DEFAULT now(), --- we don't actually need this, but it's ok to have.
  PRIMARY KEY (username, channel)
 );
 

@@ -3,12 +3,12 @@
 -- SQL schema for chat inbox system
 CREATE TABLE chat_inbox (
  message_id BIGSERIAL PRIMARY KEY,
- username   TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
- channel_id TEXT NOT NULL REFERENCES channels(name) ON DELETE CASCADE,
- body       TEXT NOT NULL,
+ username   VARCHAR(30) NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+ channel_id VARCHAR(30) NOT NULL REFERENCES channels(name) ON DELETE CASCADE,
+ body       VARCHAR(500) NOT NULL,
  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
  CONSTRAINT chat_body_not_blank CHECK (length(btrim(body)) > 0),
- CONSTRAINT chat_body_len CHECK (length(body) <= 500)
+ CONSTRAINT chat_body_len CHECK (length(body) <= 500) ---- if students use TEXT, they can post messages longer than 500 characters, so we need this constraint to enforce the message length limit.
 );
 
 
