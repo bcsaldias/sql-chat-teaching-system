@@ -984,11 +984,11 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
     const channelsDescCol = qIdent(channelsDescRaw);
     const passwordCol = qIdent(passwordRaw);
     const sanityChecks = [
+      // MILESTONE 2
       `select ${usersPkCol}, ${passwordCol} from users limit 0;`,
       `select ${channelsPkCol}, ${channelsNameCol}, ${channelsDescCol} from channels limit 0;`,
       `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
-      // `select body, created_at from chat_inbox limit 0;`,
-      // `select ${usersFkCol}, ${channelsFkCol}, body, created_at from chat_inbox limit 0;`,
+      // MILESTONE 3
       `select ${messagesUserFkCol}, ${messagesChannelFkCol} from ${messagesTable} limit 0;`,
     ];
 
