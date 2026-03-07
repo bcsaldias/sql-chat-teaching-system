@@ -4,6 +4,53 @@ This repository contains the INFO 330 SQL-powered chat app, plus instructor tool
 
 Students log in with their group database username/password in the app UI. The app behavior depends on the SQL and schema they implement in their own group database.
 
+## Schema ERD
+
+Reference ERD for the baseline chat schema:
+
+![Basic ERD](public/assets/basic_erd_opt0.png)
+
+This ERD is a baseline teaching model, not a rigid requirement. The schema is intentionally flexible and can use natural keys (for example, channel name as PK) or surrogate keys (for example, `channel_id`/`user_id`), based on course coverage.
+
+Students may use supported column-name variants and should alias query outputs to SQL Lab contract names (for example, `SELECT channel_name AS name`).
+
+Implementation scope for students:
+
+- The frontend includes a lightweight sanity check via the `Test Schema` button (the schema-check step). Instructors can adjust this step as scaffolding evolves.
+- `Test Schema` validates baseline structure only: core tables, key columns, and required foreign-key relationships must be discoverable (including supported alias names), and basic `SELECT ... LIMIT 0` probes must execute successfully.
+- `Test Schema` does not validate full query semantics, business logic, or end-to-end UI behavior.
+- Code references: backend route [`GET /api/test_schema` in `src/server.js`](src/server.js#L936), frontend trigger [`testSchemaBtn` click handler in `public/app.js`](public/app.js#L389), and button markup [`Test Schema` in `public/index.html`](public/index.html#L217).
+- Beyond that check, students are expected to support only the SQL behavior defined in SQL Lab (query contract and required outputs).
+- Students are not required to implement features beyond what SQL Lab and the app contract exercise; adding unsupported schema/features is discouraged.
+
+## Public project description
+
+This project can be scaffolded in milestones. One example handout is below.
+
+Recommended scaffolding:
+
+- **Milestone 1**: Write down user-facing app requirements, being explicit about the columns used and expected output columns, with a focus on data flow. Complete the ERD and data dictionary so students can envision the data flow.
+- **Milestone 2**: Full implementation and simple inserts for `users`, `channels`, and `channel_members`.
+  - Milestone 2 `Test Schema` scope: only three tables checked.
+    
+    <img src="public/assets/check-schema-flag.png" alt="Test Schema" width="320" />
+- **Milestone 3**: Full implementation and simple inserts for `messages` (can also be named `chat_inbox`). Include index implementations.
+  - Milestone 3 `Test Schema` scope: all four tables checked.
+- **Milestone 4**: Full implementation of the SQL Lab tab. Remind students to go back to Milestone 1, where they explained what is needed. Then clean up columns that students realize are not part of the intended data flow (fixing mistakes from Milestone 1).
+  - Milestone 4 progress can be tracked at `/instructor` using the instructor token.
+  - Instructor dashboard preview (Milestone 4 tracking):
+    ![Instructor dashboard preview](public/assets/instructor-dashboard.png)
+- **Milestone 5**: DB population and business queries, including updates to some column types to meet new data-load requirements.
+- **Milestone 6**: Reflection.
+
+Public link:
+- Milestone details: [Student-facing Google Doc](https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE)
+- `Test Schema` should be adapted to the specific expectations of each milestone.
+
+---
+
+# Deployment and Architecture
+
 ## Why isolation is per-database
 
 Each group gets a separate PostgreSQL database (not just a separate schema). This avoids cross-group catalog visibility in pgAdmin and simplifies the student mental model.
@@ -36,11 +83,6 @@ All markdown docs currently in this repo:
 - [`docs/TODO.md`](docs/TODO.md): internal backlog notes
 - [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md): admin script catalog and execution examples
 - [`handout-option.md`](handout-option.md): local copy of student-facing project handout content
-
-## Public project description
-
-- Public student handout (Google Doc):
-  - https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE/edit?tab=t.0
 
 ## Prerequisites (new instructor)
 
