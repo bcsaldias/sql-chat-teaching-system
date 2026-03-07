@@ -7,7 +7,7 @@ set -euo pipefail
 # EDIT these if needed
 PGUSER="${PGUSER:-postgres}"     # or your admin user
 PGHOST="${PGHOST:-localhost}"    # or your server host
-PGPORT="5433"         # or your port
+PGPORT="${PGPORT:-5433}"         # or your port
 
 
 for sec in ba bb ca cb; do
