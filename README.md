@@ -95,11 +95,11 @@ Share the student-facing project details with your class.
 ## Instructor Docs
 
 Detailed instructor setup, deployment steps, architecture notes, and readiness
-checklists now live in [`HANDOFF.md`](HANDOFF.md).
+checklists now live in [`docs/HANDOFF.md`](docs/HANDOFF.md).
 
 Quick links:
 
-- [`HANDOFF.md`](HANDOFF.md): full handoff runbook, architecture notes, and instructor checklist
+- [`docs/HANDOFF.md`](docs/HANDOFF.md): full handoff runbook, architecture notes, and instructor checklist
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): PM2 deployment and health/status reference
 - [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md): admin SQL/shell scripts for DB provisioning and monitoring
 - [`docs/SETTINGS.md`](docs/SETTINGS.md): SQL contract alignment rules

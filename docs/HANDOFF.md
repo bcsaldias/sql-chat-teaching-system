@@ -23,14 +23,15 @@ Tradeoff: more roles/databases to manage and more total DB connections. Tune poo
 
 All markdown docs currently in this repo:
 
-- `README.md` (this file)
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): PM2 deployment, health/status verification, status field meanings
-- [`docs/SETTINGS.md`](docs/SETTINGS.md): SQL contract alignment rules between server/client
-- [`docs/EXTENDING.md`](docs/EXTENDING.md): how to add SQL Lab items, API routes, instructor features
-- [`docs/POPULATE_DB.md`](docs/POPULATE_DB.md): populate tool behavior, CSV format, mapping rules
-- [`docs/GRADING.md`](docs/GRADING.md): grading-oriented checks and milestone-specific notes
-- [`docs/TODO.md`](docs/TODO.md): internal backlog notes
-- [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md): admin script catalog and execution examples
+- `HANDOFF.md` (this file)
+- [`../README.md`](../README.md): project overview and root entry point
+- [`DEPLOYMENT.md`](DEPLOYMENT.md): PM2 deployment, health/status verification, status field meanings
+- [`SETTINGS.md`](SETTINGS.md): SQL contract alignment rules between server/client
+- [`EXTENDING.md`](EXTENDING.md): how to add SQL Lab items, API routes, instructor features
+- [`POPULATE_DB.md`](POPULATE_DB.md): populate tool behavior, CSV format, mapping rules
+- [`GRADING.md`](GRADING.md): grading-oriented checks and milestone-specific notes
+- [`TODO.md`](TODO.md): internal backlog notes
+- [`../scripts/SCRIPTS.md`](../scripts/SCRIPTS.md): admin script catalog and execution examples
 
 ## Prerequisites (new instructor)
 
@@ -64,7 +65,7 @@ You can also inline values directly in each `psql` command instead of exporting.
 
 ### 3) Provision roles/databases (admin step)
 
-Run the core setup scripts (details in [`scripts/SCRIPTS.md`](scripts/SCRIPTS.md)):
+Run the core setup scripts (details in [`../scripts/SCRIPTS.md`](../scripts/SCRIPTS.md)):
 
 ```bash
 psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -v ON_ERROR_STOP=1 -f scripts/db_setup.sql
@@ -122,10 +123,10 @@ Important:
 
 Demo mode (optional):
 
-- Provision the demo DB first (run [`scripts/setting_demo.sql`](scripts/setting_demo.sql) and load demo tables/query definitions, e.g., from `solutions/demo_solution_channel_name_pk`).
+- Provision the demo DB first (run [`../scripts/setting_demo.sql`](../scripts/setting_demo.sql) and load demo tables/query definitions, e.g., from `../solutions/demo_solution_channel_name_pk`).
 - Keep `demo` access instructor-only; use it only for intentional live demos.
 - Superuser solution mode is triggered by `ALLOW_SUPERUSER_MODE=true` and logged-in DB user `demo`.
-- If app login uses DB credentials `demo/demo` in superuser mode, the app authenticates to PostgreSQL with `REAL_DEMO_PASSWORD` and executes `SOLUTION_SQL` from [`src/utils.js`](src/utils.js).
+- If app login uses DB credentials `demo/demo` in superuser mode, the app authenticates to PostgreSQL with `REAL_DEMO_PASSWORD` and executes `SOLUTION_SQL` from [`../src/utils.js`](../src/utils.js).
 - Set the actual PostgreSQL password for role `demo` to `REAL_DEMO_PASSWORD` (not `demo`) so direct pgAdmin/psql login with `demo/demo` fails.
 - If `ALLOW_SUPERUSER_MODE=true` but `REAL_DEMO_PASSWORD` is missing/incorrect, demo login requests will fail DB authentication.
 
@@ -178,7 +179,7 @@ What each wrapper runs:
 - `npm run pm2:logs` -> `pm2 logs info330`
 - `npm run pm2:save` -> `pm2 save`
 
-Deployment details and verification are documented in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+Deployment details and verification are documented in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ## Verify runtime health (server)
 
@@ -199,7 +200,7 @@ curl -s https://<your-hostname>/status
 Expected:
 
 - `/health` returns `{"ok":true}` when app is up
-- `/status` returns build/runtime/db diagnostics (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md))
+- `/status` returns build/runtime/db diagnostics (see [`DEPLOYMENT.md`](DEPLOYMENT.md))
 
 ## Post-deploy smoke test (student-facing)
 
@@ -238,14 +239,14 @@ Open `http://localhost:3000`.
 
 Related docs:
 
-- SQL contract and error tagging: [`docs/SETTINGS.md`](docs/SETTINGS.md)
-- Extension patterns: [`docs/EXTENDING.md`](docs/EXTENDING.md)
-- Populate tool details: [`docs/POPULATE_DB.md`](docs/POPULATE_DB.md)
-- Grading-oriented checks: [`docs/GRADING.md`](docs/GRADING.md)
+- SQL contract and error tagging: [`SETTINGS.md`](SETTINGS.md)
+- Extension patterns: [`EXTENDING.md`](EXTENDING.md)
+- Populate tool details: [`POPULATE_DB.md`](POPULATE_DB.md)
+- Grading-oriented checks: [`GRADING.md`](GRADING.md)
 
 ## Common operations
 
-For SQL contract changes, follow [`docs/EXTENDING.md`](docs/EXTENDING.md) (includes the contract checker workflow).
+For SQL contract changes, follow [`EXTENDING.md`](EXTENDING.md) (includes the contract checker workflow).
 
 Tail PM2 logs:
 
@@ -293,7 +294,7 @@ Use this before opening the project to students.
 - [ ] `src/utils.js` `PGDATABASES_MAPPING` matches this term's group usernames/database names.
 - [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`).
 - [ ] `ALLOW_SUPERUSER_MODE=false` re-confirmed immediately before opening student access.
-- [ ] Adjust `sanityChecks` in `src/server.js` at [L987](src/server.js#L987) to match milestone expectations.
+- [ ] Adjust `sanityChecks` in `src/server.js` at [L987](../src/server.js#L987) to match milestone expectations.
 - [ ] Internal health endpoints pass on the server (`http://localhost:3000/health`, `http://localhost:3000/status`).
 - [ ] Public health endpoints pass via Nginx/TLS (`https://<your-hostname>/health`, `https://<your-hostname>/status`).
 - [ ] Post-deploy smoke test completed on the public URL.
@@ -317,4 +318,4 @@ Use this before opening the project to students.
 - [ ] `nginx -t` passes and Nginx reload succeeds.
 - [ ] HTTPS is active and HTTP redirects to HTTPS.
 - [ ] Reverse proxy works end-to-end (`https://<your-hostname>/health` returns `{"ok":true}`).
-- [ ] Server deployment checks in `docs/DEPLOYMENT.md` have been run.
+- [ ] Server deployment checks in `DEPLOYMENT.md` have been run.
