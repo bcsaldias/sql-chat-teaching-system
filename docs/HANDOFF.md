@@ -25,6 +25,7 @@ Key markdown docs for instructors:
 
 - `HANDOFF.md` (this file)
 - [`../README.md`](../README.md): project overview and root entry point
+- [`uw-ischool/MULTI_ENVIRONMENT_DEPLOYMENT.md`](uw-ischool/MULTI_ENVIRONMENT_DEPLOYMENT.md): UW iSchool-specific pattern for adding one faculty/course environment at a time on one server
 - [`DEPLOYMENT.md`](DEPLOYMENT.md): supplementary PM2 operations, health/status verification, status field meanings
 - [`SETTINGS.md`](SETTINGS.md): SQL contract alignment rules between server/client
 - [`EXTENDING.md`](EXTENDING.md): how to add SQL Lab items, API routes, instructor features
