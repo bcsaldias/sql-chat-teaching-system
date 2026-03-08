@@ -1,0 +1,3 @@
+# Ignore the entire repository for AI tools that honor .aiignore.
+*
+!.aiignore
