@@ -191,7 +191,7 @@ function parseChannelId(req, channel_id_raw) {
 }
 
 async function loadChatSchemaInfo(client) {
-    const baseInfo = await loadCoreChatSchemaInfo(client);
+    const baseInfo = await loadChannelMembershipSchemaInfo(client);
     const {
         channels_pk,
         channels_pk_type,
@@ -227,7 +227,7 @@ async function loadChatSchemaInfo(client) {
     }
 }
 
-async function loadCoreChatSchemaInfo(client) {
+async function loadChannelMembershipSchemaInfo(client) {
     // with this info, we can double check that students are using PK and FK properly.
     const {
         channels_pk,
@@ -402,6 +402,6 @@ module.exports = {
     SOLUTION_SQL,
     PGDATABASES_MAPPING,
     parseChannelId,
-    loadCoreChatSchemaInfo,
+    loadChannelMembershipSchemaInfo,
     loadChatSchemaInfo
 };

@@ -3,7 +3,7 @@ const {
   DEFAULT_SQL,
   SOLUTION_SQL,
   PGDATABASES_MAPPING,
-  loadCoreChatSchemaInfo,
+  loadChannelMembershipSchemaInfo,
   loadChatSchemaInfo,
   parseChannelId,
   DEFAULT_MESSAGES_TABLE,
@@ -276,7 +276,7 @@ async function ensureChatSchemaInfo(req, options = {}) {
   const info = await withDb(
     dbUser,
     dbPass,
-    (client) => includeMessages ? loadChatSchemaInfo(client) : loadCoreChatSchemaInfo(client)
+    (client) => includeMessages ? loadChatSchemaInfo(client) : loadChannelMembershipSchemaInfo(client)
   );
 
   const merged = { ...(cached || {}), ...info };
