@@ -150,8 +150,15 @@ Implementation scope for students:
 - Students are not required to implement features beyond what SQL Lab Tab and the system contract exercise; adding unsupported schema/features is discouraged.
 
 ## Student-Facing App Supports Schema Variants
-- The student-facing web app is designed to work with multiple valid schema variants, as long as students satisfy the required SQL contract and baseline table and relationship expectations.
-- Supported flexibility currently includes natural or surrogate keys for users and channels when relationships are discoverable, text or numeric channel IDs, either `chat_inbox` or `messages` as the messages table, and supported column aliases for channel name, channel description, and user password fields. Core table names are still expected to be `users`, `channels`, and `channel_members`.
+
+The student-facing web app supports multiple valid schema variants within the contract boundaries below.
+
+| Fixed by app contract | Flexible within supported variants |
+| --- | --- |
+| Core table set includes `users`, `channels`, and `channel_members` | User and channel keys may be natural or surrogate keys when relationships are discoverable |
+| SQL Lab outputs must use the expected result column names | Channel IDs may be text or numeric |
+| The app expects a recognized messages table and discoverable relationships | The messages table may be `chat_inbox` or `messages`, and channel name, channel description, and password columns may use supported aliases |
+
 - The server performs limited schema introspection for the `Test Schema` check and a small number of runtime paths that need to detect key columns, foreign keys, or supported table aliases. See [`Reference ERD for Student Databases`](#reference-erd-for-student-databases) for the baseline model.
 - In the [`SQL Lab tab`](#sql-lab-tab), the system primarily validates query output shape, such as required column names, rather than full business-logic correctness.
 - Students can validate query accuracy by interacting with the app, as errors will surface in broken features such as failed logins or missing messages.
