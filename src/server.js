@@ -263,7 +263,7 @@ function hasMessageSchemaInfo(info) {
   );
 }
 
-async function ensureChatSchemaInfo(req, options = {}) {
+async function ensureSchemaInfo(req, options = {}) {
   const includeMessages = options.includeMessages !== false;
   const cached = req.session?.chatSchemaInfo;
   if (hasBaseChatSchemaInfo(cached) && (!includeMessages || hasMessageSchemaInfo(cached))) {
@@ -799,7 +799,7 @@ app.get("/api/channels", requireGroupLogin, requireChatUser, dbRoute(async (req,
 
 // Channel members
 app.get("/api/channels/members", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
   const { dbUser, dbPass } = req.session;
   const members = await withDb(dbUser, dbPass, async (client) => {
@@ -825,7 +825,7 @@ app.post("/api/channels/create", requireGroupLogin, requireChatUser, dbRoute(asy
 }, (e) => dbError("Failed to create channel.", String(e.message || e), 400, sqlErrorExtra("channel_create", e))));
 
 app.post("/api/channels/join", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, req.body?.channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   await withDb(dbUser, dbPass, async (client) => {
@@ -837,7 +837,7 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, dbRoute(async
 
 app.post("/api/channels/leave", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   const { channel_id } = req.body || {};
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   await withDb(dbUser, dbPass, async (client) => {
@@ -850,7 +850,7 @@ app.post("/api/channels/leave", requireGroupLogin, requireChatUser, dbRoute(asyn
 // Messages
 // --------------------
 app.get("/api/messages", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   const trace = [];
@@ -911,7 +911,7 @@ app.post("/api/message", requireGroupLogin, requireChatUser, dbRoute(async (req,
 
   if (!b) return res.status(400).json({ error: "body is required." });
 
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   const result = await withDb(dbUser, dbPass, async (client) => {
@@ -962,7 +962,7 @@ async function findFirstColumnByAliases(client, table, aliases) {
 
 app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const { dbUser, dbPass } = req.session;
-  const info = await ensureChatSchemaInfo(req, { includeMessages: SANITY_CHECK_MILESTONE >= 3 });
+  const info = await ensureSchemaInfo(req, { includeMessages: SANITY_CHECK_MILESTONE >= 3 });
 
   const channelsPkCol = qIdent(info.channels_pk);
   const channelsFkCol = qIdent(info.membership_channels_fk);
