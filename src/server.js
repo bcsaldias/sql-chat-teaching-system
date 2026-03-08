@@ -28,6 +28,7 @@ function parseMilestoneEnv(rawValue, fallback) {
 
 const ALLOW_SUPERUSER_MODE = process.env.ALLOW_SUPERUSER_MODE === "true";
 const SANITY_CHECK_MILESTONE = parseMilestoneEnv(process.env.SANITY_CHECK_MILESTONE, 2);
+const SCHEMA_INFO_TTL_MS = 60 * 1000;
 const HEALTHCHECK_DB_USER = process.env.HEALTHCHECK_DB_USER || "demo";
 const HEALTHCHECK_DB_PASS = process.env.HEALTHCHECK_DB_PASS || "demo";
 const GIT_SHA = process.env.GIT_SHA || readGitSha() || "unknown";
@@ -166,7 +167,14 @@ function clearDbSession(req) {
   req.session.dbUser = null;
   req.session.dbPass = null;
   req.session.chatUsername = null;
+  clearSchemaInfoCache(req);
+}
+
+function clearSchemaInfoCache(req) {
+  if (!req.session) return;
   req.session.chatSchemaInfo = null;
+  req.session.chatSchemaInfoDbUser = null;
+  req.session.chatSchemaInfoLoadedAt = null;
 }
 
 async function handleDbAuthFailure(req, res, err) {
@@ -263,10 +271,35 @@ function hasMessageSchemaInfo(info) {
   );
 }
 
+function isFreshSchemaInfoCache(req, includeMessages) {
+  const cached = req.session?.chatSchemaInfo;
+  const cachedDbUser = req.session?.chatSchemaInfoDbUser || null;
+  const loadedAtRaw = req.session?.chatSchemaInfoLoadedAt;
+  const loadedAt = Number(loadedAtRaw);
+  const currentDbUser = req.session?.dbUser || null;
+  if (!hasBaseChatSchemaInfo(cached)) return false;
+  if (includeMessages && !hasMessageSchemaInfo(cached)) return false;
+  if (!currentDbUser || !cachedDbUser || cachedDbUser !== currentDbUser) return false;
+  if (!Number.isFinite(loadedAt) || loadedAt <= 0) return false;
+  return (Date.now() - loadedAt) <= SCHEMA_INFO_TTL_MS;
+}
+
+function stripMessageSchemaInfo(info) {
+  if (!info || typeof info !== "object") return {};
+  const next = { ...info };
+  delete next.messages_table;
+  delete next.messages_channels_fk;
+  delete next.messages_channels_fk_type;
+  delete next.messages_users_fk;
+  delete next.messages_users_fk_type;
+  return next;
+}
+
 async function ensureSchemaInfo(req, options = {}) {
   const includeMessages = options.includeMessages !== false;
+  const forceRefresh = options.forceRefresh === true;
   const cached = req.session?.chatSchemaInfo;
-  if (hasBaseChatSchemaInfo(cached) && (!includeMessages || hasMessageSchemaInfo(cached))) {
+  if (!forceRefresh && isFreshSchemaInfoCache(req, includeMessages)) {
     return cached;
   }
 
@@ -279,8 +312,12 @@ async function ensureSchemaInfo(req, options = {}) {
     (client) => includeMessages ? loadChatSchemaInfo(client) : loadChannelMembershipSchemaInfo(client)
   );
 
-  const merged = { ...(cached || {}), ...info };
+  const merged = includeMessages
+    ? { ...(cached || {}), ...info }
+    : stripMessageSchemaInfo({ ...(cached || {}), ...info });
   req.session.chatSchemaInfo = merged;
+  req.session.chatSchemaInfoDbUser = dbUser;
+  req.session.chatSchemaInfoLoadedAt = Date.now();
   return merged;
 }
 
@@ -684,6 +721,7 @@ app.post("/api/login", async (req, res) => {
     req.session.dbUser = username;
     req.session.dbPass = password;
     req.session.chatUsername = null;
+    clearSchemaInfoCache(req);
     if (!req.session.sqlTemplates) req.session.sqlTemplates = {};
     res.json({ ok: true });
   } catch (e) {
@@ -799,7 +837,7 @@ app.get("/api/channels", requireGroupLogin, requireChatUser, dbRoute(async (req,
 
 // Channel members
 app.get("/api/channels/members", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureSchemaInfo(req);
+  await ensureSchemaInfo(req, { includeMessages: false });
   const cid = parseChannelId(req, req.query.channel_id);
   const { dbUser, dbPass } = req.session;
   const members = await withDb(dbUser, dbPass, async (client) => {
@@ -825,7 +863,7 @@ app.post("/api/channels/create", requireGroupLogin, requireChatUser, dbRoute(asy
 }, (e) => dbError("Failed to create channel.", String(e.message || e), 400, sqlErrorExtra("channel_create", e))));
 
 app.post("/api/channels/join", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureSchemaInfo(req);
+  await ensureSchemaInfo(req, { includeMessages: false });
   const cid = parseChannelId(req, req.body?.channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   await withDb(dbUser, dbPass, async (client) => {
@@ -837,7 +875,7 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, dbRoute(async
 
 app.post("/api/channels/leave", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   const { channel_id } = req.body || {};
-  await ensureSchemaInfo(req);
+  await ensureSchemaInfo(req, { includeMessages: false });
   const cid = parseChannelId(req, channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   await withDb(dbUser, dbPass, async (client) => {
@@ -962,7 +1000,10 @@ async function findFirstColumnByAliases(client, table, aliases) {
 
 app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const { dbUser, dbPass } = req.session;
-  const info = await ensureSchemaInfo(req, { includeMessages: SANITY_CHECK_MILESTONE >= 3 });
+  const info = await ensureSchemaInfo(req, {
+    includeMessages: SANITY_CHECK_MILESTONE >= 3,
+    forceRefresh: true
+  });
 
   const channelsPkCol = qIdent(info.channels_pk);
   const channelsFkCol = qIdent(info.membership_channels_fk);
