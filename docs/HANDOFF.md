@@ -115,6 +115,7 @@ Minimum values to set for a new deployment:
 - `HEALTHCHECK_DB_PASS`
 - `INSTRUCTOR_TOKEN` (new random value if you use instructor endpoints)
 - `REAL_DEMO_PASSWORD` (required if you will use `ALLOW_SUPERUSER_MODE=true`)
+- `SANITY_CHECK_MILESTONE` (default `2`; set to `3` once messages schema should be required)
 
 Important:
 
@@ -259,9 +260,9 @@ Use this before opening the project to students.
 - [ ] `npm install` completed with no errors.
 - [ ] DB provisioning scripts ran successfully: `scripts/db_setup.sql`, `scripts/setting_demo.sql`, optional `scripts/lock_schemas.sh`.
 - [ ] `src/utils.js` `PGDATABASES_MAPPING` matches this term's group usernames/database names.
-- [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`).
+- [ ] `.env` configured for this term (`PGHOST`, `PGPORT`, rotated `SESSION_SECRET`, valid `HEALTHCHECK_DB_USER`/`HEALTHCHECK_DB_PASS`, rotated `INSTRUCTOR_TOKEN`, `ALLOW_SUPERUSER_MODE=false`, milestone-appropriate `SANITY_CHECK_MILESTONE`).
 - [ ] `ALLOW_SUPERUSER_MODE=false` re-confirmed immediately before opening student access.
-- [ ] Adjust `sanityChecks` in `src/server.js` at [L987](../src/server.js#L987) to match milestone expectations.
+- [ ] `SANITY_CHECK_MILESTONE` in `.env` matches the currently released milestone.
 - [ ] Internal health endpoints pass on the server (`http://localhost:3000/health`, `http://localhost:3000/status`).
 - [ ] Public health endpoints pass via Nginx/TLS (`https://<your-hostname>/health`, `https://<your-hostname>/status`).
 - [ ] Post-deploy smoke test completed on the public URL.

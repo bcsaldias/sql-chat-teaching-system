@@ -11,23 +11,19 @@ This section captures quick, low-risk checks we add to the grading workflow to c
 
 ### Running Sanity Checks
 
-The sanity checks are implemented in the server code at [src/server.js#L987](../src/server.js#L987).
+The sanity checks are implemented in the server code at [src/server.js](../src/server.js).
 
-In the grading workflow, run these checks first to verify schema integrity before proceeding to deeper tests.
+In the grading workflow, run these checks first to verify schema integrity before proceeding to deeper tests. Set `SANITY_CHECK_MILESTONE` in `.env`, then restart the app so `/api/test_schema` matches the currently released milestone.
 
-Sanity checks look like this, depending on what's expected in each milestone, some of them will be commented out when re-deploying the version for that milestone.
+Recommended values:
 
-As you see, these sanityChecks only check for the presence of referential constraints, since other column names are flexible.
-```
-    const sanityChecks = [
-      // MILESTONE 2
-      `select ${usersPkCol}, ${passwordCol} from users limit 0;`,
-      `select ${channelsPkCol}, ${channelsNameCol}, ${channelsDescCol} from channels limit 0;`,
-      `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
-      // MILESTONE 3
-      `select ${messagesUserFkCol}, ${messagesChannelFkCol} from ${messagesTable} limit 0;`,
-    ];
-```
+- `SANITY_CHECK_MILESTONE=1`: skip milestone 2+ schema sanity checks
+- `SANITY_CHECK_MILESTONE=2`: require `users`, `channels`, and `channel_members`
+- `SANITY_CHECK_MILESTONE=3`: also require the messages table and its user/channel foreign keys
+
+Default behavior is milestone `2` if the env var is unset or invalid.
+
+These sanity checks only verify the presence of required tables, columns, and referential constraints. Other column names can still vary through the alias-based schema detection in the server.
 
 ## CTE sequencing (channels_list)
 

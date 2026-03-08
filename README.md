@@ -140,10 +140,10 @@ Students may use supported column-name variants and should alias query outputs t
 
 Implementation scope for students:
 
-- The frontend includes a lightweight sanity check via the `Test Schema` button (the schema-check step). Instructors can adjust this step as scaffolding evolves. Adjust `Test Schema` in `src/server.js` at [L987](src/server.js#L987) to match milestone expectations.
+- The frontend includes a lightweight sanity check via the `Test Schema` button (the schema-check step). Instructors can adjust this step as scaffolding evolves by setting `SANITY_CHECK_MILESTONE` in `.env` and restarting the app.
 - `Test Schema` validates baseline structure only: core tables, key columns, and required foreign-key relationships must be discoverable (including supported alias names), and basic `SELECT ... LIMIT 0` probes must execute successfully.
 - `Test Schema` does not validate full query semantics, business logic, or end-to-end UI behavior.
-- Code references: backend route [`GET /api/test_schema` in `src/server.js`](src/server.js#L936), frontend trigger [`testSchemaBtn` click handler in `public/app.js`](public/app.js#L389), and button markup [`Test Schema` in `public/index.html`](public/index.html#L217).
+- Code references: backend route [`GET /api/test_schema` in `src/server.js`](src/server.js), frontend trigger [`testSchemaBtn` click handler in `public/app.js`](public/app.js), and button markup [`Test Schema` in `public/index.html`](public/index.html).
 - Beyond that check, students are expected to support only the SQL behavior defined in SQL Lab (query contract and required outputs).
 - Students are not required to implement features beyond what SQL Lab Tab and the system contract exercise; adding unsupported schema/features is discouraged.
 

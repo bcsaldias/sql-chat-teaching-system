@@ -191,7 +191,7 @@ function parseChannelId(req, channel_id_raw) {
 }
 
 async function loadChatSchemaInfo(client) {
-    // with this info, we can double check that students are using PK and FK properly.
+    const baseInfo = await loadCoreChatSchemaInfo(client);
     const {
         channels_pk,
         channels_pk_type,
@@ -201,8 +201,7 @@ async function loadChatSchemaInfo(client) {
         membership_channels_fk_type,
         membership_users_fk,
         membership_users_fk_type,
-    } = await loadChannelMembershipKeys(client);
-
+    } = baseInfo;
     const messages_table = await resolveMessagesTableName(client);
     const {
         messages_channels_fk,
@@ -225,6 +224,31 @@ async function loadChatSchemaInfo(client) {
         messages_channels_fk_type,
         messages_users_fk,
         messages_users_fk_type
+    }
+}
+
+async function loadCoreChatSchemaInfo(client) {
+    // with this info, we can double check that students are using PK and FK properly.
+    const {
+        channels_pk,
+        channels_pk_type,
+        users_pk,
+        users_pk_type,
+        membership_channels_fk,
+        membership_channels_fk_type,
+        membership_users_fk,
+        membership_users_fk_type,
+    } = await loadChannelMembershipKeys(client);
+
+    return {
+        channels_pk,
+        channels_pk_type,
+        users_pk,
+        users_pk_type,
+        membership_channels_fk,
+        membership_channels_fk_type,
+        membership_users_fk,
+        membership_users_fk_type
     }
 }
 
@@ -378,5 +402,6 @@ module.exports = {
     SOLUTION_SQL,
     PGDATABASES_MAPPING,
     parseChannelId,
+    loadCoreChatSchemaInfo,
     loadChatSchemaInfo
 };
