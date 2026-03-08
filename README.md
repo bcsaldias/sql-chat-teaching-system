@@ -92,8 +92,6 @@ Instructor setup has two outputs: isolated group databases in PostgreSQL and one
 
 ## Reference ERD for Student Databases
 
-Reference ERD for the baseline chat schema:
-
 This ERD represents the database layer students implement inside their own group databases. It is separate from the instructor-managed app and deployment infrastructure.
 
 <!-- <p align="center">
