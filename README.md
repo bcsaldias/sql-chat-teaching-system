@@ -26,6 +26,40 @@ What we provide:
 - One private database per group, along with group login credentials.
 - Two client environments for connecting to the same database: the SQL Chat App and pgAdmin.
 
+## Architecture Overview
+
+This system uses one shared app deployment for the course and one private PostgreSQL database per group.
+
+### Student runtime and development loop
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+flowchart LR
+    Student["Student group"]
+    Browser["SQL Chat web app"]
+    Client["pgAdmin / psql"]
+    App["Shared Node.js app<br/>maps username -> database"]
+
+    subgraph PG["PostgreSQL server"]
+        DB["Private group database"]
+    end
+
+    Student --> Client
+    Client -->|"Build schema directly: tables, constraints, views"| DB
+    Student --> Browser
+    Browser -->|"Use chat UI + SQL Lab"| App
+    App -->|"Read/write against mapped DB"| DB
+```
+
+Key idea:
+- Students do not connect the frontend directly to PostgreSQL.
+- The shared Node.js/Express app authenticates, resolves the mapped database, and runs app requests against that group's database.
+- In parallel, students use pgAdmin or `psql` to create tables, constraints, and SQL objects in that same database.
+- The browser app and pgAdmin/`psql` are two different ways of working against the same group database.
+
 ## Student-Facing App Agnostic to Schema
 - The working web app frontend is **completely agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Schema ERD`](#schema-erd) for details).
   - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
