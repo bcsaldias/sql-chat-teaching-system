@@ -149,12 +149,13 @@ Implementation scope for students:
 - Beyond that check, students are expected to support only the SQL behavior defined in SQL Lab (query contract and required outputs).
 - Students are not required to implement features beyond what SQL Lab Tab and the system contract exercise; adding unsupported schema/features is discouraged.
 
-## Student-Facing App Agnostic to Schema
-- The working web app frontend is **agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Reference ERD for Student Databases`](#reference-erd-for-student-databases) for details).
-  - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
-- In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
-  - Students can validate query accuracy by interacting with the app, as errors will manifest in broken features (e.g., failed logins or missing messages).
-  - Instructors should still manually verify the accuracy of student queries.
+## Student-Facing App Supports Schema Variants
+- The student-facing web app is designed to work with multiple valid schema variants, as long as students satisfy the required SQL contract and baseline table and relationship expectations.
+- Supported flexibility currently includes natural or surrogate keys for users and channels when relationships are discoverable, text or numeric channel IDs, either `chat_inbox` or `messages` as the messages table, and supported column aliases for channel name, channel description, and user password fields. Core table names are still expected to be `users`, `channels`, and `channel_members`.
+- The server performs limited schema introspection for the `Test Schema` check and a small number of runtime paths that need to detect key columns, foreign keys, or supported table aliases. See [`Reference ERD for Student Databases`](#reference-erd-for-student-databases) for the baseline model.
+- In the [`SQL Lab tab`](#sql-lab-tab), the system primarily validates query output shape, such as required column names, rather than full business-logic correctness.
+- Students can validate query accuracy by interacting with the app, as errors will surface in broken features such as failed logins or missing messages.
+- Instructors should still manually verify schema quality and query correctness.
 
 ## SQL Lab Tab
 
