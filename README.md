@@ -156,9 +156,10 @@ The student-facing web app supports multiple valid schema variants within the co
 | Fixed by app contract | Flexible within supported variants |
 | --- | --- |
 | Core table set includes `users`, `channels`, and `channel_members` | User and channel keys may be natural or surrogate keys when relationships are discoverable |
-| SQL Lab outputs must use the expected result column names | Channel IDs may be text or numeric |
-| The app expects a recognized messages table and discoverable relationships | The messages table may be `chat_inbox` or `messages`, and channel name, channel description, and password columns may use supported aliases |
-
+| SQL Lab outputs must use the expected result column names | Channel name, channel description, and password columns may use supported aliases |
+| The app expects a recognized messages table and discoverable relationships | The messages table may be `chat_inbox` or `messages` |
+<br>
+- The server supports either text or numeric channel primary keys by coercing browser-supplied `channel_id` values to the detected key type before passing them into student SQL as bound parameters. By contrast, user-facing app flows are keyed by `username`, so user ID type is less important to runtime compatibility.
 - The server performs limited schema introspection for the `Test Schema` check and a small number of runtime paths that need to detect key columns, foreign keys, or supported table aliases. See [`Reference ERD for Student Databases`](#reference-erd-for-student-databases) for the baseline model.
 - In the [`SQL Lab tab`](#sql-lab-tab), the system primarily validates query output shape, such as required column names, rather than full business-logic correctness.
 - Students can validate query accuracy by interacting with the app, as errors will surface in broken features such as failed logins or missing messages.

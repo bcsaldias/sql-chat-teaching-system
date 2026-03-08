@@ -18,6 +18,11 @@ Use it when changing SQL templates, SQL lab items, or related endpoints. Use
 - **SQL contract** checks the *query output* (column names/types) returned by student SQL. This is what keeps the UI stable.
 - **Pedagogical rule of thumb**: allow flexible schema names if you want, but require students to alias query outputs to the contract names (e.g., `SELECT channel_name AS name`).
 
+## App-facing identity assumptions
+- User-facing auth and membership flows are keyed by `username`.
+- Channel-facing routes pass `channel_id` through the browser -> server -> SQL path, and the server adapts incoming `channel_id` values to the detected channel primary-key type. Supported schemas may therefore use either text or numeric channel keys.
+- Students may use surrogate user IDs internally, but their SQL must still satisfy the app's username-based contract.
+
 ## SQL validation constraints
 - Server enforces: `MAX_SQL_TEMPLATE_LEN`, allowed first words, no `*` outside `COUNT(*)`, no `--` comments, no `DROP/ALTER/CREATE`.
 - Client should mirror: `MAX_SQL_LEN`/`SQL_LEN_WARN` match server max; UI hints reflect server restrictions; consider exposing max via `/api/sql_templates` to avoid drift.
