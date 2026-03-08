@@ -60,6 +60,36 @@ Key idea:
 - In parallel, students use pgAdmin or `psql` to create tables, constraints, and SQL objects in that same database.
 - The browser app and pgAdmin/`psql` are two different ways of working against the same group database.
 
+### Instructor setup
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+flowchart LR
+    Instructor["Instructor / course admin"]
+
+    subgraph PG["PostgreSQL server"]
+        Roles["Per-group DB roles"]
+        Databases["Private group databases"]
+        Roles --> Databases
+    end
+
+    subgraph Deploy["Shared app deployment"]
+        Config["App config<br/>username -> database mapping<br/>.env secrets + host/port"]
+        App["One shared Node.js / Express app<br/>student app + /instructor + /populate_db"]
+        Config --> App
+    end
+
+    Instructor --> Roles
+    Instructor --> Config
+    App -->|"Connects students to mapped group DBs"| Databases
+```
+
+Instructor setup has two outputs: isolated group databases in PostgreSQL and one shared app deployment configured to route each student login to the correct database.
+
+
 ## Student-Facing App Agnostic to Schema
 - The working web app frontend is **completely agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Schema ERD`](#schema-erd) for details).
   - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
