@@ -31,12 +31,15 @@ DELETE FROM channel_members WHERE username = $1 AND channel = $2;
 SELECT true FROM channel_members WHERE username = $1 AND channel = $2;
 
 -- messages_list
-SELECT
-username, body, created_at
-FROM chat_inbox
-WHERE channel_id = $1
-ORDER BY created_at ASC
-LIMIT 50;
+SELECT username, body, created_at
+FROM (
+  SELECT username, body, created_at
+  FROM chat_inbox
+  WHERE channel_id = $1
+  ORDER BY created_at DESC
+  LIMIT 50
+) t
+ORDER BY created_at ASC;
 
 -- message_post
 INSERT INTO chat_inbox(username, channel_id, body) VALUES ($1, $2, $3);

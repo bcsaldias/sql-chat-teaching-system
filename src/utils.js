@@ -77,26 +77,19 @@ ORDER BY c.name;`,
     "channel_join": "INSERT INTO channel_members(username, channel) VALUES ($1, $2) ON CONFLICT DO NOTHING;",
     "channel_leave": "DELETE FROM channel_members WHERE username = $1 AND channel = $2;",
     "member_check": "SELECT true FROM channel_members WHERE username = $1 AND channel = $2;",
-    "messages_list": `SELECT
-username, body, created_at
-FROM ${DEFAULT_MESSAGES_TABLE}
-WHERE channel_id = $1
-ORDER BY created_at ASC
-LIMIT 50;`,
+    "messages_list": `SELECT username, body, created_at
+FROM (
+  SELECT username, body, created_at
+  FROM ${DEFAULT_MESSAGES_TABLE}
+  WHERE channel_id = $1
+  ORDER BY created_at DESC
+  LIMIT 50
+) t
+ORDER BY created_at ASC;`,
     "message_post": `INSERT INTO ${DEFAULT_MESSAGES_TABLE}(username, channel_id, body) VALUES ($1, $2, $3);`,
     "channel_members_list": "SELECT username FROM channel_members WHERE channel = $1 ORDER BY username;",
     "channel_create": "INSERT INTO channels(name, description) VALUES ($1, $2);"
 };
-
-//     required:
-// `SELECT username, body, created_at
-// FROM chat_recent_messages
-// WHERE channel_id = $1
-// ORDER BY created_at DESC
-// LIMIT 50;`
-// required: "SELECT chat_post_message($1, $2, $3) AS message_id;"
-
-
 
 const PGDATABASES_MAPPING = {
     "grp01_ba": "__project_grp01_ba_app",
