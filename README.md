@@ -90,13 +90,6 @@ flowchart LR
 Instructor setup has two outputs: isolated group databases in PostgreSQL and one shared app deployment configured to route each student login to the correct database.
 
 
-## Student-Facing App Agnostic to Schema
-- The working web app frontend is **agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Reference ERD for Student Databases`](#reference-erd-for-student-databases) for details).
-  - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
-- In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
-  - Students can validate query accuracy by interacting with the app, as errors will manifest in broken features (e.g., failed logins or missing messages).
-  - Instructors should still manually verify the accuracy of student queries.
-
 ## Reference ERD for Student Databases
 
 Reference ERD for the baseline chat schema:
@@ -155,6 +148,13 @@ Implementation scope for students:
 - Code references: backend route [`GET /api/test_schema` in `src/server.js`](src/server.js#L936), frontend trigger [`testSchemaBtn` click handler in `public/app.js`](public/app.js#L389), and button markup [`Test Schema` in `public/index.html`](public/index.html#L217).
 - Beyond that check, students are expected to support only the SQL behavior defined in SQL Lab (query contract and required outputs).
 - Students are not required to implement features beyond what SQL Lab Tab and the system contract exercise; adding unsupported schema/features is discouraged.
+
+## Student-Facing App Agnostic to Schema
+- The working web app frontend is **agnostic** to the database schema. It only *probes* the schema when students click the `Test Schema` button to run initial [sanity checks](src/server.js#L987) (see [`Reference ERD for Student Databases`](#reference-erd-for-student-databases) for details).
+  - This button only checks for the presence of referential constraints between tables, since other column names are flexible. (See [GRADING.md](docs/GRADING.md) for sanity check details and grading workflow.)
+- In the [`SQL Lab tab`](#sql-lab-tab), the system only validates that query results have the expected column names, regardless of how the student achieves this. It does not check for query accuracy or business logic correctness—only the 'shape' of the returned table.
+  - Students can validate query accuracy by interacting with the app, as errors will manifest in broken features (e.g., failed logins or missing messages).
+  - Instructors should still manually verify the accuracy of student queries.
 
 ## SQL Lab Tab
 
