@@ -77,8 +77,8 @@ flowchart LR
     end
 
     subgraph Deploy["Shared app deployment"]
-        Config["App config<br/>username -> database mapping<br/>.env secrets + host/port"]
-        App["One shared Node.js / Express app<br/>student app + /instructor + /populate_db"]
+        Config["App config<br/>map username -> database<br/>.env secrets + host/port"]
+        App["One shared Node.js app<br/>student app + /instructor + /populate_db"]
         Config --> App
     end
 
