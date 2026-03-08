@@ -3,6 +3,7 @@ const {
   DEFAULT_SQL,
   SOLUTION_SQL,
   PGDATABASES_MAPPING,
+  loadChannelMembershipSchemaInfo,
   loadChatSchemaInfo,
   parseChannelId,
   DEFAULT_MESSAGES_TABLE,
@@ -20,7 +21,13 @@ require("dotenv").config();
 
 const app = express();
 
+function parseMilestoneEnv(rawValue, fallback) {
+  const parsed = Number.parseInt(String(rawValue ?? "").trim(), 10);
+  return Number.isInteger(parsed) && parsed >= 1 ? parsed : fallback;
+}
+
 const ALLOW_SUPERUSER_MODE = process.env.ALLOW_SUPERUSER_MODE === "true";
+const SANITY_CHECK_MILESTONE = parseMilestoneEnv(process.env.SANITY_CHECK_MILESTONE, 2);
 const HEALTHCHECK_DB_USER = process.env.HEALTHCHECK_DB_USER || "demo";
 const HEALTHCHECK_DB_PASS = process.env.HEALTHCHECK_DB_PASS || "demo";
 const GIT_SHA = process.env.GIT_SHA || readGitSha() || "unknown";
@@ -243,19 +250,38 @@ registerPopulateDbRoutes(app, {
 });
 
 // Schema cache
-async function ensureChatSchemaInfo(req) {
+function hasBaseChatSchemaInfo(info) {
+  return Boolean(info?.channels_pk && info?.membership_channels_fk && info?.users_pk && info?.membership_users_fk);
+}
+
+function hasMessageSchemaInfo(info) {
+  return Boolean(
+    info &&
+    Object.prototype.hasOwnProperty.call(info, "messages_table") &&
+    Object.prototype.hasOwnProperty.call(info, "messages_channels_fk") &&
+    Object.prototype.hasOwnProperty.call(info, "messages_users_fk")
+  );
+}
+
+async function ensureSchemaInfo(req, options = {}) {
+  const includeMessages = options.includeMessages !== false;
   const cached = req.session?.chatSchemaInfo;
-  if (cached?.channels_pk && cached?.membership_channels_fk && cached?.users_pk && cached?.membership_users_fk) {
+  if (hasBaseChatSchemaInfo(cached) && (!includeMessages || hasMessageSchemaInfo(cached))) {
     return cached;
   }
 
   const { dbUser, dbPass } = req.session;
   if (!dbUser || !dbPass) throw new Error("Not logged in.");
 
-  const info = await withDb(dbUser, dbPass, (client) => loadChatSchemaInfo(client));
+  const info = await withDb(
+    dbUser,
+    dbPass,
+    (client) => includeMessages ? loadChatSchemaInfo(client) : loadChannelMembershipSchemaInfo(client)
+  );
 
-  req.session.chatSchemaInfo = info;
-  return info;
+  const merged = { ...(cached || {}), ...info };
+  req.session.chatSchemaInfo = merged;
+  return merged;
 }
 
 // =====================================================
@@ -351,6 +377,7 @@ async function getStatusResponse(req, includeDetails) {
       deployedBy: DEPLOYED_BY,
       deployedAt: DEPLOYED_AT,
       deployedAtPt: formatPt(DEPLOYED_AT),
+      sanityCheckMilestone: SANITY_CHECK_MILESTONE,
       statsDbSource,
       statsDbUser,
       statsDatabase,
@@ -772,7 +799,7 @@ app.get("/api/channels", requireGroupLogin, requireChatUser, dbRoute(async (req,
 
 // Channel members
 app.get("/api/channels/members", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
   const { dbUser, dbPass } = req.session;
   const members = await withDb(dbUser, dbPass, async (client) => {
@@ -798,7 +825,7 @@ app.post("/api/channels/create", requireGroupLogin, requireChatUser, dbRoute(asy
 }, (e) => dbError("Failed to create channel.", String(e.message || e), 400, sqlErrorExtra("channel_create", e))));
 
 app.post("/api/channels/join", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, req.body?.channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   await withDb(dbUser, dbPass, async (client) => {
@@ -810,7 +837,7 @@ app.post("/api/channels/join", requireGroupLogin, requireChatUser, dbRoute(async
 
 app.post("/api/channels/leave", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
   const { channel_id } = req.body || {};
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   await withDb(dbUser, dbPass, async (client) => {
@@ -823,7 +850,7 @@ app.post("/api/channels/leave", requireGroupLogin, requireChatUser, dbRoute(asyn
 // Messages
 // --------------------
 app.get("/api/messages", requireGroupLogin, requireChatUser, dbRoute(async (req, res) => {
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, req.query.channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   const trace = [];
@@ -884,7 +911,7 @@ app.post("/api/message", requireGroupLogin, requireChatUser, dbRoute(async (req,
 
   if (!b) return res.status(400).json({ error: "body is required." });
 
-  await ensureChatSchemaInfo(req);
+  await ensureSchemaInfo(req);
   const cid = parseChannelId(req, channel_id);
   const { dbUser, dbPass, chatUsername } = req.session;
   const result = await withDb(dbUser, dbPass, async (client) => {
@@ -935,62 +962,78 @@ async function findFirstColumnByAliases(client, table, aliases) {
 
 app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
   const { dbUser, dbPass } = req.session;
-  const info = await ensureChatSchemaInfo(req);
+  const info = await ensureSchemaInfo(req, { includeMessages: SANITY_CHECK_MILESTONE >= 3 });
 
   const channelsPkCol = qIdent(info.channels_pk);
   const channelsFkCol = qIdent(info.membership_channels_fk);
   const usersPkCol = qIdent(info.users_pk);
   const usersFkCol = qIdent(info.membership_users_fk);
-  const messagesTableRaw = info.messages_table;
-  if (!messagesTableRaw) {
-    const aliases = Array.isArray(MESSAGES_TABLE_ALIASES) ? MESSAGES_TABLE_ALIASES : [];
-    const label = aliases.length
-      ? aliases.map((name) => `"${name}"`).join(" or ")
-      : `"${DEFAULT_MESSAGES_TABLE}"`;
-    throw new Error(`Messages table must be named ${label}.`);
+  let messagesTable = null;
+  let messagesChannelFkCol = null;
+  let messagesUserFkCol = null;
+
+  if (SANITY_CHECK_MILESTONE >= 3) {
+    const messagesTableRaw = info.messages_table;
+    if (!messagesTableRaw) {
+      const aliases = Array.isArray(MESSAGES_TABLE_ALIASES) ? MESSAGES_TABLE_ALIASES : [];
+      const label = aliases.length
+        ? aliases.map((name) => `"${name}"`).join(" or ")
+        : `"${DEFAULT_MESSAGES_TABLE}"`;
+      throw new Error(`Messages table must be named ${label}.`);
+    }
+
+    const messagesChannelFkRaw = info.messages_channels_fk;
+    const messagesUserFkRaw = info.messages_users_fk;
+    if (!messagesChannelFkRaw) {
+      throw new Error(`Messages table must include a foreign key to channels.`);
+    }
+    if (!messagesUserFkRaw) {
+      throw new Error(`Messages table must include a foreign key to users.`);
+    }
+
+    messagesTable = qIdent(messagesTableRaw);
+    messagesChannelFkCol = qIdent(messagesChannelFkRaw);
+    messagesUserFkCol = qIdent(messagesUserFkRaw);
   }
-  const messagesTable = qIdent(messagesTableRaw);
-  const messagesChannelFkRaw = info.messages_channels_fk;
-  const messagesUserFkRaw = info.messages_users_fk;
-  if (!messagesChannelFkRaw) {
-    throw new Error(`Messages table must include a foreign key to channels.`);
-  }
-  if (!messagesUserFkRaw) {
-    throw new Error(`Messages table must include a foreign key to users.`);
-  }
-  const messagesChannelFkCol = qIdent(messagesChannelFkRaw);
-  const messagesUserFkCol = qIdent(messagesUserFkRaw);
 
   await withDb(dbUser, dbPass, async (client) => {
-    const channelsNameRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_NAME_ALIASES);
-    if (!channelsNameRaw) {
-      throw new Error(
-        `Channels table must include a name column (${CHANNEL_NAME_ALIASES.join(", ")}). `
+    const sanityChecks = [];
+
+    if (SANITY_CHECK_MILESTONE >= 2) {
+      const channelsNameRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_NAME_ALIASES);
+      if (!channelsNameRaw) {
+        throw new Error(
+          `Channels table must include a name column (${CHANNEL_NAME_ALIASES.join(", ")}). `
+        );
+      }
+      const channelsDescRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_DESC_ALIASES);
+      if (!channelsDescRaw) {
+        throw new Error(
+          `Channels table must include a description column (${CHANNEL_DESC_ALIASES.join(", ")}). `
+        );
+      }
+      const passwordRaw = await findFirstColumnByAliases(client, "users", USER_PASSWORD_ALIASES);
+      if (!passwordRaw) {
+        throw new Error(
+          `Users table must include a password column (${USER_PASSWORD_ALIASES.join(", ")}). `
+        );
+      }
+
+      const channelsNameCol = qIdent(channelsNameRaw);
+      const channelsDescCol = qIdent(channelsDescRaw);
+      const passwordCol = qIdent(passwordRaw);
+      sanityChecks.push(
+        `select ${usersPkCol}, ${passwordCol} from users limit 0;`,
+        `select ${channelsPkCol}, ${channelsNameCol}, ${channelsDescCol} from channels limit 0;`,
+        `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`
       );
     }
-    const channelsDescRaw = await findFirstColumnByAliases(client, "channels", CHANNEL_DESC_ALIASES);
-    if (!channelsDescRaw) {
-      throw new Error(
-        `Channels table must include a description column (${CHANNEL_DESC_ALIASES.join(", ")}). `
+
+    if (SANITY_CHECK_MILESTONE >= 3) {
+      sanityChecks.push(
+        `select ${messagesUserFkCol}, ${messagesChannelFkCol} from ${messagesTable} limit 0;`
       );
     }
-    const passwordRaw = await findFirstColumnByAliases(client, "users", USER_PASSWORD_ALIASES);
-    if (!passwordRaw) {
-      throw new Error(
-        `Users table must include a password column (${USER_PASSWORD_ALIASES.join(", ")}). `
-      );
-    }
-    const channelsNameCol = qIdent(channelsNameRaw);
-    const channelsDescCol = qIdent(channelsDescRaw);
-    const passwordCol = qIdent(passwordRaw);
-    const sanityChecks = [
-      // MILESTONE 2
-      `select ${usersPkCol}, ${passwordCol} from users limit 0;`,
-      `select ${channelsPkCol}, ${channelsNameCol}, ${channelsDescCol} from channels limit 0;`,
-      `select ${usersFkCol}, ${channelsFkCol} from channel_members limit 0;`,
-      // MILESTONE 3
-      `select ${messagesUserFkCol}, ${messagesChannelFkCol} from ${messagesTable} limit 0;`,
-    ];
 
     for (const checkQuery of sanityChecks) {
       console.log("Testing", checkQuery);

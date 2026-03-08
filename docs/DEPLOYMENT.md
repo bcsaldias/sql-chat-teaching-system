@@ -36,7 +36,7 @@ curl -s http://localhost:3000/status
 Example:
 
 ```json
-{"ok":true,"gitSha":"<commit>","deployedBy":"<alias>","deployedAt":"<iso_timestamp>","deployedAtPt":"<pt_timestamp>","statsDbSource":"session|healthcheck",...}
+{"ok":true,"gitSha":"<commit>","deployedBy":"<alias>","deployedAt":"<iso_timestamp>","deployedAtPt":"<pt_timestamp>","sanityCheckMilestone":2,"statsDbSource":"session|healthcheck",...}
 ```
 
 Lightweight check:
@@ -57,7 +57,7 @@ Notes:
 - `/health` is a lightweight alias that returns only `{"ok": true|false}`.
 
 ### Status fields (summary)
-- Identity: `gitSha` (commit hash), `deployedBy` (deployer alias), `deployedAt` (process start ISO), `deployedAtPt` (same time in PT)
+- Identity: `gitSha` (commit hash), `deployedBy` (deployer alias), `deployedAt` (process start ISO), `deployedAtPt` (same time in PT), `sanityCheckMilestone` (active schema-check gate)
 - DB selection: `statsDbSource` (session vs healthcheck), `statsDbUser`/`statsDatabase` (credentials + DB used for stats),
   `sessionDbUser`/`sessionDatabase` (logged-in user/DB), `currentDatabase` (what the stats connection is actually on)
 - DB load: `dbConnectionsCurrentDb` (current DB connections), `dbConnectionsTotal` (server-wide total),
