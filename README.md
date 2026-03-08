@@ -37,9 +37,45 @@ What we provide:
 
 Reference ERD for the baseline chat schema:
 
-<p align="center">
+<!-- <p align="center">
   <img src="public/assets/basic_erd_opt0.png" alt="Basic ERD" />
-</p>
+</p> -->
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+erDiagram
+	direction LR
+	users {
+		varchar(30) username PK "length > 0"
+		varchar(128) password  ""
+	}
+
+	messages {
+		serial message_id PK ""
+		varchar(30) username FK "users(username), not null"
+		varchar(30) channel_id FK "channels(name), not null"
+		varchar(500) body  "length > 0"
+		timestamp created_at  "default now()"
+	}
+
+	channels {
+		varchar(30) name PK ""
+		varchar(150) description  ""
+	}
+
+	channel_members {
+		varchar(30) username PK,FK "users(username), not null"
+		varchar(30) channel PK,FK "channels(name), not null"
+	}
+
+	users||--o{messages:"sends"
+	messages}o--||channels:"sent_in"
+	users||--o{channel_members:"registered_as"
+	channels||--o{channel_members:"contains"
+```
 
 This ERD is a baseline teaching model, not a rigid requirement. The schema is intentionally flexible and can use natural keys (for example, channel name as PK) or surrogate keys (for example, `channel_id`/`user_id`), based on course coverage and instructor priorities.
 
