@@ -44,6 +44,11 @@ Key markdown docs for instructors:
 - Nginx (required for recommended HTTPS student-facing deployment)
 - Valid TLS certificate and private key for your server hostname
 
+This repo provisions roles and databases inside an existing PostgreSQL
+instance. It does not install PostgreSQL or start a database server for you, so
+decide the PostgreSQL host and listening port first and use those values for
+`PGHOST` and `PGPORT` below.
+
 ## Server setup for a new term (student-facing)
 
 ### 1) Install dependencies
@@ -192,6 +197,10 @@ pm2 logs info330 --lines 100
 ## Optional local development run
 
 If you are testing or prototyping changes locally (not student-facing):
+
+Before `npm start`, create `.env` and point `PGHOST` and `PGPORT` at a
+reachable PostgreSQL server. The app's local HTTP port (`3000` by default) is
+separate from the PostgreSQL port.
 
 ```bash
 npm start

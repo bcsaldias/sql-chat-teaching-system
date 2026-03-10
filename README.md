@@ -209,10 +209,12 @@ Share the student-facing project details with your class.
 
 
 
-## Instructor Docs
+## Instructor Setup Docs
 
 Detailed instructor setup, deployment steps, architecture notes, and readiness
 checklists now live in [`docs/HANDOFF.md`](docs/HANDOFF.md).
+
+Important: PostgreSQL must already be running and reachable; see [`docs/HANDOFF.md`](docs/HANDOFF.md) for `PGHOST`/`PGPORT` setup and provisioning.
 
 Quick links:
 
