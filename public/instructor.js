@@ -11,6 +11,8 @@ const historyLimit = el("historyLimit");
 const loadBtn = el("loadBtn");
 const clearBtn = el("clearBtn");
 const loadMsg = el("loadMsg");
+const milestoneNote = el("milestoneNote");
+const deployedAtPtNote = el("deployedAtPtNote");
 const summaryText = el("summaryText");
 const excludedDbUsersNote = el("excludedDbUsersNote");
 const excludedDbUsersInput = el("excludedDbUsersInput");
@@ -45,6 +47,54 @@ function setMsg(text, ok = false) {
   loadMsg.textContent = text || "";
   loadMsg.className = "msg " + (ok ? "ok" : "err");
   if (!text) loadMsg.className = "msg";
+}
+
+function renderSanityCheckMilestone(value) {
+  if (!milestoneNote) return;
+  if (Number.isInteger(value) && value >= 1) {
+    milestoneNote.innerHTML = `Test Schema <span class="statusValue">milestone ${value}</span>`;
+    return;
+  }
+  milestoneNote.innerHTML = `Test Schema milestone <span class="statusValue">Unavailable</span>`;
+}
+
+function formatStatusPt(iso, fallbackText) {
+  const text = String(fallbackText || "").trim();
+  const d = iso ? new Date(iso) : null;
+  if (d && !Number.isNaN(d.getTime())) {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    }).format(d) + " PT";
+  }
+  return text || "Unavailable";
+}
+
+function renderDeployedAtPt(iso, fallbackText) {
+  if (!deployedAtPtNote) return;
+  const text = formatStatusPt(iso, fallbackText);
+  deployedAtPtNote.innerHTML = `Deployed <span class="statusValue">${escapeHtml(text)}</span>`;
+}
+
+async function loadStatusMeta() {
+  try {
+    const r = await fetch("/status");
+    const data = await r.json().catch(() => ({}));
+    if (Number.isInteger(data?.sanityCheckMilestone) && data.sanityCheckMilestone >= 1) {
+      renderSanityCheckMilestone(data.sanityCheckMilestone);
+    } else {
+      renderSanityCheckMilestone(null);
+    }
+    renderDeployedAtPt(data?.deployedAt, data?.deployedAtPt);
+  } catch {
+    renderSanityCheckMilestone(null);
+    renderDeployedAtPt(null, null);
+  }
 }
 
 function escapeHtml(s) {
@@ -387,6 +437,7 @@ if (savedExcludedOverride) {
   if (excludedDbUsersInput) excludedDbUsersInput.value = tempExcludedDbUsers.join(", ");
   renderExcludedDbUsers(tempExcludedDbUsers, [], tempExcludedDbUsers, true);
 }
+loadStatusMeta();
 loadExcludedConfig();
 
 function applyTheme(theme) {

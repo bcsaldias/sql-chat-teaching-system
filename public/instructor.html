@@ -141,6 +141,35 @@
       font-weight: 600;
       margin-bottom: 6px;
     }
+
+    .statusMetaRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 2px 0 12px;
+    }
+
+    .statusChip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--panel2) 88%, transparent);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .statusChip .statusValue {
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
   </style>
 </head>
 
@@ -172,6 +201,10 @@
           Enter your instructor token to view the latest SQL Lab progress by group. This page never writes to student
           data.
         </p>
+        <div class="statusMetaRow">
+          <div class="statusChip" id="milestoneNote">Test Schema milestone <span class="statusValue">...</span></div>
+          <div class="statusChip" id="deployedAtPtNote">Deployed PT <span class="statusValue">...</span></div>
+        </div>
 
         <div class="grid2">
           <div class="field">
