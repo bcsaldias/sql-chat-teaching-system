@@ -185,6 +185,13 @@ cd "$APP_DIR"
 pm2 start "$PM2_CONFIG" --env production
 ```
 
+If you later change `.env` or `"$PM2_CONFIG"` and want PM2 to re-read that config file, run:
+
+```bash
+cd "$APP_DIR"
+pm2 restart "$PM2_CONFIG" --env production --update-env
+```
+
 Confirm it is online:
 
 ```bash
@@ -287,6 +294,13 @@ pm2 restart "$PM2_APP_NAME" --update-env
 ```
 
 That restarts only the named app, not every deployed environment.
+
+If you changed `.env` or `"$PM2_CONFIG"` itself, use the config-file restart instead:
+
+```bash
+cd "$APP_DIR"
+pm2 restart "$PM2_CONFIG" --env production --update-env
+```
 
 Run the smoke test for that hostname after restart.
 
