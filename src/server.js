@@ -33,6 +33,7 @@ const HEALTHCHECK_DB_USER = process.env.HEALTHCHECK_DB_USER || "demo";
 const HEALTHCHECK_DB_PASS = process.env.HEALTHCHECK_DB_PASS || "demo";
 const GIT_SHA = process.env.GIT_SHA || readGitSha() || "unknown";
 const DEPLOYED_BY = process.env.DEPLOYED_BY || "unknown";
+const TITLE_APPEND = String(process.env.TITLE || "").trim();
 const DEPLOYED_AT = new Date().toISOString();
 const SUBMISSIONS_DIR = process.env.SQL_SUBMISSIONS_DIR || path.join(__dirname, "..", "submissions");
 const PT_TZ = "America/Los_Angeles";
@@ -466,6 +467,10 @@ async function handleHealth(req, res) {
 
 app.get("/status", handleStatus);
 app.get("/health", handleHealth);
+app.get("/api/ui-config", (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ title: TITLE_APPEND });
+});
 
 
 

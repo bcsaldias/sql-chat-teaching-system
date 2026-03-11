@@ -41,6 +41,7 @@ const messagesEmptyState = el("messagesEmptyState");
 const userPill = el("userPill");
 const userLabel = el("userLabel");
 const userAvatar = el("userAvatar");
+const brandTitleEl = el("brandTitle");
 const brandSubEl = el("brandSub");
 const sqlTabTip = el("sqlTabTip");
 const openSidebarBtn = el("openSidebarBtn");
@@ -1298,11 +1299,33 @@ function showLogin() {
   loginPanel.classList.remove("hidden");
 }
 
+const BRAND_TITLE_DEFAULT = "SQL Chat";
 const BRAND_SUB_DEFAULT = "UW INFO 330 • SQL-driven messaging";
 // DB_USER_KEY is a session-only UI hint;
 // DB_IDENTITY_KEY persists to detect DB switches.
 const DB_USER_KEY = "info330_db_user";
 const DB_IDENTITY_KEY = "info330_db_identity";
+
+function formatBrandTitle(titleAppend) {
+  const suffix = String(titleAppend || "").trim();
+  return suffix ? `${BRAND_TITLE_DEFAULT} - ${suffix}` : BRAND_TITLE_DEFAULT;
+}
+
+function setBrandTitle(titleAppend) {
+  if (!brandTitleEl) return;
+  brandTitleEl.textContent = formatBrandTitle(titleAppend);
+}
+
+async function loadUiConfig() {
+  try {
+    const response = await fetch("/api/ui-config", { credentials: "same-origin" });
+    if (!response.ok) return;
+    const data = await response.json();
+    setBrandTitle(data?.title);
+  } catch {
+    // Keep the default title when config loading fails.
+  }
+}
 
 function getDbUserFromSession() {
   return sessionStorage.getItem(DB_USER_KEY);
@@ -2635,6 +2658,8 @@ if (themeSelect) {
 // Init
 // ----------------------------
 state.isDbConnected = false;
+setBrandTitle("");
+void loadUiConfig();
 renderGate();
 autosizeTextarea(composerInput);
 tryDBCredentials();
