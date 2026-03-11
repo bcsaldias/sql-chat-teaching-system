@@ -1308,7 +1308,7 @@ const DB_IDENTITY_KEY = "info330_db_identity";
 
 function formatBrandTitle(titleAppend) {
   const suffix = String(titleAppend || "").trim();
-  return suffix ? `${BRAND_TITLE_DEFAULT} - ${suffix}` : BRAND_TITLE_DEFAULT;
+  return suffix ? `${BRAND_TITLE_DEFAULT} – ${suffix}` : BRAND_TITLE_DEFAULT;
 }
 
 function setBrandTitle(titleAppend) {
