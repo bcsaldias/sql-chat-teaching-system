@@ -45,9 +45,6 @@ DB_PORT=5442
 
 PM2_APP_NAME=sql-chat-$SECTION_ID
 PM2_CONFIG=config/pm2/ecosystem.$SECTION_ID.config.js
-
-NGINX_SITE=/etc/nginx/sites-available/$HOSTNAME
-NGINX_LINK=/etc/nginx/sites-enabled/$HOSTNAME
 ```
 
 Change these values for each new environment:
@@ -204,33 +201,29 @@ pm2 startup
 
 Run the command printed by `pm2 startup` if this PM2 user has not already been configured for reboot survival.
 
-### 8) Create the Nginx site for the new hostname
+### 8) Sync and reload the INFO330 Nginx config if needed
 
-Use the checked-in INFO330 config as a reference:
+If the checked-in files under `config/nginx/` already match the live server and already include this hostname-to-port mapping, you can skip this step.
+
+If you changed the Nginx mapping for this environment, update the checked-in files first and then sync them to the live Nginx paths:
 
 ```bash
-sudo cp "$APP_DIR/config/nginx/site.conf" "$NGINX_SITE"
+sudo cp "$APP_DIR/config/nginx/site.conf" /etc/nginx/sites-available/is-info330.ischool.uw.edu
+sudo cp "$APP_DIR/config/nginx/info330-ssl.conf" /etc/nginx/snippets/info330-ssl.conf
+sudo cp "$APP_DIR/config/nginx/proxy-common.conf" /etc/nginx/snippets/proxy-common.conf
 ```
 
-Edit `"$NGINX_SITE"`:
+If you are using Jupyter for the main domain, also sync the Jupyter snippet:
 
-- keep only the `server` blocks you actually need for this environment
-- set `server_name` to the actual `HOSTNAME` value
-- change the app upstream to `proxy_pass http://127.0.0.1:<APP_PORT>;` using the actual `APP_PORT` value
-- keep the common `proxy-common.conf` include for app traffic
-- if you are not using Jupyter, remove the optional `8443` block
+```bash
+sudo cp "$APP_DIR/config/nginx/proxy-jupyter.conf" /etc/nginx/snippets/proxy-jupyter.conf
+```
 
-TLS settings now live in the included snippet instead of directly inside the site file. For the current INFO330 deployment, that snippet is `/etc/nginx/snippets/info330-ssl.conf`.
+For a new `HOSTNAME`, make sure `config/nginx/site.conf` already contains the matching `server_name` and `proxy_pass http://127.0.0.1:<APP_PORT>;` entry before you reload Nginx.
 
-If the new hostname uses the same certificate coverage, you can keep that include as-is. If it needs a different certificate, create a hostname-specific TLS snippet such as `/etc/nginx/snippets/$HOSTNAME-ssl.conf` and update the `include` line in `"$NGINX_SITE"` to point at it.
+TLS settings live in `/etc/nginx/snippets/info330-ssl.conf`. If the new hostname needs different certificate coverage, update that snippet or switch to a hostname-specific TLS snippet before you reload Nginx.
 
 For each new `HOSTNAME`, ask iSchool IT to provision the DNS record and TLS certificate coverage before you expect the public HTTPS URL to work.
-
-Enable the site:
-
-```bash
-sudo ln -s "$NGINX_SITE" "$NGINX_LINK"
-```
 
 Validate and reload:
 
