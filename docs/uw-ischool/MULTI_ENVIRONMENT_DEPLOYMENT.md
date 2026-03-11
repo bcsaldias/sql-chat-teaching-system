@@ -8,9 +8,11 @@ Use it like this:
 - add one new environment
 - if you need another environment later, repeat the same process with new parameter values
 
+Each hostname/domain should have its own checkout of the codebase. Do not place multiple hostnames under a shared app root.
+
 This keeps the student login flow unchanged: students still enter only DB username and password. The app-level `PGHOST` and `PGPORT` stay server-side.
 
-This guide assumes you are already using the main PM2/Nginx deployment model from [`HANDOFF.md`](HANDOFF.md).
+This guide assumes you are already using the main PM2/Nginx deployment model from [`../HANDOFF.md`](../HANDOFF.md).
 
 ## Why this pattern
 
@@ -29,14 +31,14 @@ Before you run anything, fill in these values for the one new environment you ar
 Example:
 
 ```bash
-SECTION_ID=sp26c
+SECTION_ID=sp26a
 DEPLOY_USER=belencsf
 REPO_URL=https://github.com/bcsaldias/sql-chat-teaching-system
 
-SECTION_ROOT=/srv/sql-chat/$SECTION_ID
-APP_DIR=$SECTION_ROOT/sql-chat-teaching-system
+HOSTNAME=$SECTION_ID.is-info330.ischool.uw.edu
+HOST_ROOT=/home/$DEPLOY_USER/$HOSTNAME
+APP_DIR=$HOST_ROOT/sql-chat-teaching-system
 
-HOSTNAME=sp26c.is-info330.ischool.uw.edu
 APP_PORT=3012
 DB_HOST=is-info330.ischool.uw.edu
 DB_PORT=5442
@@ -44,8 +46,8 @@ DB_PORT=5442
 PM2_APP_NAME=sql-chat-$SECTION_ID
 PM2_CONFIG=config/pm2/ecosystem.$SECTION_ID.config.js
 
-NGINX_SITE=/etc/nginx/sites-available/$PM2_APP_NAME.conf
-NGINX_LINK=/etc/nginx/sites-enabled/$PM2_APP_NAME.conf
+NGINX_SITE=/etc/nginx/sites-available/$HOSTNAME
+NGINX_LINK=/etc/nginx/sites-enabled/$HOSTNAME
 ```
 
 Change these values for each new environment:
@@ -53,6 +55,7 @@ Change these values for each new environment:
 - `SECTION_ID`
 - `DEPLOY_USER`
 - `HOSTNAME`
+- `HOST_ROOT` if you are not using `/home/$DEPLOY_USER/$HOSTNAME`
 - `APP_PORT`
 - `DB_HOST`
 - `DB_PORT`
@@ -63,38 +66,42 @@ The important uniqueness rules are:
 - `APP_PORT` must not match any other running environment
 - `DB_PORT` must match the PostgreSQL instance for this environment
 - `HOSTNAME` must be unique
+- `HOST_ROOT` must point to this hostname's checkout only
 - `PM2_APP_NAME` must be unique
 - `.env` secrets must be unique
 
 ## Directory Layout
 
-This guide uses `/srv/` for environment checkouts:
+This guide uses one host-specific directory per deployed hostname under the deploy user's home directory:
 
 ```text
-/srv/sql-chat/
-  sp26c/
-    sql-chat-teaching-system/
+/home/belencsf/is-info330.ischool.uw.edu/sql-chat-teaching-system/
+/home/belencsf/$SECTION_ID.is-info330.ischool.uw.edu/sql-chat-teaching-system/
 ```
 
-Do not move an already working site just to match this layout. Use this layout for the new environment you are adding.
+Do not move an already working site just to match this exact path shape. The important part is one code checkout per host/domain.
+
+## Current INFO330 Nginx Layout
+
+The checked-in Nginx files under [`../../config/nginx/`](../../config/nginx/) now describe the current INFO330 multi-host Nginx setup, not just a generic one-host example:
+
+- [`../../config/nginx/site.conf`](../../config/nginx/site.conf) routes the main host to port `3000`, `a.` to `3001`, `b.` to `3002`, `c.` to `3003`, and includes the optional Jupyter listener on `8443`
+- [`../../config/nginx/info330-ssl.conf`](../../config/nginx/info330-ssl.conf) holds the reusable TLS certificate and protocol settings
+- [`../../config/nginx/proxy-common.conf`](../../config/nginx/proxy-common.conf) holds the common reverse-proxy headers for the app
+- [`../../config/nginx/proxy-jupyter.conf`](../../config/nginx/proxy-jupyter.conf) holds the Jupyter-specific proxy settings
+
+If you change the live INFO330 Nginx layout, keep these files and this document in sync. If you are creating a brand new single-host environment, treat `site.conf` as a pattern to trim down rather than copying the entire multi-host file unchanged.
 
 ## Step-by-Step Setup for One New Environment
 
-### 1) Prepare the `/srv/` location and ownership
+### 1) Prepare the host-specific deploy directory and ownership
 
-Create the shared root if needed:
-
-```bash
-sudo mkdir -p /srv/sql-chat
-sudo chmod 755 /srv/sql-chat
-```
-
-Create the environment directory and assign it to the deploy user for that environment:
+Create the host root and assign it to the deploy user for that environment:
 
 ```bash
-sudo mkdir -p "$SECTION_ROOT"
-sudo chown "$DEPLOY_USER":"$DEPLOY_USER" "$SECTION_ROOT"
-sudo chmod 755 "$SECTION_ROOT"
+sudo mkdir -p "$HOST_ROOT"
+sudo chown "$DEPLOY_USER":"$DEPLOY_USER" "$HOST_ROOT"
+sudo chmod 755 "$HOST_ROOT"
 ```
 
 Run the app checkout and app-management steps as `DEPLOY_USER`. If you are not already that user, switch before continuing.
@@ -105,7 +112,7 @@ Run the app checkout and app-management steps as `DEPLOY_USER`. If you are not a
 git clone "$REPO_URL" "$APP_DIR"
 ```
 
-If you prefer, you can copy an existing deployed checkout instead. The important part is that the new environment has its own separate directory.
+If you prefer, you can copy an existing deployed checkout instead. The important part is that each hostname gets its own checkout.
 
 ### 3) Install dependencies
 
@@ -132,7 +139,7 @@ Set at least these values in `"$APP_DIR/.env"`:
 
 ```env
 NODE_ENV=production
-DEPLOYED_BY=sp26c
+DEPLOYED_BY=$DEPLOY_USER
 PORT=3012
 PGHOST=is-info330.ischool.uw.edu
 PGPORT=5442
@@ -153,7 +160,7 @@ These values must be unique per environment:
 
 ### 5) Confirm the DB mapping for this environment
 
-Review [`../src/utils.js`](../src/utils.js) and make sure `PGDATABASES_MAPPING` matches the usernames and database names for this environment.
+Review [`../../src/utils.js`](../../src/utils.js) and make sure `PGDATABASES_MAPPING` matches the usernames and database names for this environment.
 
 If this environment uses the same username pattern and database names as the existing site, this file may not need changes. If the new environment uses a different group set, update the mapping in this checkout only.
 
@@ -169,7 +176,7 @@ cp config/pm2/ecosystem.config.js "$PM2_CONFIG"
 Edit `"$APP_DIR/$PM2_CONFIG"` and change only the app name to the actual `PM2_APP_NAME` value:
 
 ```js
-name: "sql-chat-sp26c",
+name: "sql-chat-$SECTION_ID",
 ```
 
 Leave `script`, `cwd`, and `env_file` unchanged. In this checkout, `env_file` should still point to this checkout's `.env`.
@@ -199,7 +206,7 @@ Run the command printed by `pm2 startup` if this PM2 user has not already been c
 
 ### 8) Create the Nginx site for the new hostname
 
-Copy the template:
+Use the checked-in INFO330 config as a reference:
 
 ```bash
 sudo cp "$APP_DIR/config/nginx/site.conf" "$NGINX_SITE"
@@ -207,9 +214,15 @@ sudo cp "$APP_DIR/config/nginx/site.conf" "$NGINX_SITE"
 
 Edit `"$NGINX_SITE"`:
 
+- keep only the `server` blocks you actually need for this environment
 - set `server_name` to the actual `HOSTNAME` value
-- set certificate paths for that hostname
-- change `proxy_pass http://localhost:3000;` to `proxy_pass http://127.0.0.1:<APP_PORT>;` using the actual `APP_PORT` value
+- change the app upstream to `proxy_pass http://127.0.0.1:<APP_PORT>;` using the actual `APP_PORT` value
+- keep the common `proxy-common.conf` include for app traffic
+- if you are not using Jupyter, remove the optional `8443` block
+
+TLS settings now live in the included snippet instead of directly inside the site file. For the current INFO330 deployment, that snippet is `/etc/nginx/snippets/info330-ssl.conf`.
+
+If the new hostname uses the same certificate coverage, you can keep that include as-is. If it needs a different certificate, create a hostname-specific TLS snippet such as `/etc/nginx/snippets/$HOSTNAME-ssl.conf` and update the `include` line in `"$NGINX_SITE"` to point at it.
 
 For each new `HOSTNAME`, ask iSchool IT to provision the DNS record and TLS certificate coverage before you expect the public HTTPS URL to work.
 
@@ -288,6 +301,6 @@ Run the smoke test for that hostname after restart.
 
 - Do not ask students to enter DB port numbers in the UI for this deployment model.
 - Do not move an already working environment just to match the example paths in this doc.
-- Do not run multiple environments behind URL path prefixes like `/sp26c` unless you first refactor the app for a configurable base path.
+- Do not run multiple environments behind URL path prefixes like `/$SECTION_ID` unless you first refactor the app for a configurable base path.
 - Do not reuse the same `SESSION_SECRET` or `INSTRUCTOR_TOKEN` across environments.
-- Do not point multiple Nginx hostnames at the same local app port unless they truly share the same `.env` and DB backend.
+- Do not point multiple Nginx hostnames at the same local app port in this deployment model.
