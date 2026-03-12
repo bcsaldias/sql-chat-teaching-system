@@ -1307,7 +1307,24 @@ textarea:focus {
 .sqlSaveRow {
   display: flex;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
   margin: 4px 0 12px;
+}
+
+#sqlSaveBtn[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+
+#sqlDirtyState.sqlSaveState {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted2);
+}
+
+#sqlDirtyState.sqlSaveState.is-dirty {
+  color: color-mix(in srgb, var(--accent) 55%, var(--text));
 }
 
 #sqlLastSaved {

@@ -95,13 +95,15 @@ let tabChatBtn = null;
 let tabSqlBtn = null;
 let sqlPanel = null;
 let sqlLabList = null;
+let sqlSaveBtn = null;
 let sqlResetBtn = null;
 let sqlResetStatusBtn = null;
 let testSchemaBtn = null; // The idea of using schema got updated to database but keeping the variable name.
 let sqlLabMsg = null;
-let schemabMsg = null;
+let schemaMsg = null;
 let sqlProgressText = null;
 let sqlProgressBar = null;
+let sqlDirtyStateEl = null;
 let sqlLastSavedEl = null;
 let confettiShown = false;
 let sqlSubmissionInFlight = false;
@@ -335,16 +337,19 @@ function ensureSqlLabUI() {
   tabSqlBtn = el("tabSql");
   sqlPanel = el("panelSql");
   sqlLabList = el("sqlLabList");
+  sqlSaveBtn = el("sqlSaveBtn");
   sqlResetBtn = el("sqlResetBtn");
   sqlResetStatusBtn = el("sqlResetStatusBtn");
   testSchemaBtn = el("testSchemaBtn");
   sqlLabMsg = el("sqlLabMsg");
-  schemabMsg = el("schemabMsg");
+  schemaMsg = el("schemaMsg");
   sqlProgressText = el("sqlProgressText");
   sqlProgressBar = el("sqlProgressBar");
+  sqlDirtyStateEl = el("sqlDirtyState");
   sqlLastSavedEl = el("sqlLastSaved");
   installPrintGuard();
   updateSqlLastSaved(getSqlLastSaved());
+  setSqlDirtyState(false);
 
   const blockSqlCopy = (e) => {
     if (!document.documentElement.classList.contains("sql-mode")) return;
@@ -370,6 +375,18 @@ function ensureSqlLabUI() {
     await setTab("sql");
   });
 
+  sqlSaveBtn.addEventListener("click", async () => {
+    setMsg(sqlLabMsg, "");
+    sqlSaveBtn.disabled = true;
+    try {
+      const didSave = await saveSqlTemplatesIfChanged();
+      setMsg(sqlLabMsg, didSave ? "SQL saved." : "No unsaved SQL changes.", true);
+    } catch (e) {
+      setMsg(sqlLabMsg, e.message || String(e), false);
+      updateSqlDirtyState();
+    }
+  });
+
   sqlResetBtn.addEventListener("click", async () => {
     setMsg(sqlLabMsg, "");
     try {
@@ -390,12 +407,12 @@ function ensureSqlLabUI() {
   });
 
   testSchemaBtn.addEventListener("click", async () => {
-    setMsg(schemabMsg, "");
+    setMsg(schemaMsg, "");
     try {
-      setMsg(schemabMsg, "Database schema looks good.", true);
+      setMsg(schemaMsg, "Database schema looks good.", true);
       await api("/api/test_schema", "GET");
     } catch (e) {
-      setMsg(schemabMsg, e.message, false);
+      setMsg(schemaMsg, e.message, false);
     }
   });
 
@@ -462,9 +479,9 @@ async function setTab(which) {
       const didSave = await saveSqlTemplatesIfChanged();
       if (didSave) toast("SQL saved");
     } catch (e) {
-      // Make it visible AND prevent leaving SQL tab
       toast("SQL save failed: " + (e.message || e));
       setMsg(sqlLabMsg, e.message || String(e), false);
+      updateSqlDirtyState();
       return;
     }
   }
@@ -725,6 +742,9 @@ function renderSqlLab(templates) {
         const storedHeight = getSqlEditorHeight(item.key);
         const initialHeight = storedHeight ? `${storedHeight}px` : (item.textAreaHeight || "100px");
         editor.setSize(null, initialHeight);
+        editor.on("change", () => {
+          updateSqlDirtyState();
+        });
         sqlEditors.set(item.key, editor);
         requestAnimationFrame(() => editor.refresh());
 
@@ -763,6 +783,10 @@ function renderSqlLab(templates) {
 
         resizer.addEventListener("mousedown", onDown);
         resizer.addEventListener("touchstart", onDown, { passive: false });
+      } else {
+        ta.addEventListener("input", () => {
+          updateSqlDirtyState();
+        });
       }
 
       // TODO ADD green if correct query
@@ -897,29 +921,55 @@ async function loadSqlTemplates() {
   const data = await api("/api/sql_templates");
   applySqlContract(data.contract);
   // remember what we loaded so we can detect real edits later
-  _lastSqlTemplates = data.templates || {};
+  _lastSqlTemplates = normalizeSqlTemplates(data.templates || {});
   renderSqlLab(_lastSqlTemplates);
+  setSqlDirtyState(false);
 }
 
 
 
-function normalizeTemplates(obj) {
-  // trimEnd avoids “I had ; then newline” causing false diffs / extra semicolons
+function normalizeSqlTemplateValue(value) {
+  const trimmed = String(value ?? "").trimEnd();
+  return trimmed.endsWith(";") ? trimmed.slice(0, -1).trimEnd() : trimmed;
+}
+
+function normalizeSqlTemplates(obj) {
+  // ignore optional trailing semicolons so the dirty state matches server storage
   return Object.fromEntries(
-    Object.entries(obj || {}).map(([k, v]) => [k, String(v ?? "").trimEnd()])
+    Object.entries(obj || {}).map(([k, v]) => [k, normalizeSqlTemplateValue(v)])
   );
 }
 
-async function saveSqlTemplatesIfChanged() {
-  const templates = normalizeTemplates(collectSqlLabInputs());
-  const prev = normalizeTemplates(_lastSqlTemplates);
+function setSqlDirtyState(isDirty) {
+  const dirty = !!isDirty;
+  if (sqlSaveBtn) sqlSaveBtn.disabled = !dirty;
+  if (!sqlDirtyStateEl) return;
+  sqlDirtyStateEl.textContent = dirty ? "Save status: Unsaved changes" : "Save status: All changes saved";
+  sqlDirtyStateEl.classList.toggle("is-dirty", dirty);
+}
 
-  const changed = JSON.stringify(templates) !== JSON.stringify(prev);
-  if (!changed) return false;
+function updateSqlDirtyState() {
+  if (!sqlLabList) {
+    setSqlDirtyState(false);
+    return;
+  }
+  const current = normalizeSqlTemplates(collectSqlLabInputs());
+  const dirty = Object.keys(current).some((key) => current[key] !== normalizeSqlTemplateValue(_lastSqlTemplates?.[key]));
+  setSqlDirtyState(dirty);
+}
+
+async function saveSqlTemplatesIfChanged() {
+  const templates = normalizeSqlTemplates(collectSqlLabInputs());
+  const changed = Object.keys(templates).some((key) => templates[key] !== normalizeSqlTemplateValue(_lastSqlTemplates?.[key]));
+  if (!changed) {
+    setSqlDirtyState(false);
+    return false;
+  }
 
   await api("/api/sql_templates", "POST", { templates });
   _lastSqlTemplates = templates;
   setSqlLastSaved(new Date().toISOString());
+  setSqlDirtyState(false);
   return true;
 }
 
@@ -1162,7 +1212,7 @@ function resetSqlStatus() {
   resetSqlMeta();
   clearSqlLastSaved();
   clearToast();
-  setMsg(schemabMsg, "");
+  setMsg(schemaMsg, "");
   resetSqlEditorHeights();
   SQL_LAB_ITEMS.forEach((item) => {
     item.status = null;
