@@ -340,7 +340,7 @@ function ensureSqlLabUI() {
   sqlSaveBtn = el("sqlSaveBtn");
   sqlResetBtn = el("sqlResetBtn");
   sqlResetStatusBtn = el("sqlResetStatusBtn");
-  schemaTestBtn = el("testSchemaBtn");
+  schemaTestBtn = el("schemaTestBtn");
   sqlLabMsg = el("sqlLabMsg");
   schemaMsg = el("schemaMsg");
   sqlProgressText = el("sqlProgressText");
