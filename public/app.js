@@ -360,10 +360,12 @@ function ensureSqlLabUI() {
 
   // Events
   tabChatBtn.addEventListener("click", async () => {
+    if (tabChatBtn.classList.contains("active")) return;
     hideSqlTabTip();
     await setTab("chat");
   });
   tabSqlBtn.addEventListener("click", async () => {
+    if (tabSqlBtn.classList.contains("active")) return;
     hideSqlTabTip();
     await setTab("sql");
   });
