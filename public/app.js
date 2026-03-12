@@ -1344,16 +1344,6 @@ async function api(path, method = "GET", body = null) {
   return data;
 }
 
-function showChat() {
-  loginPanel.classList.add("hidden");
-  chatPanel.classList.remove("hidden");
-}
-
-function showLogin() {
-  chatPanel.classList.add("hidden");
-  loginPanel.classList.remove("hidden");
-}
-
 const BRAND_TITLE_DEFAULT = "SQL Chat";
 const BRAND_SUB_DEFAULT = "UW INFO 330 • SQL-driven messaging";
 // DB_USER_KEY is a session-only UI hint;
