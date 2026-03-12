@@ -204,7 +204,8 @@
               <li>Once you are confident your SQL queries are correct, paste them into the corresponding textareas below
                 and try out your app! You'll receive the user input or parameters for your SQL queries as $1, $2, etc.
                 (e.g., $1 = 3, $2 = 'username_value').</li>
-              <li>Queries are automatically saved when you switch back to the Chat tab.</li>
+              <li>Queries can be saved with <b>Save SQL</b> and are also automatically saved when you switch back to the Chat tab.</li>
+              <li>Unsaved local drafts may be restored after refresh/reopen, but you still need to click <b>Save SQL</b> (or leave the SQL tab) to sync them to the server.</li>
               <li>If any of the funcitonalities does not work as expected, check your database model in pgAdmin or
                 adjust your SQL queries.</li>
             </ul>
@@ -214,8 +215,8 @@
             Good luck, and happy SQL querying! <br><br>
           </div>
           <div class="row">
-            <button id="testSchemaBtn" class="btn btn-ghost" type="button">Test Schema</button>
-            <span id="schemabMsg" class="msg"></span>
+            <button id="schemaTestBtn" class="btn btn-ghost" type="button">Test Schema</button>
+            <span id="schemaMsg" class="msg"></span>
           </div>
 
           <div class="sqlProgress">
@@ -227,6 +228,8 @@
             </div>
           </div>
           <div class="sqlSaveRow">
+            <button id="sqlSaveBtn" class="btn btn-primary" type="button" disabled>Save SQL</button>
+            <span id="sqlDirtyState" class="sqlSaveState"></span>
             <div id="sqlLastSaved" class="mutedSmall">Last saved: —</div>
           </div>
 

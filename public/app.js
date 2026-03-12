@@ -95,13 +95,15 @@ let tabChatBtn = null;
 let tabSqlBtn = null;
 let sqlPanel = null;
 let sqlLabList = null;
+let sqlSaveBtn = null;
 let sqlResetBtn = null;
 let sqlResetStatusBtn = null;
-let testSchemaBtn = null; // The idea of using schema got updated to database but keeping the variable name.
+let schemaTestBtn = null;
 let sqlLabMsg = null;
-let schemabMsg = null;
+let schemaMsg = null;
 let sqlProgressText = null;
 let sqlProgressBar = null;
+let sqlDirtyStateEl = null;
 let sqlLastSavedEl = null;
 let confettiShown = false;
 let sqlSubmissionInFlight = false;
@@ -335,16 +337,19 @@ function ensureSqlLabUI() {
   tabSqlBtn = el("tabSql");
   sqlPanel = el("panelSql");
   sqlLabList = el("sqlLabList");
+  sqlSaveBtn = el("sqlSaveBtn");
   sqlResetBtn = el("sqlResetBtn");
   sqlResetStatusBtn = el("sqlResetStatusBtn");
-  testSchemaBtn = el("testSchemaBtn");
+  schemaTestBtn = el("schemaTestBtn");
   sqlLabMsg = el("sqlLabMsg");
-  schemabMsg = el("schemabMsg");
+  schemaMsg = el("schemaMsg");
   sqlProgressText = el("sqlProgressText");
   sqlProgressBar = el("sqlProgressBar");
+  sqlDirtyStateEl = el("sqlDirtyState");
   sqlLastSavedEl = el("sqlLastSaved");
   installPrintGuard();
   updateSqlLastSaved(getSqlLastSaved());
+  setSqlDirtyState(false);
 
   const blockSqlCopy = (e) => {
     if (!document.documentElement.classList.contains("sql-mode")) return;
@@ -370,10 +375,23 @@ function ensureSqlLabUI() {
     await setTab("sql");
   });
 
+  sqlSaveBtn.addEventListener("click", async () => {
+    setMsg(sqlLabMsg, "");
+    sqlSaveBtn.disabled = true;
+    try {
+      const didSave = await saveSqlTemplatesIfChanged();
+      setMsg(sqlLabMsg, didSave ? "SQL saved." : "No unsaved SQL changes.", true);
+    } catch (e) {
+      setMsg(sqlLabMsg, e.message || String(e), false);
+      updateSqlDirtyState();
+    }
+  });
+
   sqlResetBtn.addEventListener("click", async () => {
     setMsg(sqlLabMsg, "");
     try {
       await api("/api/sql_templates/reset", "POST");
+      clearSqlDraftState();
       resetSqlEditorHeights();
       await loadSqlTemplates();
       setMsg(sqlLabMsg, "Reset to SQL defaults.", true);
@@ -389,13 +407,13 @@ function ensureSqlLabUI() {
     setMsg(sqlLabMsg, "SQL status cleared.", true);
   });
 
-  testSchemaBtn.addEventListener("click", async () => {
-    setMsg(schemabMsg, "");
+  schemaTestBtn.addEventListener("click", async () => {
+    setMsg(schemaMsg, "");
     try {
-      setMsg(schemabMsg, "Database schema looks good.", true);
       await api("/api/test_schema", "GET");
+      setMsg(schemaMsg, "Database schema looks good.", true);
     } catch (e) {
-      setMsg(schemabMsg, e.message, false);
+      setMsg(schemaMsg, e.message, false);
     }
   });
 
@@ -462,9 +480,9 @@ async function setTab(which) {
       const didSave = await saveSqlTemplatesIfChanged();
       if (didSave) toast("SQL saved");
     } catch (e) {
-      // Make it visible AND prevent leaving SQL tab
       toast("SQL save failed: " + (e.message || e));
       setMsg(sqlLabMsg, e.message || String(e), false);
+      updateSqlDirtyState();
       return;
     }
   }
@@ -725,6 +743,9 @@ function renderSqlLab(templates) {
         const storedHeight = getSqlEditorHeight(item.key);
         const initialHeight = storedHeight ? `${storedHeight}px` : (item.textAreaHeight || "100px");
         editor.setSize(null, initialHeight);
+        editor.on("change", () => {
+          updateSqlDirtyState();
+        });
         sqlEditors.set(item.key, editor);
         requestAnimationFrame(() => editor.refresh());
 
@@ -763,6 +784,10 @@ function renderSqlLab(templates) {
 
         resizer.addEventListener("mousedown", onDown);
         resizer.addEventListener("touchstart", onDown, { passive: false });
+      } else {
+        ta.addEventListener("input", () => {
+          updateSqlDirtyState();
+        });
       }
 
       // TODO ADD green if correct query
@@ -897,29 +922,133 @@ async function loadSqlTemplates() {
   const data = await api("/api/sql_templates");
   applySqlContract(data.contract);
   // remember what we loaded so we can detect real edits later
-  _lastSqlTemplates = data.templates || {};
-  renderSqlLab(_lastSqlTemplates);
+  const serverTemplates = normalizeSqlTemplates(data.templates || {});
+  _lastSqlTemplates = serverTemplates;
+  const defaultTemplates = buildDefaultSqlTemplates(data.contract);
+  const draftState = loadSqlDraftState();
+  const draftTemplates = normalizeSqlTemplates(draftState?.templates || {});
+  const draftBaseline = normalizeSqlTemplates(draftState?.baseline || {});
+  const canRestoreDraft = Boolean(
+    draftState &&
+    templatesDiffer(draftTemplates, serverTemplates) &&
+    (!templatesDiffer(draftBaseline, serverTemplates) || !templatesDiffer(serverTemplates, defaultTemplates))
+  );
+  renderSqlLab(canRestoreDraft ? { ...serverTemplates, ...draftTemplates } : serverTemplates);
+  if (canRestoreDraft) {
+    setSqlDirtyState(true);
+    setMsg(sqlLabMsg, "Restored local draft. Save SQL to sync it to the server.", true);
+  } else if (draftState && templatesDiffer(draftTemplates, serverTemplates)) {
+    setSqlDirtyState(false);
+    setMsg(sqlLabMsg, "Server-saved SQL changed, so the local draft was not restored automatically.", false);
+  } else {
+    clearSqlDraftState();
+    setSqlDirtyState(false);
+  }
 }
 
 
 
-function normalizeTemplates(obj) {
-  // trimEnd avoids “I had ; then newline” causing false diffs / extra semicolons
+function normalizeSqlTemplateValue(value) {
+  const trimmed = String(value ?? "").trimEnd();
+  return trimmed.endsWith(";") ? trimmed.slice(0, -1).trimEnd() : trimmed;
+}
+
+function normalizeSqlTemplates(obj) {
+  // ignore optional trailing semicolons so the dirty state matches server storage
   return Object.fromEntries(
-    Object.entries(obj || {}).map(([k, v]) => [k, String(v ?? "").trimEnd()])
+    Object.entries(obj || {}).map(([k, v]) => [k, normalizeSqlTemplateValue(v)])
   );
 }
 
-async function saveSqlTemplatesIfChanged() {
-  const templates = normalizeTemplates(collectSqlLabInputs());
-  const prev = normalizeTemplates(_lastSqlTemplates);
+function buildDefaultSqlTemplates(contract) {
+  const out = {};
+  for (const [key, entry] of Object.entries(contract || {})) {
+    const words = Array.isArray(entry?.firstWords) ? entry.firstWords : [entry?.firstWords];
+    const first = String(words.find(Boolean) || "select").trim().toUpperCase();
+    out[key] = `${first} ''`;
+  }
+  return normalizeSqlTemplates(out);
+}
 
-  const changed = JSON.stringify(templates) !== JSON.stringify(prev);
-  if (!changed) return false;
+function templatesDiffer(left, right) {
+  const a = normalizeSqlTemplates(left);
+  const b = normalizeSqlTemplates(right);
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of keys) {
+    if (normalizeSqlTemplateValue(a[key]) !== normalizeSqlTemplateValue(b[key])) return true;
+  }
+  return false;
+}
+
+function getSqlDraftStorageKey() {
+  const dbUser = getDbUserFromSession() || getDbIdentity();
+  return dbUser ? `info330_sql_draft:${dbUser}` : null;
+}
+
+function loadSqlDraftState() {
+  const key = getSqlDraftStorageKey();
+  if (!key) return null;
+  const draftState = loadLocal(key, null);
+  if (!draftState || typeof draftState !== "object") return null;
+  return {
+    templates: normalizeSqlTemplates(draftState.templates || {}),
+    baseline: normalizeSqlTemplates(draftState.baseline || {})
+  };
+}
+
+function saveSqlDraftState(templates) {
+  const key = getSqlDraftStorageKey();
+  if (!key) return;
+  saveLocal(key, {
+    templates: normalizeSqlTemplates(templates),
+    baseline: normalizeSqlTemplates(_lastSqlTemplates || {})
+  });
+}
+
+function clearSqlDraftState() {
+  const key = getSqlDraftStorageKey();
+  if (!key) return;
+  try { localStorage.removeItem(key); } catch { }
+}
+
+function hasUnsavedSqlChanges(templates) {
+  return templatesDiffer(templates, _lastSqlTemplates);
+}
+
+function setSqlDirtyState(isDirty) {
+  const dirty = !!isDirty;
+  if (sqlSaveBtn) sqlSaveBtn.disabled = !dirty;
+  if (!sqlDirtyStateEl) return;
+  sqlDirtyStateEl.textContent = dirty ? "Save status: Unsaved changes" : "Save status: All changes saved";
+  sqlDirtyStateEl.classList.toggle("is-dirty", dirty);
+}
+
+function updateSqlDirtyState() {
+  if (!sqlLabList) {
+    setSqlDirtyState(false);
+    return;
+  }
+  const current = collectSqlLabInputs();
+  const dirty = hasUnsavedSqlChanges(current);
+  setSqlDirtyState(dirty);
+  if (dirty) saveSqlDraftState(current);
+  else clearSqlDraftState();
+}
+
+async function saveSqlTemplatesIfChanged() {
+  const templates = normalizeSqlTemplates(collectSqlLabInputs());
+  const changed = hasUnsavedSqlChanges(templates);
+  if (!changed) {
+    clearSqlDraftState();
+    setSqlDirtyState(false);
+    return false;
+  }
 
   await api("/api/sql_templates", "POST", { templates });
   _lastSqlTemplates = templates;
+  clearSqlDraftState();
   setSqlLastSaved(new Date().toISOString());
+  setSqlDirtyState(false);
   return true;
 }
 
@@ -1162,7 +1291,7 @@ function resetSqlStatus() {
   resetSqlMeta();
   clearSqlLastSaved();
   clearToast();
-  setMsg(schemabMsg, "");
+  setMsg(schemaMsg, "");
   resetSqlEditorHeights();
   SQL_LAB_ITEMS.forEach((item) => {
     item.status = null;
@@ -1289,16 +1418,6 @@ async function api(path, method = "GET", body = null) {
     throw err;
   }
   return data;
-}
-
-function showChat() {
-  loginPanel.classList.add("hidden");
-  chatPanel.classList.remove("hidden");
-}
-
-function showLogin() {
-  chatPanel.classList.add("hidden");
-  loginPanel.classList.remove("hidden");
 }
 
 const BRAND_TITLE_DEFAULT = "SQL Chat";
