@@ -1309,7 +1309,7 @@ textarea:focus {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin: 4px 0 12px;
+  margin: 16px 0 12px;
 }
 
 #sqlSaveBtn[disabled] {
