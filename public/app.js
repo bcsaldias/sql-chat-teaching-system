@@ -98,7 +98,7 @@ let sqlLabList = null;
 let sqlSaveBtn = null;
 let sqlResetBtn = null;
 let sqlResetStatusBtn = null;
-let testSchemaBtn = null; // The idea of using schema got updated to database but keeping the variable name.
+let schemaTestBtn = null;
 let sqlLabMsg = null;
 let schemaMsg = null;
 let sqlProgressText = null;
@@ -340,7 +340,7 @@ function ensureSqlLabUI() {
   sqlSaveBtn = el("sqlSaveBtn");
   sqlResetBtn = el("sqlResetBtn");
   sqlResetStatusBtn = el("sqlResetStatusBtn");
-  testSchemaBtn = el("testSchemaBtn");
+  schemaTestBtn = el("testSchemaBtn");
   sqlLabMsg = el("sqlLabMsg");
   schemaMsg = el("schemaMsg");
   sqlProgressText = el("sqlProgressText");
@@ -406,11 +406,11 @@ function ensureSqlLabUI() {
     setMsg(sqlLabMsg, "SQL status cleared.", true);
   });
 
-  testSchemaBtn.addEventListener("click", async () => {
+  schemaTestBtn.addEventListener("click", async () => {
     setMsg(schemaMsg, "");
     try {
-      setMsg(schemaMsg, "Database schema looks good.", true);
       await api("/api/test_schema", "GET");
+      setMsg(schemaMsg, "Database schema looks good.", true);
     } catch (e) {
       setMsg(schemaMsg, e.message, false);
     }
@@ -940,6 +940,11 @@ function normalizeSqlTemplates(obj) {
   );
 }
 
+function hasUnsavedSqlChanges(templates) {
+  const current = normalizeSqlTemplates(templates);
+  return Object.keys(current).some((key) => current[key] !== normalizeSqlTemplateValue(_lastSqlTemplates?.[key]));
+}
+
 function setSqlDirtyState(isDirty) {
   const dirty = !!isDirty;
   if (sqlSaveBtn) sqlSaveBtn.disabled = !dirty;
@@ -953,14 +958,12 @@ function updateSqlDirtyState() {
     setSqlDirtyState(false);
     return;
   }
-  const current = normalizeSqlTemplates(collectSqlLabInputs());
-  const dirty = Object.keys(current).some((key) => current[key] !== normalizeSqlTemplateValue(_lastSqlTemplates?.[key]));
-  setSqlDirtyState(dirty);
+  setSqlDirtyState(hasUnsavedSqlChanges(collectSqlLabInputs()));
 }
 
 async function saveSqlTemplatesIfChanged() {
   const templates = normalizeSqlTemplates(collectSqlLabInputs());
-  const changed = Object.keys(templates).some((key) => templates[key] !== normalizeSqlTemplateValue(_lastSqlTemplates?.[key]));
+  const changed = hasUnsavedSqlChanges(templates);
   if (!changed) {
     setSqlDirtyState(false);
     return false;
