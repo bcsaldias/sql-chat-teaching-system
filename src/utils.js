@@ -208,7 +208,10 @@ async function loadChatSchemaInfo(client) {
         messages_channels_fk_type,
         messages_users_fk,
         messages_users_fk_type,
-    } = await loadMessagesKeys(client, messages_table);
+    } = await loadMessagesKeys(client, messages_table, {
+        membership_channels_fk,
+        membership_users_fk
+    });
 
     return {
         channels_pk,
@@ -265,8 +268,10 @@ async function resolveMessagesTableName(client) {
     return rows[0]?.table_name || null;
 }
 
-async function loadMessagesKeys(client, tableName) {
+async function loadMessagesKeys(client, tableName, options = {}) {
     const name = String(tableName || "").trim();
+    const membershipChannelsFk = String(options.membership_channels_fk || "").trim() || null;
+    const membershipUsersFk = String(options.membership_users_fk || "").trim() || null;
     if (!name) {
         return {
             messages_channels_fk: null,
@@ -278,10 +283,10 @@ async function loadMessagesKeys(client, tableName) {
 
     const { rows } = await client.query(`
     SELECT
-      msg_chan_fk.col AS messages_channels_fk,
-      msg_chan_fk.typ AS messages_channels_fk_type,
-      msg_user_fk.col AS messages_users_fk,
-      msg_user_fk.typ AS messages_users_fk_type
+      COALESCE(msg_chan_fk.col, msg_member_chan_fk.col) AS messages_channels_fk,
+      COALESCE(msg_chan_fk.typ, msg_member_chan_fk.typ) AS messages_channels_fk_type,
+      COALESCE(msg_user_fk.col, msg_member_user_fk.col) AS messages_users_fk,
+      COALESCE(msg_user_fk.typ, msg_member_user_fk.typ) AS messages_users_fk_type
     FROM (SELECT 1) base
     LEFT JOIN LATERAL (
       SELECT a.attname AS col, a.atttypid::regtype::text AS typ
@@ -312,8 +317,46 @@ async function loadMessagesKeys(client, tableName) {
         AND c.contype = 'f'
       ORDER BY k.ord
       LIMIT 1
-    ) msg_user_fk ON true;
-  `, [name]);
+    ) msg_user_fk ON true
+    LEFT JOIN LATERAL (
+      SELECT src.attname AS col, src.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN pg_class rt     ON rt.oid = c.confrelid
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY src_key(attnum, ord) ON true
+      JOIN LATERAL unnest(c.confkey) WITH ORDINALITY ref_key(attnum, ord) ON ref_key.ord = src_key.ord
+      JOIN pg_attribute src ON src.attrelid = t.oid AND src.attnum = src_key.attnum
+      JOIN pg_attribute ref ON ref.attrelid = rt.oid AND ref.attnum = ref_key.attnum
+      WHERE n.nspname = 'public'
+        AND t.relname = $1
+        AND rt.relname = 'channel_members'
+        AND c.contype = 'f'
+        AND $2::text IS NOT NULL
+        AND ref.attname = $2
+      ORDER BY src_key.ord
+      LIMIT 1
+    ) msg_member_chan_fk ON true
+    LEFT JOIN LATERAL (
+      SELECT src.attname AS col, src.atttypid::regtype::text AS typ
+      FROM pg_constraint c
+      JOIN pg_class t      ON t.oid = c.conrelid
+      JOIN pg_namespace n  ON n.oid = t.relnamespace
+      JOIN pg_class rt     ON rt.oid = c.confrelid
+      JOIN LATERAL unnest(c.conkey) WITH ORDINALITY src_key(attnum, ord) ON true
+      JOIN LATERAL unnest(c.confkey) WITH ORDINALITY ref_key(attnum, ord) ON ref_key.ord = src_key.ord
+      JOIN pg_attribute src ON src.attrelid = t.oid AND src.attnum = src_key.attnum
+      JOIN pg_attribute ref ON ref.attrelid = rt.oid AND ref.attnum = ref_key.attnum
+      WHERE n.nspname = 'public'
+        AND t.relname = $1
+        AND rt.relname = 'channel_members'
+        AND c.contype = 'f'
+        AND $3::text IS NOT NULL
+        AND ref.attname = $3
+      ORDER BY src_key.ord
+      LIMIT 1
+    ) msg_member_user_fk ON true;
+  `, [name, membershipChannelsFk, membershipUsersFk]);
 
     const row = rows[0] || {};
     return {

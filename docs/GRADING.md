@@ -19,7 +19,7 @@ Recommended values:
 
 - `SANITY_CHECK_MILESTONE=1`: skip milestone 2+ schema sanity checks
 - `SANITY_CHECK_MILESTONE=2`: require `users`, `channels`, and `channel_members`
-- `SANITY_CHECK_MILESTONE=3`: also require the messages table and its user/channel foreign keys
+- `SANITY_CHECK_MILESTONE=3`: also require the messages table plus resolvable user/channel keys, either as direct foreign keys to `users` and `channels` or through a composite foreign key to `channel_members`
 
 Default behavior is milestone `2` if the env var is unset or invalid.
 

@@ -1031,10 +1031,10 @@ app.get("/api/test_schema", requireGroupLogin, dbRoute(async (req, res) => {
     const messagesChannelFkRaw = info.messages_channels_fk;
     const messagesUserFkRaw = info.messages_users_fk;
     if (!messagesChannelFkRaw) {
-      throw new Error(`Messages table must include a foreign key to channels.`);
+      throw new Error(`Messages table must include a foreign key path to channels (directly or via channel_members).`);
     }
     if (!messagesUserFkRaw) {
-      throw new Error(`Messages table must include a foreign key to users.`);
+      throw new Error(`Messages table must include a foreign key path to users (directly or via channel_members).`);
     }
 
     messagesTable = qIdent(messagesTableRaw);
