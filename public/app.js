@@ -391,6 +391,7 @@ function ensureSqlLabUI() {
     setMsg(sqlLabMsg, "");
     try {
       await api("/api/sql_templates/reset", "POST");
+      clearSqlDraftState();
       resetSqlEditorHeights();
       await loadSqlTemplates();
       setMsg(sqlLabMsg, "Reset to SQL defaults.", true);
@@ -921,9 +922,28 @@ async function loadSqlTemplates() {
   const data = await api("/api/sql_templates");
   applySqlContract(data.contract);
   // remember what we loaded so we can detect real edits later
-  _lastSqlTemplates = normalizeSqlTemplates(data.templates || {});
-  renderSqlLab(_lastSqlTemplates);
-  setSqlDirtyState(false);
+  const serverTemplates = normalizeSqlTemplates(data.templates || {});
+  _lastSqlTemplates = serverTemplates;
+  const defaultTemplates = buildDefaultSqlTemplates(data.contract);
+  const draftState = loadSqlDraftState();
+  const draftTemplates = normalizeSqlTemplates(draftState?.templates || {});
+  const draftBaseline = normalizeSqlTemplates(draftState?.baseline || {});
+  const canRestoreDraft = Boolean(
+    draftState &&
+    templatesDiffer(draftTemplates, serverTemplates) &&
+    (!templatesDiffer(draftBaseline, serverTemplates) || !templatesDiffer(serverTemplates, defaultTemplates))
+  );
+  renderSqlLab(canRestoreDraft ? { ...serverTemplates, ...draftTemplates } : serverTemplates);
+  if (canRestoreDraft) {
+    setSqlDirtyState(true);
+    setMsg(sqlLabMsg, "Restored local draft. Save SQL to sync it to the server.", true);
+  } else if (draftState && templatesDiffer(draftTemplates, serverTemplates)) {
+    setSqlDirtyState(false);
+    setMsg(sqlLabMsg, "Server-saved SQL changed, so the local draft was not restored automatically.", false);
+  } else {
+    clearSqlDraftState();
+    setSqlDirtyState(false);
+  }
 }
 
 
@@ -940,9 +960,59 @@ function normalizeSqlTemplates(obj) {
   );
 }
 
+function buildDefaultSqlTemplates(contract) {
+  const out = {};
+  for (const [key, entry] of Object.entries(contract || {})) {
+    const words = Array.isArray(entry?.firstWords) ? entry.firstWords : [entry?.firstWords];
+    const first = String(words.find(Boolean) || "select").trim().toUpperCase();
+    out[key] = `${first} ''`;
+  }
+  return normalizeSqlTemplates(out);
+}
+
+function templatesDiffer(left, right) {
+  const a = normalizeSqlTemplates(left);
+  const b = normalizeSqlTemplates(right);
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of keys) {
+    if (normalizeSqlTemplateValue(a[key]) !== normalizeSqlTemplateValue(b[key])) return true;
+  }
+  return false;
+}
+
+function getSqlDraftStorageKey() {
+  const dbUser = getDbUserFromSession() || getDbIdentity();
+  return dbUser ? `info330_sql_draft:${dbUser}` : null;
+}
+
+function loadSqlDraftState() {
+  const key = getSqlDraftStorageKey();
+  if (!key) return null;
+  const draftState = loadLocal(key, null);
+  if (!draftState || typeof draftState !== "object") return null;
+  return {
+    templates: normalizeSqlTemplates(draftState.templates || {}),
+    baseline: normalizeSqlTemplates(draftState.baseline || {})
+  };
+}
+
+function saveSqlDraftState(templates) {
+  const key = getSqlDraftStorageKey();
+  if (!key) return;
+  saveLocal(key, {
+    templates: normalizeSqlTemplates(templates),
+    baseline: normalizeSqlTemplates(_lastSqlTemplates || {})
+  });
+}
+
+function clearSqlDraftState() {
+  const key = getSqlDraftStorageKey();
+  if (!key) return;
+  try { localStorage.removeItem(key); } catch { }
+}
+
 function hasUnsavedSqlChanges(templates) {
-  const current = normalizeSqlTemplates(templates);
-  return Object.keys(current).some((key) => current[key] !== normalizeSqlTemplateValue(_lastSqlTemplates?.[key]));
+  return templatesDiffer(templates, _lastSqlTemplates);
 }
 
 function setSqlDirtyState(isDirty) {
@@ -958,19 +1028,25 @@ function updateSqlDirtyState() {
     setSqlDirtyState(false);
     return;
   }
-  setSqlDirtyState(hasUnsavedSqlChanges(collectSqlLabInputs()));
+  const current = collectSqlLabInputs();
+  const dirty = hasUnsavedSqlChanges(current);
+  setSqlDirtyState(dirty);
+  if (dirty) saveSqlDraftState(current);
+  else clearSqlDraftState();
 }
 
 async function saveSqlTemplatesIfChanged() {
   const templates = normalizeSqlTemplates(collectSqlLabInputs());
   const changed = hasUnsavedSqlChanges(templates);
   if (!changed) {
+    clearSqlDraftState();
     setSqlDirtyState(false);
     return false;
   }
 
   await api("/api/sql_templates", "POST", { templates });
   _lastSqlTemplates = templates;
+  clearSqlDraftState();
   setSqlLastSaved(new Date().toISOString());
   setSqlDirtyState(false);
   return true;
