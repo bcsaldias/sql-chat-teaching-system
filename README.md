@@ -204,10 +204,10 @@ Share the student-facing project details with your class.
 
 | Version | Term and Context | Course | Instructor | Students | Link | Notes |
 |---------|---|---|---|---|---|---|
-| [v1.0.0](https://github.com/bcsaldias/sql-chat-teaching-system/releases/tag/v1.0.0) | Winter 2026, University of Washington | INFO 330 B | belencsf@uw.edu | 65 | <a href="https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE" target="_blank" rel="noopener noreferrer">Handout</a> | Initial release
-| [v1.0.0](https://github.com/bcsaldias/sql-chat-teaching-system/releases/tag/v1.0.0) | Winter 2026, University of Washington | INFO 330 C | belencsf@uw.edu | 65 | 〃 | Initial release
+| [v1.0.0](https://github.com/bcsaldias/sql-chat-teaching-system/releases/tag/v1.0.0) | Winter 2026, University of Washington | INFO 330 B | Belén Saldías (belencsf@uw.edu) | 65 | <a href="https://docs.google.com/document/d/1upYG42Qma86mFbseEzACk7b-XjN6ToJfg_MIDR6ffxE" target="_blank" rel="noopener noreferrer">Handout</a> | Initial release
+| [v1.0.0](https://github.com/bcsaldias/sql-chat-teaching-system/releases/tag/v1.0.0) | Winter 2026, University of Washington | INFO 330 C | Belén Saldías (belencsf@uw.edu) | 65 | 〃 | Initial release
 | [v1.0.0](https://github.com/bcsaldias/sql-chat-teaching-system/releases/tag/v1.0.0) | Spring 2026, University of Washington | INFO 330 C | Lucy Lu Wang (lucylw@uw.edu) | 71 | 〃 | Initial release
-| [v1.0.0](https://github.com/bcsaldias/sql-chat-teaching-system/releases/tag/v1.0.0) | Spring 2026, University of Washington | INFO 330 C | Juandalyn Burke (jcburke@uw.edu) | 64 | 〃 | Initial release
+| [v1.0.0](https://github.com/bcsaldias/sql-chat-teaching-system/releases/tag/v1.0.0) | Spring 2026, University of Washington | INFO 330 B | Juandalyn Burke (jcburke@uw.edu) | 64 | 〃 | Initial release
 
 
 
